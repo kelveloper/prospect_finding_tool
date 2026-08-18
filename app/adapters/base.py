@@ -27,9 +27,36 @@ class RawProviderRecord:
     license_status: str | None = None
 
 
+@dataclass(frozen=True)
+class EnrichmentRecord:
+    """A public-record event about a person, matched to prospects by name.
+
+    Drives the OWNERSHIP / PROPERTY_EVENT / CAREER_ADVANCEMENT signals.
+    Unlike RawProviderRecord it does not establish identity — it only
+    enriches an already-resolved prospect.
+    """
+    source: str                       # "il_sos" | "cook_county" | "affiliations"
+    source_record_id: str
+    kind: str                         # "ENTITY" | "PROPERTY" | "CAREER"
+    owner_first_name: str
+    owner_last_name: str
+    state: str | None = None
+    event_date: date | None = None
+    # ENTITY fields
+    entity_name: str | None = None
+    entity_type: str | None = None    # e.g. "PLLC", "LLC"
+    entity_status: str | None = None
+    # PROPERTY fields
+    property_address: str | None = None
+    sale_price: int | None = None
+    # CAREER fields
+    role_title: str | None = None
+    organization: str | None = None
+
+
 class BaseDataSource(ABC):
     name: str
 
     @abstractmethod
-    def fetch(self) -> Iterable[RawProviderRecord]:
+    def fetch(self) -> Iterable[RawProviderRecord | EnrichmentRecord]:
         """Yield normalized records from the underlying source."""

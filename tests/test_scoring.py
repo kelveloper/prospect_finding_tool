@@ -54,7 +54,7 @@ def test_recent_license_drives_timing_score():
         profile(license_status="ACTIVE", license_issue_date=date(2018, 5, 1)), REF
     )
     assert engine.score(recent).timing_score > engine.score(old).timing_score
-    assert engine.score(recent).timing_score >= 70
+    assert engine.score(recent).timing_score >= 40
 
 
 def test_scores_bounded_0_100():

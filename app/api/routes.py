@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from app.adapters import IDFPRDataSource, NPIDataSource
+from app.adapters import IDFPRDataSource, ILSoSDataSource, NPIDataSource
 from app.database import get_db
 from app.feedback.service import FeedbackService, ProspectNotFoundError
 from app.schemas import (
@@ -19,7 +19,9 @@ router = APIRouter()
 
 @router.post("/ingest/run", response_model=IngestResult)
 def run_ingestion(db: Session = Depends(get_db)):
-    pipeline = IngestionPipeline(sources=[NPIDataSource(), IDFPRDataSource()])
+    pipeline = IngestionPipeline(
+        sources=[NPIDataSource(), IDFPRDataSource(), ILSoSDataSource()]
+    )
     result = pipeline.run(db)
     return IngestResult(**result.__dict__)
 

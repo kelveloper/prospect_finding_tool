@@ -1,0 +1,29 @@
+[
+  {
+    "announcement_id": "ANN-3001",
+    "first_name": "Priya",
+    "last_name": "Raman",
+    "state": "IL",
+    "role_title": "Partner",
+    "organization": "Lakeview Plastic Surgery Group",
+    "announced_date": "2026-04-15"
+  },
+  {
+    "announcement_id": "ANN-3002",
+    "first_name": "Robert",
+    "last_name": "Kaplan",
+    "state": "IL",
+    "role_title": "Attending Neurosurgeon",
+    "organization": "Northwestern Memorial Hospital",
+    "announced_date": "2026-07-01"
+  },
+  {
+    "announcement_id": "ANN-3003",
+    "first_name": "Michael",
+    "last_name": "Brooks",
+    "state": "IL",
+    "role_title": "Committee Member",
+    "organization": "Illinois Chapter, American Academy of Pediatrics",
+    "announced_date": "2024-11-02"
+  }
+]

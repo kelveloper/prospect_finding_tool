@@ -11,8 +11,9 @@ from datetime import date
 
 from sqlalchemy.orm import Session
 
-from app.adapters.base import BaseDataSource
+from app.adapters.base import BaseDataSource, EnrichmentRecord, RawProviderRecord
 from app.config import get_settings
+from app.identity.enrichment import EnrichmentMatcher
 from app.identity.resolver import IdentityResolver, ResolvedProspect
 from app.models import IdentityMatch, Prospect, Signal
 from app.repositories import ProspectRepository
@@ -25,6 +26,8 @@ class PipelineResult:
     prospects_resolved: int
     prospects_created: int
     prospects_updated: int
+    enrichment_records: int
+    enrichment_matched: int
 
 
 class IngestionPipeline:
@@ -38,6 +41,7 @@ class IngestionPipeline:
         settings = get_settings()
         self.sources = sources
         self.resolver = resolver or IdentityResolver(settings.identity_match_threshold)
+        self.matcher = EnrichmentMatcher(settings.identity_match_threshold)
         self.detector = detector or SignalDetector()
         self.engine = engine or ScoringEngine(
             settings.qualification_weight, settings.timing_weight
@@ -48,7 +52,13 @@ class IngestionPipeline:
         repo = ProspectRepository(db)
 
         records = [r for source in self.sources for r in source.fetch()]
-        resolved = self.resolver.resolve(records)
+        provider_records = [r for r in records if isinstance(r, RawProviderRecord)]
+        enrichment_records = [r for r in records if isinstance(r, EnrichmentRecord)]
+
+        # Identity is established from provider sources only; enrichment
+        # records then attach to resolved prospects by strict name match
+        resolved = self.resolver.resolve(provider_records)
+        matched = self.matcher.attach(resolved, enrichment_records)
 
         created = updated = 0
         for profile in resolved:
@@ -64,10 +74,12 @@ class IngestionPipeline:
 
         db.commit()
         return PipelineResult(
-            records_ingested=len(records),
+            records_ingested=len(provider_records),
             prospects_resolved=len(resolved),
             prospects_created=created,
             prospects_updated=updated,
+            enrichment_records=len(enrichment_records),
+            enrichment_matched=matched,
         )
 
     @staticmethod

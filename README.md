@@ -65,13 +65,34 @@ curl -X POST localhost:8000/ingest/run
 
 ## Scoring model
 
-- **Qualification (0–100)** — "should we care?": physician standing (55 pts,
-  active license = full strength) + specialty earning tier (45 pts, e.g.
-  orthopaedic surgery 1.0, family medicine 0.4).
-- **Timing (0–100)** — "why now?": license-issue recency (70 pts) + NPI
-  enumeration recency (30 pts), on a decay curve (≤6 mo = 1.0 → >36 mo = 0.1).
+- **Qualification (0–100)** — "should we care?": physician standing (40 pts) +
+  specialty earning tier (35 pts) + practice ownership (25 pts — an active
+  PLLC/PC found in the business registry scores 0.9, a generic LLC 0.6).
+- **Timing (0–100)** — "why now?": license-issue recency (40 pts) + NPI
+  enumeration recency (15 pts) + property purchase recency (30 pts, adapter
+  not yet wired) + career advancement (15 pts, adapter not yet wired), on a
+  decay curve (≤6 mo = 1.0 → >36 mo = 0.1).
 - **Total** = `qualification × 0.60 + timing × 0.40`. Weights are settings
   (`QUALIFICATION_WEIGHT` / `TIMING_WEIGHT` env vars), not code.
+
+## Enrichment: the OWNERSHIP signal (cross-dataset proof)
+
+The pipeline proves a physician resolved from profession data (NPI + IDFPR)
+can be **found in an unrelated public dataset** — the IL Secretary of State
+business registry (`app/adapters/il_sos/`, sample data for now; real source:
+OpenCorporates API or IL SoS bulk files).
+
+Matching is deliberately stricter than provider-record matching
+(`app/identity/enrichment.py`): exact normalized first + last name in the
+same state, or no attach. Near-miss records ("Jonathan Smithfield" vs
+"John Smith"; an LLC owner who isn't any known physician) are rejected —
+see `tests/test_ownership.py`. Every attachment is stored in
+`identity_matches` with its score and reason, so ownership claims are
+auditable.
+
+Property (`cook_county`) and career (`affiliations`) adapters are scaffolded
+with sample data but not yet wired into `/ingest/run` — they activate by
+adding them to the source list in `app/api/routes.py`.
 
 Every score is traceable: signals are persisted per prospect, and the reason
 summary is generated deterministically from them.

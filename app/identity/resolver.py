@@ -8,7 +8,7 @@ import re
 from dataclasses import dataclass, field
 from datetime import date
 
-from app.adapters.base import RawProviderRecord
+from app.adapters.base import EnrichmentRecord, RawProviderRecord
 
 # Credentials/suffixes stripped before comparing names
 _SUFFIXES = {"md", "do", "jr", "sr", "ii", "iii", "iv", "phd", "dds", "dpm"}
@@ -46,6 +46,7 @@ class ResolvedProspect:
     identity_confidence: float = 0.6  # single-source default: no corroboration
     records: list[RawProviderRecord] = field(default_factory=list)
     matches: list[MatchEvidence] = field(default_factory=list)
+    enrichments: list[EnrichmentRecord] = field(default_factory=list)
 
     @property
     def full_name(self) -> str:

@@ -60,3 +60,5 @@ class IngestResult(BaseModel):
     prospects_resolved: int
     prospects_created: int
     prospects_updated: int
+    enrichment_records: int
+    enrichment_matched: int

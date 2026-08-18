@@ -109,6 +109,8 @@ function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
       tags.push("Recently Licensed");
     if (detail.signals.some((s) => s.signal_type === "SPECIALTY" && s.strength >= 0.75))
       tags.push("High-Earning Specialty");
+    if (detail.signals.some((s) => s.signal_type === "OWNERSHIP"))
+      tags.push("Practice Owner");
     if (detail.identity_confidence >= 0.9) tags.push("Identity Verified");
     if (detail.npi && !detail.license_number) tags.push("Licence Unverified");
   } else {

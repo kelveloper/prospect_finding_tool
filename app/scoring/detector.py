@@ -1,8 +1,10 @@
 """Signal detection: turn a resolved prospect profile into scored signals.
 
-Active types in V1: PHYSICIAN, SPECIALTY, NEW_LICENSE.
-OWNERSHIP / PROPERTY_EVENT / CAREER_ADVANCEMENT are reserved for future
-adapters (spec section 5).
+All six spec signal types are active:
+- PHYSICIAN, SPECIALTY, NEW_LICENSE from the provider sources (NPI, IDFPR)
+- OWNERSHIP from business-entity records (IL Secretary of State)
+- PROPERTY_EVENT from deed transfers (Cook County recorder)
+- CAREER_ADVANCEMENT from appointment/promotion announcements
 """
 from dataclasses import dataclass
 from datetime import date
@@ -38,6 +40,13 @@ SPECIALTY_TIERS: dict[str, float] = {
     "pediatrics": 0.4,
 }
 DEFAULT_SPECIALTY_STRENGTH = 0.4
+
+# Entity types that indicate a professional practice the prospect owns
+PROFESSIONAL_ENTITY_TYPES = {"PLLC", "PC", "SC"}
+
+# Seniority of an announced role, for CAREER_ADVANCEMENT strength
+SENIOR_ROLE_KEYWORDS = ("partner", "director", "chief", "chair", "president", "founder")
+MID_ROLE_KEYWORDS = ("attending", "associate professor", "medical director")
 
 
 def recency_strength(event_date: date | None, reference_date: date) -> float:
@@ -157,4 +166,76 @@ class SignalDetector:
                 )
             )
 
+        signals.extend(self._enrichment_signals(prospect, reference_date))
+        return signals
+
+    def _enrichment_signals(
+        self, prospect: ResolvedProspect, reference_date: date
+    ) -> list[DetectedSignal]:
+        signals: list[DetectedSignal] = []
+        for record in prospect.enrichments:
+            months = (
+                int((reference_date - record.event_date).days / 30.44)
+                if record.event_date
+                else None
+            )
+            age = f"{months} month(s) ago" if months is not None and months <= 36 else (
+                f"{months // 12} year(s) ago" if months is not None else "date unknown"
+            )
+
+            if record.kind == "ENTITY":
+                professional = (record.entity_type or "").upper() in PROFESSIONAL_ENTITY_TYPES
+                active = (record.entity_status or "").upper() == "ACTIVE"
+                strength = (0.9 if professional else 0.6) * (1.0 if active else 0.6)
+                signals.append(
+                    DetectedSignal(
+                        signal_type="OWNERSHIP",
+                        source=record.source,
+                        description=(
+                            f"Registered {record.entity_type} '{record.entity_name}' "
+                            f"formed {age}"
+                        ),
+                        strength=strength,
+                        confidence=0.85,
+                        event_date=record.event_date,
+                    )
+                )
+            elif record.kind == "PROPERTY":
+                recency = recency_strength(record.event_date, reference_date)
+                price = (
+                    f" for ${record.sale_price:,}" if record.sale_price else ""
+                )
+                signals.append(
+                    DetectedSignal(
+                        signal_type="PROPERTY_EVENT",
+                        source=record.source,
+                        description=(
+                            f"Purchased property at {record.property_address}{price}, {age}"
+                        ),
+                        strength=recency,
+                        confidence=0.8,
+                        event_date=record.event_date,
+                    )
+                )
+            elif record.kind == "CAREER":
+                role = (record.role_title or "").lower()
+                if any(k in role for k in SENIOR_ROLE_KEYWORDS):
+                    role_weight = 1.0
+                elif any(k in role for k in MID_ROLE_KEYWORDS):
+                    role_weight = 0.8
+                else:
+                    role_weight = 0.5
+                recency = recency_strength(record.event_date, reference_date)
+                signals.append(
+                    DetectedSignal(
+                        signal_type="CAREER_ADVANCEMENT",
+                        source=record.source,
+                        description=(
+                            f"Named {record.role_title} at {record.organization}, {age}"
+                        ),
+                        strength=round(role_weight * recency, 3),
+                        confidence=0.75,
+                        event_date=record.event_date,
+                    )
+                )
         return signals

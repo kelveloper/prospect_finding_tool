@@ -10,6 +10,9 @@ def test_ingest_resolves_and_creates_prospects(client):
     # 6 merged pairs + 2 NPI-only + 1 IDFPR-only = 9 people
     assert result["prospects_resolved"] == 9
     assert result["prospects_created"] == 9
+    # IL SoS: 4 entity records, 3 attach (Palumbo has no matching physician)
+    assert result["enrichment_records"] == 4
+    assert result["enrichment_matched"] == 3
 
 
 def test_ingest_is_idempotent(client):
@@ -32,6 +35,9 @@ def test_ranked_endpoint_orders_by_score_desc(client):
     top = ranked[0]
     assert {"id", "name", "score", "qualification_score", "timing_score",
             "reason_summary"} <= top.keys()
+    # THE OWNERSHIP PROOF in ranking form: John Smith (career signals + his
+    # own PLLC found in the business registry) now tops the board
+    assert top["name"] == "John A Smith"
     # Recently licensed high-tier specialists should outrank stale primary care
     bottom_names = {p["name"] for p in ranked[-2:]}
     assert "Michael Brooks" in bottom_names  # pediatrics, enumerated 2017

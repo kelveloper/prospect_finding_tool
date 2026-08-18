@@ -4,17 +4,31 @@ Qualification (0-100): "should we care about this person?"
 Timing (0-100): "why now?"
 total = qualification * w_q + timing * w_t   (weights from settings)
 
-Deterministic and fully traceable: every component maps to a signal.
+Component weights are per-signal-type maps; each component contributes
+weight × strongest matching signal. Deterministic and fully traceable.
 """
 from dataclasses import dataclass
 
 from app.scoring.detector import DetectedSignal
 
-# Component weights within each sub-score (sum to 100)
-QUAL_PHYSICIAN_POINTS = 55
-QUAL_SPECIALTY_POINTS = 45
-TIMING_LICENSE_POINTS = 70
-TIMING_ENUMERATION_POINTS = 30
+# Qualification components (points sum to 100).
+# Ownership of a practice entity marks the "ownership" step of the
+# emerging-affluent hypothesis chain.
+QUAL_WEIGHTS: dict[str, float] = {
+    "PHYSICIAN": 40,
+    "SPECIALTY": 35,
+    "OWNERSHIP": 25,
+}
+
+# Timing components (points sum to 100), keyed by (signal_type, source);
+# source None matches any source. A recent property purchase is the
+# "financial event" step; a fresh appointment is a career inflection.
+TIMING_WEIGHTS: dict[tuple[str, str | None], float] = {
+    ("NEW_LICENSE", "idfpr"): 40,
+    ("NEW_LICENSE", "npi"): 15,
+    ("PROPERTY_EVENT", None): 30,
+    ("CAREER_ADVANCEMENT", None): 15,
+}
 
 
 @dataclass(frozen=True)
@@ -42,7 +56,9 @@ class ScoringEngine:
         )
 
     @staticmethod
-    def _max_strength(signals: list[DetectedSignal], signal_type: str, source: str | None = None) -> float:
+    def _max_strength(
+        signals: list[DetectedSignal], signal_type: str, source: str | None = None
+    ) -> float:
         matching = [
             s.strength
             for s in signals
@@ -51,16 +67,15 @@ class ScoringEngine:
         return max(matching, default=0.0)
 
     def _qualification(self, signals: list[DetectedSignal]) -> float:
-        physician = self._max_strength(signals, "PHYSICIAN")
-        specialty = self._max_strength(signals, "SPECIALTY")
-        score = QUAL_PHYSICIAN_POINTS * physician + QUAL_SPECIALTY_POINTS * specialty
+        score = sum(
+            weight * self._max_strength(signals, signal_type)
+            for signal_type, weight in QUAL_WEIGHTS.items()
+        )
         return min(100.0, score)
 
     def _timing(self, signals: list[DetectedSignal]) -> float:
-        license_recency = self._max_strength(signals, "NEW_LICENSE", source="idfpr")
-        enumeration_recency = self._max_strength(signals, "NEW_LICENSE", source="npi")
-        score = (
-            TIMING_LICENSE_POINTS * license_recency
-            + TIMING_ENUMERATION_POINTS * enumeration_recency
+        score = sum(
+            weight * self._max_strength(signals, signal_type, source)
+            for (signal_type, source), weight in TIMING_WEIGHTS.items()
         )
         return min(100.0, score)
