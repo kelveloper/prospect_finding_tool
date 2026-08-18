@@ -1,0 +1,76 @@
+[
+  {
+    "npi": "1234567801",
+    "first_name": "John",
+    "last_name": "Smith",
+    "middle_name": "A",
+    "credential": "MD",
+    "taxonomy_description": "Orthopaedic Surgery",
+    "state": "IL",
+    "enumeration_date": "2026-01-15"
+  },
+  {
+    "npi": "1234567802",
+    "first_name": "Maria",
+    "last_name": "Gonzalez",
+    "credential": "MD",
+    "taxonomy_description": "Cardiovascular Disease",
+    "state": "IL",
+    "enumeration_date": "2025-11-03"
+  },
+  {
+    "npi": "1234567803",
+    "first_name": "David",
+    "last_name": "Chen",
+    "credential": "MD",
+    "taxonomy_description": "Dermatology",
+    "state": "IL",
+    "enumeration_date": "2026-04-20"
+  },
+  {
+    "npi": "1234567804",
+    "first_name": "Sarah",
+    "last_name": "Okafor",
+    "credential": "MD",
+    "taxonomy_description": "Family Medicine",
+    "state": "IL",
+    "enumeration_date": "2019-06-11"
+  },
+  {
+    "npi": "1234567805",
+    "first_name": "Robert",
+    "last_name": "Kaplan",
+    "middle_name": "J",
+    "credential": "MD",
+    "taxonomy_description": "Neurological Surgery",
+    "state": "IL",
+    "enumeration_date": "2026-06-02"
+  },
+  {
+    "npi": "1234567806",
+    "first_name": "Emily",
+    "last_name": "Tran",
+    "credential": "DO",
+    "taxonomy_description": "Anesthesiology",
+    "state": "IL",
+    "enumeration_date": "2024-02-14"
+  },
+  {
+    "npi": "1234567807",
+    "first_name": "Michael",
+    "last_name": "Brooks",
+    "credential": "MD",
+    "taxonomy_description": "Pediatrics",
+    "state": "IL",
+    "enumeration_date": "2017-09-30"
+  },
+  {
+    "npi": "1234567808",
+    "first_name": "Anita",
+    "last_name": "Desai",
+    "credential": "MD",
+    "taxonomy_description": "Gastroenterology",
+    "state": "IL",
+    "enumeration_date": "2026-03-09"
+  }
+]
