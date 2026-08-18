@@ -1,9 +1,21 @@
-# Emerging Affluent Prospecting Platform — Backend Prototype
+# Emerging Affluent Prospecting Platform
 
 Signal-driven prospect ranking for wealth management. V1 targets **physicians**
 using two public sources — the NPI Registry and Illinois (IDFPR) licensing data —
 and proves that a deterministic scoring pipeline can produce a useful ranked lead
-list. No LLM, no ML, no UI. See `PROJECT_SPEC.md` for the full spec.
+list. No LLM, no ML. See `PROJECT_SPEC.md` for the full spec.
+
+- **Backend** (repo root): FastAPI + SQLAlchemy — ingestion, identity
+  resolution, scoring, ranking, feedback.
+- **Frontend** (`frontend/`): Next.js "ProspectIQ" scoreboard wired to the
+  backend endpoints — see `frontend/README.md`.
+
+```bash
+# Terminal 1 — backend
+.venv/bin/uvicorn app.main:app --port 8000
+# Terminal 2 — frontend
+cd frontend && npm install && npm run dev   # http://localhost:3000
+```
 
 ## Pipeline
 
