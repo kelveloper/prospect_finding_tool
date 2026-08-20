@@ -24,7 +24,13 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className={`${dmSans.variable} ${inter.variable} antialiased`}>
+      {/* suppressHydrationWarning: browser extensions (e.g. Grammarly) inject
+          body attributes before React hydrates; only this element's
+          attribute diffs are ignored, children still validate */}
+      <body
+        className={`${dmSans.variable} ${inter.variable} antialiased`}
+        suppressHydrationWarning
+      >
         {children}
       </body>
     </html>

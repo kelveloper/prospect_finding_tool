@@ -219,7 +219,7 @@ function toProfile(d: ApiDetail): CandidateProfile {
         .slice()
         .sort((a, b) => b.strength - a.strength)
         .map((s) => ({
-          label: s.signal_type.replaceAll("_", " "),
+          label: `${s.signal_type.replaceAll("_", " ")} (${s.source.toUpperCase()})`,
           value: `${Math.round(s.strength * 100)}% strength`,
         })),
     },
