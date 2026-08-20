@@ -40,6 +40,10 @@ export type CandidateProfile = {
   address: string;
   practice: string;
   portrait: string;
+  /** Plain-English trust line, e.g. "Identity verified across NPI + IL Licence — 100% match confidence" */
+  identityLine: string;
+  /** True when 2+ independent sources corroborated this person */
+  identityVerified: boolean;
   stats: { label: string; value: string }[];
   sections: ProfileSection[];
 };

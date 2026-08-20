@@ -61,6 +61,20 @@ export default async function CandidateProfilePage({
               {profile.address}
             </p>
 
+            {/* Trust line: how sure we are these records are the same person */}
+            <p className="mt-3">
+              <span
+                className={
+                  "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-display text-[12px] font-semibold " +
+                  (profile.identityVerified
+                    ? "bg-tier-strong-bg text-tier-strong-fg"
+                    : "bg-tier-neutral-bg text-tier-neutral-fg")
+                }
+              >
+                {profile.identityVerified ? "✓" : "◌"} {profile.identityLine}
+              </span>
+            </p>
+
             <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
               {profile.stats.map((stat) => (
                 <div key={stat.label} className="rounded-[12px] bg-canvas px-4 py-3">

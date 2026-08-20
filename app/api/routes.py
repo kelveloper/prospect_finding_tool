@@ -7,6 +7,8 @@ from typing import Literal
 import httpx
 
 from app.adapters import (
+    AffiliationsDataSource,
+    CookCountyDataSource,
     IDFPRDataSource,
     IDFPRLiveDataSource,
     ILSoSDataSource,
@@ -47,8 +49,16 @@ def run_ingestion(
                 records += list(IDFPRLiveDataSource(license_numbers=licenses).fetch())
             result = IngestionPipeline(sources=[]).run(db, records=records)
         else:
+            # Full showcase pipeline: provider sources + all three
+            # enrichment signals (ownership, property, career) on mock data
             pipeline = IngestionPipeline(
-                sources=[NPIDataSource(), IDFPRDataSource(), ILSoSDataSource()]
+                sources=[
+                    NPIDataSource(),
+                    IDFPRDataSource(),
+                    ILSoSDataSource(),
+                    CookCountyDataSource(),
+                    AffiliationsDataSource(),
+                ]
             )
             result = pipeline.run(db)
     except httpx.HTTPError as exc:

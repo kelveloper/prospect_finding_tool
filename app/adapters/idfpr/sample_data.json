@@ -6,7 +6,8 @@
     "credential": "MD",
     "specialty": "Orthopaedic Surgery",
     "issue_date": "2025-12-15",
-    "status": "ACTIVE"
+    "status": "ACTIVE",
+    "city": "Chicago"
   },
   {
     "license_number": "036-201002",
@@ -16,7 +17,8 @@
     "credential": "MD",
     "specialty": "Cardiovascular Disease",
     "issue_date": "2025-10-01",
-    "status": "ACTIVE"
+    "status": "ACTIVE",
+    "city": "Chicago"
   },
   {
     "license_number": "036-201003",
@@ -25,7 +27,8 @@
     "credential": "MD",
     "specialty": "Dermatology",
     "issue_date": "2026-05-04",
-    "status": "ACTIVE"
+    "status": "ACTIVE",
+    "city": "Evanston"
   },
   {
     "license_number": "036-201004",
@@ -34,7 +37,8 @@
     "credential": "MD",
     "specialty": "Family Medicine",
     "issue_date": "2019-07-01",
-    "status": "ACTIVE"
+    "status": "ACTIVE",
+    "city": "Springfield"
   },
   {
     "license_number": "036-201005",
@@ -43,7 +47,8 @@
     "credential": "MD",
     "specialty": "Neurological Surgery",
     "issue_date": "2026-06-20",
-    "status": "ACTIVE"
+    "status": "ACTIVE",
+    "city": "Chicago"
   },
   {
     "license_number": "036-201006",
@@ -52,7 +57,8 @@
     "credential": "DO",
     "specialty": "Anesthesiology",
     "issue_date": "2024-03-01",
-    "status": "INACTIVE"
+    "status": "INACTIVE",
+    "city": "Naperville"
   },
   {
     "license_number": "036-201007",
@@ -61,6 +67,7 @@
     "credential": "MD",
     "specialty": "Plastic Surgery",
     "issue_date": "2026-02-18",
-    "status": "ACTIVE"
+    "status": "ACTIVE",
+    "city": "Chicago"
   }
 ]

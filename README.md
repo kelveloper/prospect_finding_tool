@@ -10,6 +10,11 @@ list. No LLM, no ML. See `PROJECT_SPEC.md` for the full spec.
 - **Frontend** (`frontend/`): Next.js "ProspectIQ" scoreboard wired to the
   backend endpoints — see `frontend/README.md`.
 
+**Docs:** [`USER_JOURNEY.md`](USER_JOURNEY.md) — demo script + quick setup ·
+[`PROGRESS.md`](PROGRESS.md) — what's done/pending + ranking math ·
+[`HOW_IT_WORKS.md`](HOW_IT_WORKS.md) — pipeline mechanics ·
+[`PROJECT_SPEC.md`](PROJECT_SPEC.md) — original spec
+
 ```bash
 # Terminal 1 — backend
 .venv/bin/uvicorn app.main:app --port 8000

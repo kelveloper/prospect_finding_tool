@@ -10,9 +10,11 @@ def test_ingest_resolves_and_creates_prospects(client):
     # 6 merged pairs + 2 NPI-only + 1 IDFPR-only = 9 people
     assert result["prospects_resolved"] == 9
     assert result["prospects_created"] == 9
-    # IL SoS: 4 entity records, 3 attach (Palumbo has no matching physician)
-    assert result["enrichment_records"] == 4
-    assert result["enrichment_matched"] == 3
+    # Mock enrichment: 4 entities + 4 property deeds + 3 career announcements;
+    # 9 attach — the Palumbo entity and Smithfield deed have no matching
+    # physician and must be rejected
+    assert result["enrichment_records"] == 11
+    assert result["enrichment_matched"] == 9
 
 
 def test_ingest_is_idempotent(client):

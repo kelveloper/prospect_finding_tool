@@ -118,6 +118,10 @@ function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
       tags.push("High-Earning Specialty");
     if (detail.signals.some((s) => s.signal_type === "OWNERSHIP"))
       tags.push("Practice Owner");
+    if (detail.signals.some((s) => s.signal_type === "PROPERTY_EVENT" && s.strength >= 0.6))
+      tags.push("Recent Property Purchase");
+    if (detail.signals.some((s) => s.signal_type === "CAREER_ADVANCEMENT" && s.strength >= 0.5))
+      tags.push("Career Advancement");
     if (detail.identity_confidence >= 0.9) tags.push("Identity Verified");
     if (detail.npi && !detail.license_number) tags.push("Licence Unverified");
   } else {
@@ -158,6 +162,14 @@ function toProfile(d: ApiDetail): CandidateProfile {
   const active = (d.license_status ?? "").toUpperCase() === "ACTIVE";
   const corroborated = Boolean(d.npi && d.license_number);
 
+  const strongest = (type: string): ApiSignal | undefined =>
+    d.signals
+      .filter((s) => s.signal_type === type)
+      .sort((a, b) => b.strength - a.strength)[0];
+  const ownership = strongest("OWNERSHIP");
+  const property = strongest("PROPERTY_EVENT");
+  const career = strongest("CAREER_ADVANCEMENT");
+
   const sections: ProfileSection[] = [
     {
       title: "Career Signal",
@@ -172,25 +184,68 @@ function toProfile(d: ApiDetail): CandidateProfile {
         { label: "Licence Held", value: tenure(d.license_issue_date) },
         { label: "Speciality", value: d.specialty ?? "Unknown" },
         { label: "NPI Enumerated", value: fmtDate(d.enumeration_date) },
-      ],
-    },
-    {
-      title: "Identity Resolution",
-      accent: "var(--color-brand-light)",
-      rows: [
         {
-          label: "Sources Corroborated",
-          value: corroborated ? "NPI + IL Licence" : "Single Source",
-          pill: corroborated ? "positive" : "neutral",
-        },
-        {
-          label: "Identity Confidence",
-          value: `${Math.round(d.identity_confidence * 100)}%`,
-          pill: d.identity_confidence >= 0.9 ? "positive" : "neutral",
+          label: "Recent Advancement",
+          value: career ? career.description : "None on record",
+          pill: career ? "positive" : "neutral",
         },
         { label: "NPI", value: d.npi ?? "—" },
         { label: "Licence Number", value: d.license_number ?? "—" },
       ],
+    },
+    {
+      title: "Ownership & Practice",
+      accent: "var(--color-brand)",
+      rows: [
+        ...(ownership
+          ? [
+              { label: "Practice Entity", value: "Detected", pill: "positive" as const },
+              { label: "Detail", value: ownership.description },
+              { label: "Entity Formed", value: fmtDate(ownership.event_date) },
+              {
+                label: "Signal Strength",
+                value: `${Math.round(ownership.strength * 100)}% (${ownership.source.toUpperCase()})`,
+              },
+            ]
+          : [
+              {
+                label: "Practice Entity",
+                value: "None on record",
+                pill: "neutral" as const,
+              },
+            ]),
+        {
+          label: "Practice Address (NPI)",
+          value: d.address_line ?? "Not on record",
+        },
+        {
+          label: "City",
+          value: d.city ? `${d.city}, ${d.address_state ?? d.state ?? ""}` : "—",
+        },
+        { label: "Phone", value: d.phone ?? "Not on record" },
+      ],
+    },
+    {
+      title: "Financial Activity",
+      accent: "var(--color-tier-strong)",
+      rows: property
+        ? [
+            { label: "Property Purchase", value: "Detected", pill: "positive" },
+            { label: "Detail", value: property.description },
+            { label: "Purchase Date", value: fmtDate(property.event_date) },
+            { label: "Source", value: property.source.toUpperCase() },
+            {
+              label: "Signal Strength",
+              value: `${Math.round(property.strength * 100)}%`,
+            },
+          ]
+        : [
+            { label: "Property Purchase", value: "None on record", pill: "neutral" },
+            {
+              label: "What this means",
+              value: "No recent deed transfer found for this person",
+            },
+          ],
     },
     {
       title: "Score Breakdown",
@@ -200,28 +255,6 @@ function toProfile(d: ApiDetail): CandidateProfile {
         { label: "Timing (40%)", value: `${d.timing_score} / 100` },
         { label: "Total Score", value: `${d.score} / 100`, pill: "positive" },
       ],
-    },
-    {
-      title: "Practice Location",
-      accent: "var(--color-tier-neutral)",
-      rows: [
-        { label: "Address", value: d.address_line ?? "Not on record" },
-        { label: "City", value: d.city ?? "Not on record" },
-        { label: "State", value: d.address_state ?? d.state ?? "—" },
-        { label: "ZIP", value: d.zip_code ?? "—" },
-        { label: "Phone", value: d.phone ?? "Not on record" },
-      ],
-    },
-    {
-      title: "Detected Signals",
-      accent: "var(--color-tier-weak)",
-      rows: d.signals
-        .slice()
-        .sort((a, b) => b.strength - a.strength)
-        .map((s) => ({
-          label: `${s.signal_type.replaceAll("_", " ")} (${s.source.toUpperCase()})`,
-          value: `${Math.round(s.strength * 100)}% strength`,
-        })),
     },
   ];
 
@@ -233,10 +266,17 @@ function toProfile(d: ApiDetail): CandidateProfile {
   const fullAddress = [d.address_line, location, d.zip_code]
     .filter(Boolean)
     .join(", ");
+  const confidencePct = Math.round(d.identity_confidence * 100);
+  const identityLine = corroborated
+    ? `Identity verified across NPI + IL Licence — ${confidencePct}% match confidence`
+    : `Single-source identity (${d.npi ? "NPI only" : "licence only"}) — ${confidencePct}% confidence, not yet corroborated`;
+
   return {
     candidateId: d.id,
     status: active ? "Active" : "Unverified",
     address: fullAddress || location,
+    identityLine,
+    identityVerified: corroborated && d.identity_confidence >= 0.9,
     practice: `${d.specialty ?? "Physician"} — ${location}`,
     portrait: "",
     stats: [
