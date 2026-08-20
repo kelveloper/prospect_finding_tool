@@ -22,6 +22,7 @@ class RankedProspect(BaseModel):
     name: str = Field(validation_alias="full_name")
     specialty: str | None
     state: str | None
+    city: str | None
     score: float = Field(validation_alias="total_score")
     qualification_score: float
     timing_score: float
@@ -35,6 +36,10 @@ class ProspectDetail(RankedProspect):
     license_number: str | None
     license_issue_date: date | None
     license_status: str | None
+    address_line: str | None
+    address_state: str | None
+    zip_code: str | None
+    phone: str | None
     identity_confidence: float
     signals: list[SignalOut]
 

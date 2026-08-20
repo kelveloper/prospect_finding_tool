@@ -87,4 +87,7 @@ class IDFPRLiveDataSource(BaseDataSource):
             license_number=row["license_number"],
             license_issue_date=_parse_us_date(row.get("original_issue_date")),
             license_status=(row.get("license_status") or None),
+            city=(row.get("city") or "").title() or None,
+            address_state=((row.get("state") or "").upper() or None),
+            zip_code=(row.get("zip") or "")[:5] or None,
         )

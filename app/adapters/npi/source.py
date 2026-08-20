@@ -37,4 +37,6 @@ class NPIDataSource(BaseDataSource):
                 state=(row.get("state") or "").upper() or None,
                 npi=row["npi"],
                 enumeration_date=_parse_date(row.get("enumeration_date")),
+                city=(row.get("city") or None),
+                address_state=(row.get("state") or "").upper() or None,
             )

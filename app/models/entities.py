@@ -31,6 +31,11 @@ class Prospect(Base):
     license_number: Mapped[str | None] = mapped_column(String(30))
     license_issue_date: Mapped[date | None] = mapped_column(Date)
     license_status: Mapped[str | None] = mapped_column(String(30))
+    address_line: Mapped[str | None] = mapped_column(String(200))
+    city: Mapped[str | None] = mapped_column(String(100))
+    address_state: Mapped[str | None] = mapped_column(String(2))
+    zip_code: Mapped[str | None] = mapped_column(String(10))
+    phone: Mapped[str | None] = mapped_column(String(20))
 
     qualification_score: Mapped[float] = mapped_column(Float, default=0.0)
     timing_score: Mapped[float] = mapped_column(Float, default=0.0)

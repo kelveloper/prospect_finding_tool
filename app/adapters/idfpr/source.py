@@ -37,4 +37,5 @@ class IDFPRDataSource(BaseDataSource):
                 license_number=row["license_number"],
                 license_issue_date=_parse_date(row.get("issue_date")),
                 license_status=(row.get("status") or None),
+                city=(row.get("city") or None),
             )

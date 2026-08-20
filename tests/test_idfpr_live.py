@@ -18,6 +18,9 @@ def _row(license_number="036057912", first="RENSLOW", last="SHERER",
         "middle": "D",
         "last_name": last,
         "original_issue_date": issued,
+        "city": "EVANSTON",
+        "state": "IL",
+        "zip": "60202",
     }
 
 
@@ -41,6 +44,8 @@ def test_maps_idfpr_row():
     assert r.license_status == "ACTIVE"
     assert r.license_issue_date == date(1978, 10, 23)
     assert r.state == "IL"
+    assert r.city == "Evanston"
+    assert r.zip_code == "60202"
 
 
 def test_filters_businesses_and_other_license_types():

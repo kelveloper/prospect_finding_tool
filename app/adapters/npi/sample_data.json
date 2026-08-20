@@ -7,7 +7,8 @@
     "credential": "MD",
     "taxonomy_description": "Orthopaedic Surgery",
     "state": "IL",
-    "enumeration_date": "2026-01-15"
+    "enumeration_date": "2026-01-15",
+    "city": "Chicago"
   },
   {
     "npi": "1234567802",
@@ -16,7 +17,8 @@
     "credential": "MD",
     "taxonomy_description": "Cardiovascular Disease",
     "state": "IL",
-    "enumeration_date": "2025-11-03"
+    "enumeration_date": "2025-11-03",
+    "city": "Chicago"
   },
   {
     "npi": "1234567803",
@@ -25,7 +27,8 @@
     "credential": "MD",
     "taxonomy_description": "Dermatology",
     "state": "IL",
-    "enumeration_date": "2026-04-20"
+    "enumeration_date": "2026-04-20",
+    "city": "Evanston"
   },
   {
     "npi": "1234567804",
@@ -34,7 +37,8 @@
     "credential": "MD",
     "taxonomy_description": "Family Medicine",
     "state": "IL",
-    "enumeration_date": "2019-06-11"
+    "enumeration_date": "2019-06-11",
+    "city": "Springfield"
   },
   {
     "npi": "1234567805",
@@ -44,7 +48,8 @@
     "credential": "MD",
     "taxonomy_description": "Neurological Surgery",
     "state": "IL",
-    "enumeration_date": "2026-06-02"
+    "enumeration_date": "2026-06-02",
+    "city": "Chicago"
   },
   {
     "npi": "1234567806",
@@ -53,7 +58,8 @@
     "credential": "DO",
     "taxonomy_description": "Anesthesiology",
     "state": "IL",
-    "enumeration_date": "2024-02-14"
+    "enumeration_date": "2024-02-14",
+    "city": "Naperville"
   },
   {
     "npi": "1234567807",
@@ -62,7 +68,8 @@
     "credential": "MD",
     "taxonomy_description": "Pediatrics",
     "state": "IL",
-    "enumeration_date": "2017-09-30"
+    "enumeration_date": "2017-09-30",
+    "city": "Peoria"
   },
   {
     "npi": "1234567808",
@@ -71,6 +78,7 @@
     "credential": "MD",
     "taxonomy_description": "Gastroenterology",
     "state": "IL",
-    "enumeration_date": "2026-03-09"
+    "enumeration_date": "2026-03-09",
+    "city": "Oak Park"
   }
 ]

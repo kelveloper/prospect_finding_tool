@@ -127,6 +127,14 @@ class NPPESDataSource(BaseDataSource):
             primary if primary.get("license") else None,
         )
 
+        # Practice address: prefer a LOCATION address in the target state
+        addresses = result.get("addresses", [])
+        locations = [a for a in addresses if a.get("address_purpose") == "LOCATION"]
+        location = next(
+            (a for a in locations if (a.get("state") or "").upper() == self.state),
+            locations[0] if locations else None,
+        )
+
         return RawProviderRecord(
             source=self.name,
             source_record_id=result["number"],
@@ -139,4 +147,9 @@ class NPPESDataSource(BaseDataSource):
             npi=result["number"],
             enumeration_date=_parse_date(basic.get("enumeration_date")),
             license_number=(license_taxonomy or {}).get("license"),
+            address_line=(location or {}).get("address_1", "").title() or None,
+            city=(location or {}).get("city", "").title() or None,
+            address_state=((location or {}).get("state") or "").upper() or None,
+            zip_code=((location or {}).get("postal_code") or "")[:5] or None,
+            phone=(location or {}).get("telephone_number") or None,
         )

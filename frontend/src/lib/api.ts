@@ -26,6 +26,7 @@ type ApiRanked = {
   name: string;
   specialty: string | null;
   state: string | null;
+  city: string | null;
   score: number;
   qualification_score: number;
   timing_score: number;
@@ -48,6 +49,10 @@ type ApiDetail = ApiRanked & {
   license_number: string | null;
   license_issue_date: string | null;
   license_status: string | null;
+  address_line: string | null;
+  address_state: string | null;
+  zip_code: string | null;
+  phone: string | null;
   identity_confidence: number;
   signals: ApiSignal[];
 };
@@ -98,9 +103,11 @@ function strengthWord(qualification: number): string {
 function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
   const { tier, label } = tierFromScore(p.score);
   const specialty = p.specialty ?? "Physician";
-  const location = p.state
-    ? `${STATE_NAMES[p.state] ?? p.state}, ${p.state}`
-    : "Location unknown";
+  const location = p.city
+    ? `${p.city}, ${p.state ?? ""}`.replace(/, $/, "")
+    : p.state
+      ? `${STATE_NAMES[p.state] ?? p.state}, ${p.state}`
+      : "Location unknown";
 
   const tags: string[] = [];
   if (detail) {
@@ -195,6 +202,17 @@ function toProfile(d: ApiDetail): CandidateProfile {
       ],
     },
     {
+      title: "Practice Location",
+      accent: "var(--color-tier-neutral)",
+      rows: [
+        { label: "Address", value: d.address_line ?? "Not on record" },
+        { label: "City", value: d.city ?? "Not on record" },
+        { label: "State", value: d.address_state ?? d.state ?? "—" },
+        { label: "ZIP", value: d.zip_code ?? "—" },
+        { label: "Phone", value: d.phone ?? "Not on record" },
+      ],
+    },
+    {
       title: "Detected Signals",
       accent: "var(--color-tier-weak)",
       rows: d.signals
@@ -207,11 +225,18 @@ function toProfile(d: ApiDetail): CandidateProfile {
     },
   ];
 
-  const location = d.state ? `${STATE_NAMES[d.state] ?? d.state}, ${d.state}` : "Unknown";
+  const location = d.city
+    ? `${d.city}, ${d.address_state ?? d.state ?? ""}`.replace(/, $/, "")
+    : d.state
+      ? `${STATE_NAMES[d.state] ?? d.state}, ${d.state}`
+      : "Unknown";
+  const fullAddress = [d.address_line, location, d.zip_code]
+    .filter(Boolean)
+    .join(", ");
   return {
     candidateId: d.id,
     status: active ? "Active" : "Unverified",
-    address: location,
+    address: fullAddress || location,
     practice: `${d.specialty ?? "Physician"} — ${location}`,
     portrait: "",
     stats: [

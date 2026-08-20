@@ -25,6 +25,12 @@ class RawProviderRecord:
     license_number: str | None = None
     license_issue_date: date | None = None
     license_status: str | None = None
+    # Practice address (LOCATION address in NPPES; city/zip in IDFPR)
+    address_line: str | None = None
+    city: str | None = None
+    address_state: str | None = None
+    zip_code: str | None = None
+    phone: str | None = None
 
 
 @dataclass(frozen=True)

@@ -119,6 +119,11 @@ class IngestionPipeline:
         prospect.license_number = profile.license_number
         prospect.license_issue_date = profile.license_issue_date
         prospect.license_status = profile.license_status
+        prospect.address_line = profile.address_line
+        prospect.city = profile.city
+        prospect.address_state = profile.address_state
+        prospect.zip_code = profile.zip_code
+        prospect.phone = profile.phone
         prospect.qualification_score = breakdown.qualification_score
         prospect.timing_score = breakdown.timing_score
         prospect.total_score = breakdown.total_score

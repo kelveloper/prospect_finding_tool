@@ -18,7 +18,16 @@ def _result(npi, first, last, tax_state="IL", license_no="036-123456",
             {"desc": desc, "license": license_no, "state": tax_state,
              "primary": primary, "code": code}
         ],
-        "addresses": [{"state": addr_state, "address_purpose": "LOCATION"}],
+        "addresses": [
+            {
+                "state": addr_state,
+                "address_purpose": "LOCATION",
+                "address_1": "233 E ERIE ST",
+                "city": "CHICAGO",
+                "postal_code": "606114568",
+                "telephone_number": "312-555-0000",
+            }
+        ],
     }
 
 
@@ -48,6 +57,11 @@ def test_maps_uppercase_nppes_record_with_license():
     assert r.license_number == "036-123456"  # captured for the IDFPR join
     assert r.state == "IL"
     assert r.enumeration_date is not None
+    # Practice address captured from the LOCATION entry
+    assert r.address_line == "233 E Erie St"
+    assert r.city == "Chicago"
+    assert r.zip_code == "60611"  # 5-digit
+    assert r.phone == "312-555-0000"
 
 
 def test_filters_out_other_state_physicians():

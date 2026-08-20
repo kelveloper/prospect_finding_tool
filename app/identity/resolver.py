@@ -43,6 +43,11 @@ class ResolvedProspect:
     license_number: str | None = None
     license_issue_date: date | None = None
     license_status: str | None = None
+    address_line: str | None = None
+    city: str | None = None
+    address_state: str | None = None
+    zip_code: str | None = None
+    phone: str | None = None
     identity_confidence: float = 0.6  # single-source default: no corroboration
     records: list[RawProviderRecord] = field(default_factory=list)
     matches: list[MatchEvidence] = field(default_factory=list)
@@ -159,6 +164,11 @@ class IdentityResolver:
             license_number=record.license_number,
             license_issue_date=record.license_issue_date,
             license_status=record.license_status,
+            address_line=record.address_line,
+            city=record.city,
+            address_state=record.address_state,
+            zip_code=record.zip_code,
+            phone=record.phone,
             records=[record],
         )
 
@@ -194,3 +204,8 @@ class IdentityResolver:
         cluster.license_number = cluster.license_number or record.license_number
         cluster.license_issue_date = cluster.license_issue_date or record.license_issue_date
         cluster.license_status = cluster.license_status or record.license_status
+        cluster.address_line = cluster.address_line or record.address_line
+        cluster.city = cluster.city or record.city
+        cluster.address_state = cluster.address_state or record.address_state
+        cluster.zip_code = cluster.zip_code or record.zip_code
+        cluster.phone = cluster.phone or record.phone
