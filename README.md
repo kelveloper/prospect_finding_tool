@@ -57,7 +57,7 @@ curl -X POST localhost:8000/ingest/run
 
 | Method | Path | Purpose |
 |---|---|---|
-| POST | `/ingest/run` | Run the pipeline. `?mode=sample` (default) uses bundled data; `?mode=live&state=IL&limit=25` pulls real physicians from the NPPES API (free, no key), sweeping the scored specialties at `limit` records each. Live mode uses NPPES only — sample licence/entity files never attach to real people |
+| POST | `/ingest/run` | Run the pipeline. `?mode=sample` (default) uses bundled data; `?mode=live&state=IL&limit=25` runs the real two-phase ingest: physicians from the NPPES API (free, no key) per scored specialty, then their licenses verified against real IDFPR data on data.illinois.gov (Socrata, free) queried by license number. Records sharing a license number merge at identity confidence 1.0. Sample enrichment files never attach to real people |
 | GET | `/prospects/ranked?limit=50` | Ranked leads, highest score first |
 | GET | `/prospects/{id}` | Full profile: scores, signals, identity confidence |
 | POST | `/feedback` | Advisor verdict: `good_fit` \| `revisit_later` \| `not_fit` |

@@ -54,8 +54,30 @@ class ResolvedProspect:
         return f"{self.first_name}{middle} {self.last_name}"
 
 
+def _normalize_license(value: str | None) -> str | None:
+    if not value:
+        return None
+    cleaned = re.sub(r"[^0-9A-Za-z]", "", value).upper()
+    return cleaned or None
+
+
 def match_score(a: RawProviderRecord, b: RawProviderRecord) -> tuple[float, str]:
-    """Score how likely two raw records refer to the same person (0-1)."""
+    """Score how likely two raw records refer to the same person (0-1).
+
+    Tier 1: exact license-number join (NPPES reports state license numbers;
+    IDFPR keys on them) — the strongest possible evidence.
+    Tier 2: deterministic name + state rules.
+    """
+    lic_a, lic_b = _normalize_license(a.license_number), _normalize_license(b.license_number)
+    if lic_a and lic_b:
+        if lic_a == lic_b:
+            return 1.0, "license number match"
+        # Same-typed records with different licenses are different people,
+        # but only if states agree — same person can hold licenses in
+        # multiple states
+        if a.state and b.state and a.state == b.state:
+            return 0.0, "different license number"
+
     if a.state and b.state and a.state != b.state:
         return 0.0, "different state"
 

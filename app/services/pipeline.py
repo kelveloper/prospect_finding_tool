@@ -47,11 +47,20 @@ class IngestionPipeline:
             settings.qualification_weight, settings.timing_weight
         )
 
-    def run(self, db: Session, reference_date: date | None = None) -> PipelineResult:
+    def run(
+        self,
+        db: Session,
+        reference_date: date | None = None,
+        records: list[RawProviderRecord | EnrichmentRecord] | None = None,
+    ) -> PipelineResult:
+        """Ingest from `self.sources`, or from pre-fetched `records` when a
+        source depends on another's output (e.g. IDFPR queried by the
+        license numbers NPPES returned)."""
         reference_date = reference_date or date.today()
         repo = ProspectRepository(db)
 
-        records = [r for source in self.sources for r in source.fetch()]
+        if records is None:
+            records = [r for source in self.sources for r in source.fetch()]
         provider_records = [r for r in records if isinstance(r, RawProviderRecord)]
         enrichment_records = [r for r in records if isinstance(r, EnrichmentRecord)]
 

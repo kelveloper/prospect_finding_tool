@@ -151,7 +151,9 @@ class SignalDetector:
                     signal_type="NEW_LICENSE",
                     source="idfpr",
                     description=(
-                        f"Illinois license issued {months} month(s) ago"
+                        "Illinois license issued this month"
+                        if months == 0
+                        else f"Illinois license issued {months} month(s) ago"
                         if months <= 36
                         else f"Illinois license issued {months // 12} year(s) ago"
                     ),

@@ -8,6 +8,7 @@ import httpx
 
 from app.adapters import (
     IDFPRDataSource,
+    IDFPRLiveDataSource,
     ILSoSDataSource,
     NPIDataSource,
     NPPESDataSource,
@@ -33,18 +34,25 @@ def run_ingestion(
     limit: int = Query(default=50, ge=1, le=200, description="per specialty, live mode"),
     db: Session = Depends(get_db),
 ):
-    if mode == "live":
-        # Live NPPES only: the sample IDFPR/IL SoS files must never attach
-        # to real physicians who happen to share a sample name
-        sources = [NPPESDataSource(state=state, limit_per_specialty=limit)]
-    else:
-        sources = [NPIDataSource(), IDFPRDataSource(), ILSoSDataSource()]
-
-    pipeline = IngestionPipeline(sources=sources)
     try:
-        result = pipeline.run(db)
+        if mode == "live":
+            # Phase 1: real physicians from NPPES. Phase 2: verify their
+            # licenses against real IDFPR data, queried by license number.
+            # Sample files are excluded — they must never attach to real
+            # people who happen to share a sample name.
+            nppes = NPPESDataSource(state=state, limit_per_specialty=limit)
+            records = list(nppes.fetch())
+            if state.upper() == "IL":
+                licenses = [r.license_number for r in records if r.license_number]
+                records += list(IDFPRLiveDataSource(license_numbers=licenses).fetch())
+            result = IngestionPipeline(sources=[]).run(db, records=records)
+        else:
+            pipeline = IngestionPipeline(
+                sources=[NPIDataSource(), IDFPRDataSource(), ILSoSDataSource()]
+            )
+            result = pipeline.run(db)
     except httpx.HTTPError as exc:
-        raise HTTPException(status_code=502, detail=f"NPPES API error: {exc}")
+        raise HTTPException(status_code=502, detail=f"External API error: {exc}")
     return IngestResult(**result.__dict__)
 
 
