@@ -49,6 +49,21 @@ SENIOR_ROLE_KEYWORDS = ("partner", "director", "chief", "chair", "president", "f
 MID_ROLE_KEYWORDS = ("attending", "associate professor", "medical director")
 
 
+def specialty_tier(specialty: str) -> float:
+    """Tier lookup tolerant of NPPES compound descriptions like
+    'Orthopaedic Surgery, Adult Reconstructive Orthopaedic Surgery'."""
+    s = specialty.lower()
+    if s in SPECIALTY_TIERS:
+        return SPECIALTY_TIERS[s]
+    base = s.split(",")[0].strip()
+    if base in SPECIALTY_TIERS:
+        return SPECIALTY_TIERS[base]
+    for key, tier in SPECIALTY_TIERS.items():
+        if key in s:
+            return tier
+    return DEFAULT_SPECIALTY_STRENGTH
+
+
 def recency_strength(event_date: date | None, reference_date: date) -> float:
     """Decay curve: how 'fresh' an event is. Drives timing signals."""
     if event_date is None:
@@ -110,9 +125,7 @@ class SignalDetector:
 
         # SPECIALTY — earning-potential tier
         if prospect.specialty:
-            tier = SPECIALTY_TIERS.get(
-                prospect.specialty.lower(), DEFAULT_SPECIALTY_STRENGTH
-            )
+            tier = specialty_tier(prospect.specialty)
             signals.append(
                 DetectedSignal(
                     signal_type="SPECIALTY",

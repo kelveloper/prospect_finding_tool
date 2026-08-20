@@ -57,7 +57,7 @@ curl -X POST localhost:8000/ingest/run
 
 | Method | Path | Purpose |
 |---|---|---|
-| POST | `/ingest/run` | Run the full pipeline over all data sources |
+| POST | `/ingest/run` | Run the pipeline. `?mode=sample` (default) uses bundled data; `?mode=live&state=IL&limit=25` pulls real physicians from the NPPES API (free, no key), sweeping the scored specialties at `limit` records each. Live mode uses NPPES only — sample licence/entity files never attach to real people |
 | GET | `/prospects/ranked?limit=50` | Ranked leads, highest score first |
 | GET | `/prospects/{id}` | Full profile: scores, signals, identity confidence |
 | POST | `/feedback` | Advisor verdict: `good_fit` \| `revisit_later` \| `not_fit` |

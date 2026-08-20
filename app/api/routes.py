@@ -2,7 +2,16 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from app.adapters import IDFPRDataSource, ILSoSDataSource, NPIDataSource
+from typing import Literal
+
+import httpx
+
+from app.adapters import (
+    IDFPRDataSource,
+    ILSoSDataSource,
+    NPIDataSource,
+    NPPESDataSource,
+)
 from app.database import get_db
 from app.feedback.service import FeedbackService, ProspectNotFoundError
 from app.schemas import (
@@ -18,11 +27,24 @@ router = APIRouter()
 
 
 @router.post("/ingest/run", response_model=IngestResult)
-def run_ingestion(db: Session = Depends(get_db)):
-    pipeline = IngestionPipeline(
-        sources=[NPIDataSource(), IDFPRDataSource(), ILSoSDataSource()]
-    )
-    result = pipeline.run(db)
+def run_ingestion(
+    mode: Literal["sample", "live"] = Query(default="sample"),
+    state: str = Query(default="IL", min_length=2, max_length=2),
+    limit: int = Query(default=50, ge=1, le=200, description="per specialty, live mode"),
+    db: Session = Depends(get_db),
+):
+    if mode == "live":
+        # Live NPPES only: the sample IDFPR/IL SoS files must never attach
+        # to real physicians who happen to share a sample name
+        sources = [NPPESDataSource(state=state, limit_per_specialty=limit)]
+    else:
+        sources = [NPIDataSource(), IDFPRDataSource(), ILSoSDataSource()]
+
+    pipeline = IngestionPipeline(sources=sources)
+    try:
+        result = pipeline.run(db)
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=502, detail=f"NPPES API error: {exc}")
     return IngestResult(**result.__dict__)
 
 
