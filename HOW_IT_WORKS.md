@@ -1,7 +1,7 @@
 # How It Works — Backend Mechanics
 
 The pipeline's mental model. Companions: `USER_JOURNEY.md` (demo + setup) ·
-`PROGRESS.md` (status + ranking math) · `PROJECT_SPEC.md` (full spec)
+`RANKING.md` (scoring math) · `PROGRESS.md` (status) · `PROJECT_SPEC.md` (full spec)
 
 ## The hypothesis
 
@@ -34,7 +34,7 @@ The system finds those people in public data and ranks them.
               PHYSICIAN, SPECIALTY, NEW_LICENSE, OWNERSHIP,
               PROPERTY_EVENT, CAREER_ADVANCEMENT
 
-5. SCORE      Qualification (60%) + Timing (40%) → total  (math: PROGRESS.md)
+5. SCORE      Qualification (60%) + Timing (40%) → total  (math: RANKING.md)
 
 6. EXPLAIN    A plain-English reason summary is generated from the signals
               (deterministic templates — no LLM)

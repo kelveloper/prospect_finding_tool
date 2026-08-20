@@ -15,6 +15,7 @@ from app.adapters import (
     NPIDataSource,
     NPPESDataSource,
 )
+from app.config import get_settings
 from app.database import get_db
 from app.feedback.service import FeedbackService, ProspectNotFoundError
 from app.schemas import (
@@ -24,6 +25,8 @@ from app.schemas import (
     ProspectDetail,
     RankedProspect,
 )
+from app.schemas.api import ScoreComponent
+from app.scoring import ScoringEngine
 from app.services import IngestionPipeline, RankingService
 
 router = APIRouter()
@@ -78,7 +81,16 @@ def prospect_detail(prospect_id: str, db: Session = Depends(get_db)):
     prospect = RankingService(db).get(prospect_id)
     if prospect is None:
         raise HTTPException(status_code=404, detail="Prospect not found")
-    return prospect
+
+    # Recompute per-component contributions from the stored signals so the
+    # UI can show exactly where each point came from
+    settings = get_settings()
+    engine = ScoringEngine(settings.qualification_weight, settings.timing_weight)
+    detail = ProspectDetail.model_validate(prospect)
+    detail.score_components = [
+        ScoreComponent(**c) for c in engine.components(prospect.signals)
+    ]
+    return detail
 
 
 @router.post("/feedback", response_model=FeedbackOut, status_code=201)

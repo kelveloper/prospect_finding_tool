@@ -10,6 +10,7 @@ import type {
   CandidateProfile,
   FeedbackEntry,
   ProfileSection,
+  ScoreComponentItem,
   SignalItem,
   Tier,
 } from "./data";
@@ -55,6 +56,16 @@ type ApiDetail = ApiRanked & {
   phone: string | null;
   identity_confidence: number;
   signals: ApiSignal[];
+  score_components: ApiScoreComponent[];
+};
+
+type ApiScoreComponent = {
+  category: "qualification" | "timing";
+  label: string;
+  signal_type: string;
+  max_points: number;
+  strength: number;
+  points: number;
 };
 
 type ApiFeedback = {
@@ -158,6 +169,15 @@ function fmtDate(iso: string | null): string {
   });
 }
 
+function toScoreComponents(d: ApiDetail): ScoreComponentItem[] {
+  return (d.score_components ?? []).map((c) => ({
+    category: c.category,
+    label: c.label,
+    points: c.points,
+    maxPoints: c.max_points,
+  }));
+}
+
 function toProfile(d: ApiDetail): CandidateProfile {
   const active = (d.license_status ?? "").toUpperCase() === "ACTIVE";
   const corroborated = Boolean(d.npi && d.license_number);
@@ -247,15 +267,6 @@ function toProfile(d: ApiDetail): CandidateProfile {
             },
           ],
     },
-    {
-      title: "Score Breakdown",
-      accent: "var(--color-brand)",
-      rows: [
-        { label: "Qualification (60%)", value: `${d.qualification_score} / 100` },
-        { label: "Timing (40%)", value: `${d.timing_score} / 100` },
-        { label: "Total Score", value: `${d.score} / 100`, pill: "positive" },
-      ],
-    },
   ];
 
   const location = d.city
@@ -327,7 +338,12 @@ export async function fetchRankedCandidates(): Promise<Candidate[]> {
 }
 
 export async function fetchCandidateDetail(id: string): Promise<
-  { candidate: Candidate; profile: CandidateProfile; signals: SignalItem[] } | undefined
+  {
+    candidate: Candidate;
+    profile: CandidateProfile;
+    signals: SignalItem[];
+    scoreComponents: ScoreComponentItem[];
+  } | undefined
 > {
   try {
     const detail = await api<ApiDetail>(`/prospects/${id}`);
@@ -335,6 +351,7 @@ export async function fetchCandidateDetail(id: string): Promise<
       candidate: toCandidate(detail, detail),
       profile: toProfile(detail),
       signals: toSignalItems(detail),
+      scoreComponents: toScoreComponents(detail),
     };
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) return undefined;

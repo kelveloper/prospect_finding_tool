@@ -90,6 +90,30 @@ def test_weights_are_configurable():
     assert timing_only.total_score == timing_only.timing_score
 
 
+def test_components_trace_every_point():
+    detector = SignalDetector()
+    signals = detector.detect(
+        profile(specialty="Orthopaedic Surgery", license_status="ACTIVE",
+                license_issue_date=date(2026, 6, 1)),
+        REF,
+    )
+    engine = ScoringEngine()
+    components = engine.components(signals)
+    breakdown = engine.score(signals)
+
+    # All 7 components present, zeros included (missing signals stay visible)
+    assert len(components) == 7
+    assert {c["category"] for c in components} == {"qualification", "timing"}
+    ownership = next(c for c in components if c["signal_type"] == "OWNERSHIP")
+    assert ownership["points"] == 0.0
+
+    # Component points sum back to the sub-scores (before the 100 cap)
+    qual_sum = sum(c["points"] for c in components if c["category"] == "qualification")
+    timing_sum = sum(c["points"] for c in components if c["category"] == "timing")
+    assert round(min(qual_sum, 100), 1) == breakdown.qualification_score
+    assert round(min(timing_sum, 100), 1) == breakdown.timing_score
+
+
 def test_default_formula_60_40():
     detector = SignalDetector()
     signals = detector.detect(

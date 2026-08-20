@@ -29,6 +29,15 @@ class RankedProspect(BaseModel):
     reason_summary: str | None
 
 
+class ScoreComponent(BaseModel):
+    category: Literal["qualification", "timing"]
+    label: str
+    signal_type: str
+    max_points: float
+    strength: float
+    points: float
+
+
 class ProspectDetail(RankedProspect):
     profession: str
     npi: str | None
@@ -42,6 +51,7 @@ class ProspectDetail(RankedProspect):
     phone: str | None
     identity_confidence: float
     signals: list[SignalOut]
+    score_components: list[ScoreComponent] = []
 
 
 class FeedbackIn(BaseModel):

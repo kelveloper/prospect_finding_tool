@@ -1,6 +1,7 @@
-# Progress & Ranking System
+# Progress
 
-Status as of 2026-08-19. Spec: `PROJECT_SPEC.md` · Mechanics: `HOW_IT_WORKS.md`
+Status as of 2026-08-20. Spec: `PROJECT_SPEC.md` · Mechanics:
+`HOW_IT_WORKS.md` · Ranking: `RANKING.md`
 
 ## ✅ Completed
 
@@ -44,44 +45,12 @@ Status as of 2026-08-19. Spec: `PROJECT_SPEC.md` · Mechanics: `HOW_IT_WORKS.md`
 - [ ] Lawyers and other professions (future phase per spec)
 - [ ] Out of V1 scope by design: auth, compliance workflows, outreach generation, CRM
 
-## How the ranking system works
-
-Two questions, two scores, one weighted total.
-
-### Qualification (0–100) — "Should we care about this person?"
-
-| Component | Max pts | How strength is set |
-|---|---|---|
-| Physician standing | 40 | active verified license = 1.0 · unverified = 0.7 · inactive = 0.5 |
-| Specialty tier | 35 | ortho/neuro/plastic 1.0 · cardio .95 · derm/gastro .9 · anesth .85 · family med/peds 0.4 |
-| Practice ownership | 25 | active PLLC/PC 0.9 · generic LLC 0.6 (from business registry) |
-
-### Timing (0–100) — "Why now?"
-
-All recency uses one decay curve: **≤6mo 1.0 · ≤12mo 0.85 · ≤24mo 0.6 · ≤36mo 0.3 · older 0.1**
-
-| Component | Max pts | Driven by |
-|---|---|---|
-| License recency | 40 | IDFPR original issue date |
-| Property purchase | 30 | deed transfer date |
-| NPI enumeration | 15 | when they entered practice |
-| Career advancement | 15 | recency × role seniority (partner/director 1.0, attending 0.8, other 0.5) |
-
-### Total
+## How the ranking works
 
 ```
-total = qualification × 0.60 + timing × 0.40     ← weights are env settings
+total = qualification × 0.60 + timing × 0.40
 ```
 
-Each component takes the **strongest** signal of its type, so duplicate
-records never double-count. Every point traces to a stored signal row, and
-the reason summary states the evidence in plain English.
-
-### Worked example — Dr. John Smith (89.2, #1 on the showcase board)
-
-```
-Qualification: 40 (active license) + 35 (ortho, tier 1.0) + 22.5 (PLLC, 0.9×25) = 97.5
-Timing:        34 (licensed 8mo, .85×40) + 30 ($985k property 2mo ago, 1.0×30)
-             + 12.75 (enumerated 7mo, .85×15)                                   = 76.8
-Total:         97.5 × 0.6  +  76.8 × 0.4                                        = 89.2
-```
+Full explanation — component weights, decay curve, worked high/low
+examples, and how to tune it — lives in **`RANKING.md`** (the single
+source of truth for ranking).

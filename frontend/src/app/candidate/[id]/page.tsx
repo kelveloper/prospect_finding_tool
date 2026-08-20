@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Header from "@/components/Header";
+import ScoreBreakdownCard from "@/components/ScoreBreakdownCard";
 import SectionCard from "@/components/SectionCard";
 import { InfoIcon, ShuffleIcon, PinIcon } from "@/components/icons";
 import { fetchCandidateDetail } from "@/lib/api";
@@ -15,7 +16,7 @@ export default async function CandidateProfilePage({
   const { id } = await params;
   const detail = await fetchCandidateDetail(id);
   if (!detail) notFound();
-  const { candidate, profile } = detail;
+  const { candidate, profile, scoreComponents } = detail;
 
   return (
     <div className="min-h-screen pb-12">
@@ -100,6 +101,12 @@ export default async function CandidateProfilePage({
           {profile.sections.map((section) => (
             <SectionCard key={section.title} section={section} />
           ))}
+          <ScoreBreakdownCard
+            qualificationScore={candidate.qualificationScore}
+            timingScore={candidate.timingScore}
+            totalScore={candidate.score}
+            components={scoreComponents}
+          />
         </div>
 
         {/* ── Actions ────────────────────────────────────── */}

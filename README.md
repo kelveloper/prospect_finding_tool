@@ -11,7 +11,8 @@ list. No LLM, no ML. See `PROJECT_SPEC.md` for the full spec.
   backend endpoints — see `frontend/README.md`.
 
 **Docs:** [`USER_JOURNEY.md`](USER_JOURNEY.md) — demo script + quick setup ·
-[`PROGRESS.md`](PROGRESS.md) — what's done/pending + ranking math ·
+[`RANKING.md`](RANKING.md) — the ranking system, explained ·
+[`PROGRESS.md`](PROGRESS.md) — what's done/pending ·
 [`HOW_IT_WORKS.md`](HOW_IT_WORKS.md) — pipeline mechanics ·
 [`PROJECT_SPEC.md`](PROJECT_SPEC.md) — original spec
 
@@ -70,15 +71,10 @@ curl -X POST localhost:8000/ingest/run
 
 ## Scoring model
 
-- **Qualification (0–100)** — "should we care?": physician standing (40 pts) +
-  specialty earning tier (35 pts) + practice ownership (25 pts — an active
-  PLLC/PC found in the business registry scores 0.9, a generic LLC 0.6).
-- **Timing (0–100)** — "why now?": license-issue recency (40 pts) + NPI
-  enumeration recency (15 pts) + property purchase recency (30 pts, adapter
-  not yet wired) + career advancement (15 pts, adapter not yet wired), on a
-  decay curve (≤6 mo = 1.0 → >36 mo = 0.1).
-- **Total** = `qualification × 0.60 + timing × 0.40`. Weights are settings
-  (`QUALIFICATION_WEIGHT` / `TIMING_WEIGHT` env vars), not code.
+**Total = Qualification ("should we care?") × 0.60 + Timing ("why now?") × 0.40**,
+built entirely from detected signals — every point traceable to a stored
+signal and a source record, with a deterministic plain-English reason
+summary. Full math, worked examples, and tuning guide: **[`RANKING.md`](RANKING.md)**.
 
 ## Enrichment: the OWNERSHIP signal (cross-dataset proof)
 

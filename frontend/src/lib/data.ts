@@ -48,6 +48,13 @@ export type CandidateProfile = {
   sections: ProfileSection[];
 };
 
+export type ScoreComponentItem = {
+  category: "qualification" | "timing";
+  label: string;
+  points: number;
+  maxPoints: number;
+};
+
 export type SignalItem = {
   type: string;
   source: string;

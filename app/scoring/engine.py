@@ -31,6 +31,20 @@ TIMING_WEIGHTS: dict[tuple[str, str | None], float] = {
 }
 
 
+# Human-readable component names for the score-breakdown API
+QUAL_LABELS: dict[str, str] = {
+    "PHYSICIAN": "Physician standing",
+    "SPECIALTY": "Specialty earning tier",
+    "OWNERSHIP": "Practice ownership",
+}
+TIMING_LABELS: dict[tuple[str, str | None], str] = {
+    ("NEW_LICENSE", "idfpr"): "License recency",
+    ("NEW_LICENSE", "npi"): "Practice entry (NPI enumeration)",
+    ("PROPERTY_EVENT", None): "Property purchase recency",
+    ("CAREER_ADVANCEMENT", None): "Career advancement",
+}
+
+
 @dataclass(frozen=True)
 class ScoreBreakdown:
     qualification_score: float
@@ -54,6 +68,34 @@ class ScoringEngine:
             timing_score=round(timing, 1),
             total_score=total,
         )
+
+    def components(self, signals: list[DetectedSignal]) -> list[dict]:
+        """Per-component contributions for explainability. Works on any
+        objects with signal_type/source/strength (detected or stored
+        Signal rows). Zero-strength components are included on purpose —
+        they show what a prospect is missing."""
+        out: list[dict] = []
+        for signal_type, weight in QUAL_WEIGHTS.items():
+            strength = self._max_strength(signals, signal_type)
+            out.append({
+                "category": "qualification",
+                "label": QUAL_LABELS[signal_type],
+                "signal_type": signal_type,
+                "max_points": weight,
+                "strength": round(strength, 2),
+                "points": round(weight * strength, 1),
+            })
+        for (signal_type, source), weight in TIMING_WEIGHTS.items():
+            strength = self._max_strength(signals, signal_type, source)
+            out.append({
+                "category": "timing",
+                "label": TIMING_LABELS[(signal_type, source)],
+                "signal_type": signal_type,
+                "max_points": weight,
+                "strength": round(strength, 2),
+                "points": round(weight * strength, 1),
+            })
+        return out
 
     @staticmethod
     def _max_strength(
