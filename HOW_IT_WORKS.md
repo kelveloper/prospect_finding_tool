@@ -37,7 +37,8 @@ The system finds those people in public data and ranks them.
 5. SCORE      Qualification (60%) + Timing (40%) → total  (math: RANKING.md)
 
 6. EXPLAIN    A plain-English reason summary is generated from the signals
-              (deterministic templates — no LLM)
+              (deterministic templates — no LLM in scoring; a grounded
+              LLM-written narrative for the UI is planned, see PROGRESS.md)
 
 7. PERSIST    Prospect + signals + match evidence + scores → database
 ```

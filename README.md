@@ -14,6 +14,7 @@ list. No LLM, no ML. See `PROJECT_SPEC.md` for the full spec.
 [`RANKING.md`](RANKING.md) — the ranking system, explained ·
 [`PROGRESS.md`](PROGRESS.md) — what's done/pending ·
 [`HOW_IT_WORKS.md`](HOW_IT_WORKS.md) — pipeline mechanics ·
+[`RESEARCH_CAREER_SIGNAL.md`](RESEARCH_CAREER_SIGNAL.md) — career data-source research ·
 [`PROJECT_SPEC.md`](PROJECT_SPEC.md) — original spec
 
 ```bash

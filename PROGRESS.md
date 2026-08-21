@@ -1,7 +1,8 @@
 # Progress
 
-Status as of 2026-08-20. Spec: `PROJECT_SPEC.md` · Mechanics:
-`HOW_IT_WORKS.md` · Ranking: `RANKING.md`
+Status as of 2026-08-21. Spec: `PROJECT_SPEC.md` · Mechanics:
+`HOW_IT_WORKS.md` · Ranking: `RANKING.md` · Career-source research:
+`RESEARCH_CAREER_SIGNAL.md`
 
 ## ✅ Completed
 
@@ -29,9 +30,13 @@ Status as of 2026-08-20. Spec: `PROJECT_SPEC.md` · Mechanics:
 ## 🚧 Not completed (next phases)
 
 **Data sources (mock → real)**
+- [ ] **Career — NEXT UP: CMS PECOS reassignment + facility affiliations**
+      (researched 2026-08-21, see `RESEARCH_CAREER_SIGNAL.md`: free, NPI-keyed,
+      monthly; employer names; also corroborates ownership when the billing
+      group matches the physician's own entity)
 - [ ] Ownership — real IL Secretary of State / OpenCorporates integration (mock `il_sos` now)
 - [ ] Property — real Cook County recorder / open-data integration; verify buyer-name availability (mock `cook_county` now)
-- [ ] Career — real source research; best free lead: NPPES change files (mock `affiliations` now)
+- [ ] Premium wealth tier — CMS "All Owners" facility-ownership files (physician owns a hospital/HHA/SNF)
 
 **Matching & coverage**
 - [ ] Name+state fallback for the ~38% of live physicians whose NPPES license number didn't join IDFPR
@@ -44,6 +49,27 @@ Status as of 2026-08-20. Spec: `PROJECT_SPEC.md` · Mechanics:
 - [ ] Real Alembic migrations (prototype uses create_all; schema changes need `rm prospects.db`)
 - [ ] Lawyers and other professions (future phase per spec)
 - [ ] Out of V1 scope by design: auth, compliance workflows, outreach generation, CRM
+
+## 🤖 Where AI will help (planned, agreed 2026-08-21)
+
+The scoring pipeline stays deterministic — that's its credibility. AI gets
+added around it, in two places, with guardrails:
+
+1. **Match assistant (identity resolution)** — an LLM reviews only the
+   *ambiguous middle* of matching: pairs scoring ~0.5–0.8 that rules alone
+   can't settle (nicknames "Bill"/"William", hyphenated/maiden names,
+   entity names without a first name). It outputs a recommendation + written
+   rationale. **Guardrail: LLM proposes, rules + human dispose** — nothing
+   auto-attaches on LLM judgment alone; recommendations are logged next to
+   the deterministic match evidence.
+
+2. **Advisor-facing summary (UI)** — an LLM writes the natural-language
+   prospect narrative shown on the dossier/follow-up pages, generated
+   strictly from the stored signals and scores (grounded — the model is
+   never asked to "know" anything). The deterministic template summary
+   remains underneath as the auditable source of truth and fallback.
+
+Not planned: AI in scoring, ranking, or as the sole basis for any match.
 
 ## How the ranking works
 

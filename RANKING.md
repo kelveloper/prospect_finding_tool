@@ -120,6 +120,8 @@ Same formula, wildly different outcomes — the spread **is** the product.
 - **Zero rows stay visible** — the UI shows "Career advancement: 0/15 — no
   signal," which doubles as "what would raise this score."
 - **Deterministic** — same data in, same score out. No LLM, no randomness.
+  (Planned AI features — match assistant, UI narrative — sit *around* the
+  scoring, never inside it. See PROGRESS.md.)
 - **Traceable** — every point maps to a stored signal row; every signal maps
   to a source record; every identity merge has a logged score + reason.
 
