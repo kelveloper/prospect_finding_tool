@@ -19,7 +19,7 @@ The system finds those people in public data and ranks them.
               ├─ NPI registry ............. who they are, specialty      [LIVE or mock]
               ├─ IL licensing (IDFPR) ..... license date, active status  [LIVE or mock]
               ├─ IL business registry ..... their PLLC/LLC   (OWNERSHIP) [mock]
-              ├─ County deeds ............. property buys (PROPERTY_EVENT)[mock]
+              ├─ Cook County deeds ........ property buys (PROPERTY_EVENT)[LIVE or mock]
               ├─ Affiliations feed ........ promotions (CAREER_ADVANCEMENT)[mock]
               └─ CMS PECOS ................ billing groups & facilities   [LIVE]
                                             → career moves (snapshot diff)

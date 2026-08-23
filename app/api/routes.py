@@ -9,6 +9,7 @@ import httpx
 from app.adapters import (
     AffiliationsDataSource,
     CookCountyDataSource,
+    CookCountyLiveDataSource,
     IDFPRDataSource,
     IDFPRLiveDataSource,
     ILSoSDataSource,
@@ -57,6 +58,11 @@ def run_ingestion(
             }
             pecos_records, _ = PECOSService(db).sync(npi_names)
             records += pecos_records
+            # Cook County deeds: property purchases by our physicians' names
+            if state.upper() == "IL":
+                records += list(
+                    CookCountyLiveDataSource(buyer_names=npi_names.values()).fetch()
+                )
             result = IngestionPipeline(sources=[]).run(db, records=records)
         else:
             # Full showcase pipeline: provider sources + all three

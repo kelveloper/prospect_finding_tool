@@ -1,5 +1,6 @@
 from app.adapters.affiliations.source import AffiliationsDataSource
 from app.adapters.base import BaseDataSource, EnrichmentRecord, RawProviderRecord
+from app.adapters.cook_county.live import CookCountyLiveDataSource
 from app.adapters.cook_county.source import CookCountyDataSource
 from app.adapters.idfpr.live import IDFPRLiveDataSource
 from app.adapters.idfpr.source import IDFPRDataSource
@@ -17,5 +18,6 @@ __all__ = [
     "IDFPRLiveDataSource",
     "ILSoSDataSource",
     "CookCountyDataSource",
+    "CookCountyLiveDataSource",
     "AffiliationsDataSource",
 ]

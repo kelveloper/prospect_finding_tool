@@ -39,7 +39,12 @@ Status as of 2026-08-21. Spec: `PROJECT_SPEC.md` · Mechanics:
 - [ ] Ownership — real IL Secretary of State / OpenCorporates integration
       (mock `il_sos` now; PECOS name-matched billing groups already provide
       live ownership *inference*)
-- [ ] Property — real Cook County recorder / open-data integration; verify buyer-name availability (mock `cook_county` now)
+- [x] **Property — Cook County Assessor Parcel Sales (LIVE, 2026-08-23)** —
+      free Socrata API *with buyer names*; targeted name queries over the
+      36-month decay window, price floor, dedupe by deed doc. First live IL
+      run: 8 real physician purchases matched ($672K–$2.45M). Limits: Cook
+      County only, name+state join — paid upgrade path (ATTOM/BatchData)
+      documented in `RESEARCH_PROPERTY_SIGNAL.md`
 - [ ] Premium wealth tier — CMS "All Owners" facility-ownership files (physician owns a hospital/HHA/SNF)
 
 **Matching & coverage**

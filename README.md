@@ -15,6 +15,8 @@ list. No LLM, no ML. See `PROJECT_SPEC.md` for the full spec.
 [`PROGRESS.md`](PROGRESS.md) — what's done/pending ·
 [`HOW_IT_WORKS.md`](HOW_IT_WORKS.md) — pipeline mechanics ·
 [`RESEARCH_CAREER_SIGNAL.md`](RESEARCH_CAREER_SIGNAL.md) — career data-source research ·
+[`RESEARCH_COMMERCIAL_SOURCES.md`](RESEARCH_COMMERCIAL_SOURCES.md) — paid vendor comparison & buy order ·
+[`RESEARCH_PROPERTY_SIGNAL.md`](RESEARCH_PROPERTY_SIGNAL.md) — property data-source research ·
 [`PROJECT_SPEC.md`](PROJECT_SPEC.md) — original spec
 
 ```bash
