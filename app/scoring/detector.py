@@ -201,17 +201,29 @@ class SignalDetector:
             if record.kind == "ENTITY":
                 professional = (record.entity_type or "").upper() in PROFESSIONAL_ENTITY_TYPES
                 active = (record.entity_status or "").upper() == "ACTIVE"
-                strength = (0.9 if professional else 0.6) * (1.0 if active else 0.6)
+                if record.source == "pecos":
+                    # Inference from Medicare billing, not a registry record:
+                    # slightly weaker strength, lower confidence
+                    strength = (0.8 if professional else 0.55) * (1.0 if active else 0.6)
+                    description = (
+                        f"Bills Medicare under own entity '{record.entity_name}' "
+                        "(name-matched billing group)"
+                    )
+                    confidence = 0.7
+                else:
+                    strength = (0.9 if professional else 0.6) * (1.0 if active else 0.6)
+                    description = (
+                        f"Registered {record.entity_type} '{record.entity_name}' "
+                        f"formed {age}"
+                    )
+                    confidence = 0.85
                 signals.append(
                     DetectedSignal(
                         signal_type="OWNERSHIP",
                         source=record.source,
-                        description=(
-                            f"Registered {record.entity_type} '{record.entity_name}' "
-                            f"formed {age}"
-                        ),
+                        description=description,
                         strength=strength,
-                        confidence=0.85,
+                        confidence=confidence,
                         event_date=record.event_date,
                     )
                 )
@@ -233,23 +245,31 @@ class SignalDetector:
                     )
                 )
             elif record.kind == "CAREER":
-                role = (record.role_title or "").lower()
-                if any(k in role for k in SENIOR_ROLE_KEYWORDS):
-                    role_weight = 1.0
-                elif any(k in role for k in MID_ROLE_KEYWORDS):
-                    role_weight = 0.8
-                else:
-                    role_weight = 0.5
                 recency = recency_strength(record.event_date, reference_date)
+                if record.source == "pecos":
+                    # role_title carries the full event description
+                    # ("Started billing under new group '…'"); a verified
+                    # Medicare billing change is a solid job-move signal
+                    role_weight = 0.8
+                    description = f"{record.role_title}, {age}"
+                    confidence = 0.9
+                else:
+                    role = (record.role_title or "").lower()
+                    if any(k in role for k in SENIOR_ROLE_KEYWORDS):
+                        role_weight = 1.0
+                    elif any(k in role for k in MID_ROLE_KEYWORDS):
+                        role_weight = 0.8
+                    else:
+                        role_weight = 0.5
+                    description = f"Named {record.role_title} at {record.organization}, {age}"
+                    confidence = 0.75
                 signals.append(
                     DetectedSignal(
                         signal_type="CAREER_ADVANCEMENT",
                         source=record.source,
-                        description=(
-                            f"Named {record.role_title} at {record.organization}, {age}"
-                        ),
+                        description=description,
                         strength=round(role_weight * recency, 3),
-                        confidence=0.75,
+                        confidence=confidence,
                         event_date=record.event_date,
                     )
                 )

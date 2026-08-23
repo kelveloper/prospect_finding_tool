@@ -28,6 +28,7 @@ from app.schemas import (
 from app.schemas.api import ScoreComponent
 from app.scoring import ScoringEngine
 from app.services import IngestionPipeline, RankingService
+from app.services.pecos_sync import PECOSService
 
 router = APIRouter()
 
@@ -50,6 +51,12 @@ def run_ingestion(
             if state.upper() == "IL":
                 licenses = [r.license_number for r in records if r.license_number]
                 records += list(IDFPRLiveDataSource(license_numbers=licenses).fetch())
+            # PECOS: career moves + ownership inference, keyed by NPI
+            npi_names = {
+                r.npi: (r.first_name, r.last_name) for r in records if r.npi
+            }
+            pecos_records, _ = PECOSService(db).sync(npi_names)
+            records += pecos_records
             result = IngestionPipeline(sources=[]).run(db, records=records)
         else:
             # Full showcase pipeline: provider sources + all three

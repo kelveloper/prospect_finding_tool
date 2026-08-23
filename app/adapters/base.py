@@ -41,12 +41,14 @@ class EnrichmentRecord:
     Unlike RawProviderRecord it does not establish identity — it only
     enriches an already-resolved prospect.
     """
-    source: str                       # "il_sos" | "cook_county" | "affiliations"
+    source: str                       # "il_sos" | "cook_county" | "affiliations" | "pecos"
     source_record_id: str
     kind: str                         # "ENTITY" | "PROPERTY" | "CAREER"
     owner_first_name: str
     owner_last_name: str
     state: str | None = None
+    # When the source is NPI-keyed (e.g. PECOS), attach by NPI — no name matching
+    npi: str | None = None
     event_date: date | None = None
     # ENTITY fields
     entity_name: str | None = None

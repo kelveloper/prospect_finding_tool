@@ -77,3 +77,7 @@ open http://localhost:8000/docs
 his follow-up page (signal evidence + cast a verdict) → back to the board →
 click Okafor or Tran to show the contrast → mention live mode pulls 194
 real IL physicians with real verified licenses.
+
+**Q&A prep:** likely audience questions (what is PECOS, how do datasets
+join, where's the AI, why are live scores capped) are answered in the FAQ
+at the bottom of `HOW_IT_WORKS.md`.

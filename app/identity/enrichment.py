@@ -13,6 +13,12 @@ from app.identity.resolver import MatchEvidence, ResolvedProspect, normalize_nam
 def enrichment_match_score(
     record: EnrichmentRecord, prospect: ResolvedProspect
 ) -> tuple[float, str]:
+    # NPI-keyed records (PECOS) join exactly — the strongest possible attach
+    if record.npi and prospect.npi:
+        if record.npi == prospect.npi:
+            return 1.0, "NPI match"
+        return 0.0, "different NPI"
+
     if record.state and prospect.state and record.state != prospect.state:
         return 0.0, "different state"
 

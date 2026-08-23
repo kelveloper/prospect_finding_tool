@@ -20,7 +20,10 @@ The system finds those people in public data and ranks them.
               ├─ IL licensing (IDFPR) ..... license date, active status  [LIVE or mock]
               ├─ IL business registry ..... their PLLC/LLC   (OWNERSHIP) [mock]
               ├─ County deeds ............. property buys (PROPERTY_EVENT)[mock]
-              └─ Affiliations feed ........ promotions (CAREER_ADVANCEMENT)[mock]
+              ├─ Affiliations feed ........ promotions (CAREER_ADVANCEMENT)[mock]
+              └─ CMS PECOS ................ billing groups & facilities   [LIVE]
+                                            → career moves (snapshot diff)
+                                            → ownership inference (self-named group)
 
 2. RESOLVE    Identity resolution dedupes and merges person records:
               ├─ Tier 1: same license number → same person (score 1.0)
@@ -73,6 +76,48 @@ records that produced it.
 - **Live (`?mode=live&state=IL&limit=25`):** real physicians from NPPES,
   really license-verified against IDFPR. Mock enrichment is deliberately
   excluded — a fake property purchase must never appear on a real person.
+
+## FAQ (likely showcase questions)
+
+**Q: What is PECOS, and how does it give you ownership data?**
+PECOS is Medicare's enrollment database — before any physician can bill
+Medicare, they must declare which legal entity receives their payments
+("reassignment of benefits"). It is an *employment/billing* record, not an
+ownership record. The ownership trick: **if the entity a physician bills
+under is named after them** ("Beth Adams Medical Services PLLC"), they
+almost certainly own it — nobody routes their Medicare income through a
+stranger's company bearing their name. We emit that as an OWNERSHIP
+*inference*: slightly weaker strength (0.8 vs 0.9) and lower confidence
+(0.7 vs 0.85) than a registry record, and the description says so
+("name-matched billing group"). The *legal proof* of ownership remains the
+state business registry (who formed the entity, and when); PECOS adds
+behavioral proof (the entity is active and economically theirs). Two
+independent government systems agreeing is the strongest ownership claim
+public data supports. Bonus: PECOS is NPI-keyed (zero name-matching risk),
+and monthly snapshot diffs catch the moment a physician switches from
+billing under a hospital to a self-named entity — "just went independent,"
+an ownership signal and career event at once.
+
+**Q: Do the datasets share an ID, or are you guessing by name?**
+NPI ↔ IDFPR join on the *state license number* (NPPES records carry it —
+100% of our live pull). PECOS joins on *NPI*. Only the business registry
+and county deeds have no shared ID — there, matching is exact
+name + state, conservatively, with near-misses rejected and every attach
+logged with a reason.
+
+**Q: Why is the ranking deterministic — where's the AI?**
+The score must be auditable: same data in, same score out, every point
+traceable to a source record. AI is planned where it's strong and fenced
+out of where it's dangerous: an LLM match-assistant for ambiguous name
+cases (proposes; rules + human dispose) and a grounded LLM-written
+narrative in the UI — never inside scoring or as the sole basis of a
+match. See PROGRESS.md.
+
+**Q: Why don't live prospects score above ~62?**
+Missing data, not missing logic: property events (30 timing pts) await a
+real deed source, and career-move events accrue from the second monthly
+PECOS snapshot. The mock showcase demonstrates the full-signal ceiling
+(Smith at 89.2).
 
 ## Where things live
 

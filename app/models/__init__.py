@@ -1,3 +1,17 @@
-from app.models.entities import Feedback, IdentityMatch, Prospect, Signal
+from app.models.entities import (
+    AffiliationSnapshot,
+    CareerEvent,
+    Feedback,
+    IdentityMatch,
+    Prospect,
+    Signal,
+)
 
-__all__ = ["Prospect", "Signal", "IdentityMatch", "Feedback"]
+__all__ = [
+    "Prospect",
+    "Signal",
+    "IdentityMatch",
+    "Feedback",
+    "AffiliationSnapshot",
+    "CareerEvent",
+]

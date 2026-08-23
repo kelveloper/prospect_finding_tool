@@ -30,11 +30,15 @@ Status as of 2026-08-21. Spec: `PROJECT_SPEC.md` · Mechanics:
 ## 🚧 Not completed (next phases)
 
 **Data sources (mock → real)**
-- [ ] **Career — NEXT UP: CMS PECOS reassignment + facility affiliations**
-      (researched 2026-08-21, see `RESEARCH_CAREER_SIGNAL.md`: free, NPI-keyed,
-      monthly; employer names; also corroborates ownership when the billing
-      group matches the physician's own entity)
-- [ ] Ownership — real IL Secretary of State / OpenCorporates integration (mock `il_sos` now)
+- [x] **Career — CMS PECOS reassignment + facility affiliations (LIVE,
+      2026-08-21)** — NPI-keyed sync with snapshot diffing: career events
+      (new billing group / new facility) accrue from the second monthly
+      snapshot; ownership *inference* fires immediately when a physician
+      bills under a self-named entity (real IL run: 673 affiliations across
+      144 physicians, 7 ownership inferences on first pull)
+- [ ] Ownership — real IL Secretary of State / OpenCorporates integration
+      (mock `il_sos` now; PECOS name-matched billing groups already provide
+      live ownership *inference*)
 - [ ] Property — real Cook County recorder / open-data integration; verify buyer-name availability (mock `cook_county` now)
 - [ ] Premium wealth tier — CMS "All Owners" facility-ownership files (physician owns a hospital/HHA/SNF)
 

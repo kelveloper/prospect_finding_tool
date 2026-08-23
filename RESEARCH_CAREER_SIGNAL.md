@@ -116,7 +116,15 @@ Clarity on what each source proves:
 | ABMS | $$$ | contract | name/ID | on-demand | Narrow | Skip |
 | Doximity | n/a | none | — | — | — | Skip |
 
-## Implementation sketch (next iteration)
+## Implementation status: BUILT 2026-08-21 ✅
+
+Implemented as sketched below: `app/adapters/pecos/client.py` (batched
+NPI queries), `app/services/pecos_sync.py` (snapshots, diffing, ownership
+inference), tables `affiliation_snapshots` + `career_events`, NPI-keyed
+enrichment matching ("NPI match", 1.0). First live IL run: 673 affiliation
+rows across 144/194 physicians, 7 real ownership inferences.
+
+## Implementation sketch (as built)
 
 1. `app/adapters/pecos/` — `PECOSDataSource` hitting the reassignment +
    facility-affiliation APIs **by our prospects' NPIs** (same targeted

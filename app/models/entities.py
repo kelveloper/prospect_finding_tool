@@ -89,6 +89,34 @@ class IdentityMatch(Base):
     prospect: Mapped[Prospect] = relationship(back_populates="identity_matches")
 
 
+class AffiliationSnapshot(Base):
+    """Point-in-time record of a physician's PECOS group/facility links.
+    Career-move events are detected by diffing successive snapshots."""
+
+    __tablename__ = "affiliation_snapshots"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    npi: Mapped[str] = mapped_column(String(10), index=True)
+    kind: Mapped[str] = mapped_column(String(10))  # "group" | "facility"
+    item_key: Mapped[str] = mapped_column(String(60))   # group PAC id / facility cert #
+    item_name: Mapped[str] = mapped_column(String(200))  # group legal name / facility type
+    captured_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+
+
+class CareerEvent(Base):
+    """A detected career move (new group, new facility). Persisted so the
+    event keeps its detection date across re-ingests."""
+
+    __tablename__ = "career_events"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    npi: Mapped[str] = mapped_column(String(10), index=True)
+    event_kind: Mapped[str] = mapped_column(String(30))  # NEW_GROUP | NEW_FACILITY
+    organization: Mapped[str] = mapped_column(String(200))
+    description: Mapped[str] = mapped_column(Text)
+    detected_at: Mapped[date] = mapped_column(Date)
+
+
 class Feedback(Base):
     __tablename__ = "feedback"
 
