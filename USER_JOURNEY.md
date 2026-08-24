@@ -13,71 +13,66 @@ cd prospect_finding_tool/frontend
 npm run dev
 ```
 
-Open **http://localhost:3000** — the scoreboard auto-ingests the showcase
-data on first load. That's it.
+Open **http://localhost:3000**. On first load the scoreboard ingests
+**real data live** — ~200 Illinois physicians from NPPES, license-verified
+against IDFPR, enriched with PECOS billing groups and Cook County deeds.
+The first load takes a minute or two (four government APIs); after that
+it's instant.
 
 Useful extras:
 
 ```bash
-# Reset the database (fresh ingest on next page load)
-rm prospects.db
+# Re-ingest fresh live data (e.g. after CMS's monthly PECOS refresh)
+rm prospects.db   # then reload the scoreboard, or:
+curl -X POST "localhost:8000/ingest/run?state=IL&limit=25"
 
-# Pull REAL Illinois physicians instead of the showcase cast
-curl -X POST "localhost:8000/ingest/run?mode=live&state=IL&limit=25"
+# Bigger cohort (up to 200 per specialty)
+curl -X POST "localhost:8000/ingest/run?state=IL&limit=100"
 
 # Interactive API docs
 open http://localhost:8000/docs
 
-# Run the test suite (40 tests)
+# Run the test suite (uses offline fixtures, never external APIs)
 .venv/bin/python -m pytest tests/ -q
 ```
-
-> Note: switching between sample and live data? Delete `prospects.db`
-> first so the boards don't mix.
 
 ## The user journey (demo script)
 
 **Persona:** a wealth-management advisor looking for their next client.
 
-1. **Scoreboard (`/`)** — ranked physician prospects, highest fit first.
-   The featured panel shows the #1 prospect: score ring, tier badge,
-   qualification/timing stats, plain-English summary, and signal tags
-   ("Practice Owner", "Recent Property Purchase").
+1. **Scoreboard (`/`)** — real Illinois physicians ranked by fit. The
+   featured panel shows the #1 prospect: score ring, tier, qualification/
+   timing stats, plain-English summary, signal tags.
 
 2. **Click "View More" → Candidate dossier (`/candidate/{id}`)** — the
-   full evidence, one card per dimension:
-   - **Career Signal** — license status, issue date, specialty, recent advancement
-   - **Ownership** — their PLLC/LLC: entity name, formation date, source, strength
-   - **Financial Activity** — property purchase: address, price, date, source
-   - **Identity Resolution** — which datasets corroborated this person, at what confidence
-   - **Score Breakdown** — the 60/40 math, fully traceable
-   - **Practice Location** — address and phone
+   evidence: identity trust badge (which government datasets corroborated
+   this person, at what confidence), then Career Signal, Ownership &
+   Practice, Financial Activity, and the expandable Score Breakdown.
 
-3. **"Review & Give Feedback" (`/candidate/{id}/follow-up`)** — why they
-   ranked here: every supporting signal with strength/confidence bars, then
-   the advisor verdict: **Good Fit / Revisit Later / Not a Fit** + notes.
+3. **"Review & Give Feedback" (`/candidate/{id}/follow-up`)** — every
+   supporting signal with its source badge (NPI, IDFPR, PECOS,
+   COOK_COUNTY) and strength/confidence bars, then the advisor verdict:
+   **Good Fit / Revisit Later / Not a Fit** + notes.
 
-4. **Verdict is stored** — building the labeled dataset a future scoring
-   model calibrates against. (No retraining in the prototype, by design.)
+4. **Verdict stored** — building the labeled dataset future scoring
+   calibration will learn from.
 
-## The demo cast (sample mode)
+## What to look for on a live board
 
-| Prospect | Score | The story to tell |
+Live data changes as registries update, so point at **archetypes**, not
+fixed names. On the 2026-08 pull these were:
+
+| Archetype | Example found | The story |
 |---|---|---|
-| **John A Smith** | 87.7 | The hero: ortho surgeon, licensed 8mo ago, bills Medicare under his own **Smith Orthopedics PLLC**, bought a **$985k property** 2mo ago — the full career → ownership → financial-event chain |
-| **David Chen** | ~77 | Recently licensed dermatologist + fresh property purchase; also shows fuzzy identity matching ("D Chen" ≡ "David Chen") |
-| **Maria Gonzalez** | ~75 | Cardiologist billing under her own PLLC — strong qualification, timing cooling off |
-| **Robert Kaplan** | ~72 | Perfect career signals + new attending role, but no ownership yet |
-| **Priya Raman** | ~67 | **Career advancement**: named Partner 4 months ago |
-| **Sarah Okafor** | ~45 | The contrast: owns an LLC and property, but everything is *old* — weak timing |
-| **Emily Tran** | ~36 | Inactive license; Ownership/Financial cards show "None on record" |
-| **Michael Brooks** | ~28 | Bottom of the board: standard specialty, no signals, enumerated 2017 |
-
-**Suggested path:** Scoreboard → Smith's dossier (the three signal cards) →
-his follow-up page (signal evidence + cast a verdict) → back to the board →
-click Okafor or Tran to show the contrast → mention live mode pulls 194
-real IL physicians with real verified licenses.
+| **New-to-market surgeon** | Plastic surgeon, Rockford — IL license issued *this month*, NPI 15 yrs old | Experienced physician who just relocated to Illinois: new income, no local advisor |
+| **Fresh attending** | Ortho surgeon, Chicago — licensed 3 months ago, NPI 5 yrs | Just finished training; surgeon income starts now |
+| **Practice owner** | Dermatologist, Chicago — bills Medicare under her own PLLC | PECOS ownership inference; elite qualification, weak timing |
+| **Property buyer** | Ortho surgeon — $1.6M Cook County purchase 15 months ago | The financial-event signal lifting a mid-board prospect |
+| **Low-signal contrast** | Pediatrics, enumerated 2017, nothing recent | Why the bottom of the board is the bottom |
 
 **Q&A prep:** likely audience questions (what is PECOS, how do datasets
-join, where's the AI, why are live scores capped) are answered in the FAQ
-at the bottom of `HOW_IT_WORKS.md`.
+join, where's the AI, why are scores capped ~62 today) are answered in the
+FAQ at the bottom of `HOW_IT_WORKS.md`.
+
+**Caveat for any audience:** these are real people from public records —
+the board is research output, not a vetted outreach list.

@@ -84,7 +84,8 @@ scores 40×0.85 = 34; one licensed in 2018 scores 40×0.1 = 4.
 
 ## 5. Two worked examples
 
-**Dr. John Smith — 87.7, #1 on the showcase board** (the full hypothesis chain)
+**A hypothetical full-chain physician — 87.7** (every signal firing; real
+prospects land lower until the paid registry + monthly career events fill in)
 
 ```
 QUALIFICATION                                    TIMING
@@ -97,7 +98,7 @@ Own PLLC (billing)   25 × 0.8  = 20.0            Enumeration (7 mo)  15 × 0.85
 TOTAL = 95.0 × 0.6 + 76.8 × 0.4 = 57.0 + 30.7 = 87.7
 ```
 
-**Dr. Michael Brooks — 27.6, bottom of the board** (why he ranks low)
+**A low-signal contrast — 27.6** (standard specialty, nothing recent)
 
 ```
 QUALIFICATION                                    TIMING

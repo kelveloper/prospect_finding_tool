@@ -15,14 +15,14 @@ The system finds those people in public data and ranks them.
 ## The flow (what happens on POST /ingest/run)
 
 ```
-1. FETCH      Each data-source adapter returns normalized records
-              ├─ NPI registry ............. who they are, specialty      [LIVE or mock]
-              ├─ IL licensing (IDFPR) ..... license date, active status  [LIVE or mock]
-              ├─ Cook County deeds ........ property buys (PROPERTY_EVENT)[LIVE or mock]
-              ├─ Affiliations feed ........ promotions (CAREER_ADVANCEMENT)[mock]
-              └─ CMS PECOS ................ billing groups & facilities  [LIVE or mock]
-                                            → career moves (snapshot diff)
-                                            → OWNERSHIP inference (self-named group)
+1. FETCH      Each data-source adapter returns normalized records — all
+              LIVE, free government APIs, no keys:
+              ├─ NPI registry (NPPES) ..... who they are, specialty
+              ├─ IL licensing (IDFPR) ..... license issue date, active status
+              ├─ CMS PECOS ................ billing groups & facilities
+              │                             → career moves (snapshot diff)
+              │                             → OWNERSHIP inference (self-named group)
+              └─ Cook County deeds ........ property purchases
               (registry ownership records — formation dates, officers —
                have no free API; paid integration planned, see
                RESEARCH_COMMERCIAL_SOURCES.md)
@@ -71,13 +71,14 @@ and a human-readable reason ("license number match", "exact first and last
 name, same state") — so any claim on a dossier can be audited back to the
 records that produced it.
 
-## Sample vs live mode
+## Live by default — no mock data in the product
 
-- **Sample (default):** 8 fictional physicians + mock enrichment — the
-  full-signal showcase. Deterministic, offline, drives the demo and tests.
-- **Live (`?mode=live&state=IL&limit=25`):** real physicians from NPPES,
-  really license-verified against IDFPR. Mock enrichment is deliberately
-  excluded — a fake property purchase must never appear on a real person.
+`POST /ingest/run` pulls real data (the UI's auto-ingest does too; the
+first load takes a minute or two while four government APIs are queried).
+A fixture cohort still exists behind an explicit `?mode=sample`, but it is
+**for the automated test suite only** — tests can't call real external
+APIs on every run. No user-facing surface ever loads it, and fixture
+records can never attach to real people.
 
 ## FAQ (likely showcase questions)
 
@@ -115,11 +116,12 @@ cases (proposes; rules + human dispose) and a grounded LLM-written
 narrative in the UI — never inside scoring or as the sole basis of a
 match. See PROGRESS.md.
 
-**Q: Why don't most live prospects score above ~62?**
-Missing data, not missing logic: full registry ownership records (25 qual
-pts) await the paid business-registry source, and career-move events
-accrue from the second monthly PECOS snapshot. The mock showcase
-demonstrates the full-signal ceiling (Smith at 87.7).
+**Q: Why don't most prospects score above ~62?**
+Missing data, not missing logic: full registry ownership records await the
+paid business-registry source, and career-move events accrue from the
+second monthly PECOS snapshot. A hypothetical physician firing every
+signal (new license + own PLLC + fresh property purchase) would score
+~87.7 — see the worked example in RANKING.md.
 
 ## Where things live
 

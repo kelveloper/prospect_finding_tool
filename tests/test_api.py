@@ -1,5 +1,7 @@
 def _ingest(client):
-    response = client.post("/ingest/run")
+    # Tests use the fixture cohort explicitly — live mode (the default)
+    # calls real external APIs and must never run in the test suite
+    response = client.post("/ingest/run?mode=sample")
     assert response.status_code == 200, response.text
     return response.json()
 

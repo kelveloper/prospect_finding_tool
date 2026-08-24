@@ -36,9 +36,11 @@ router = APIRouter()
 
 @router.post("/ingest/run", response_model=IngestResult)
 def run_ingestion(
-    mode: Literal["sample", "live"] = Query(default="sample"),
+    # Live real-data ingestion is the default. "sample" loads the fixture
+    # cohort and exists for automated tests only — never used by the UI.
+    mode: Literal["live", "sample"] = Query(default="live"),
     state: str = Query(default="IL", min_length=2, max_length=2),
-    limit: int = Query(default=50, ge=1, le=200, description="per specialty, live mode"),
+    limit: int = Query(default=25, ge=1, le=200, description="per specialty"),
     db: Session = Depends(get_db),
 ):
     try:
@@ -65,8 +67,8 @@ def run_ingestion(
                 )
             result = IngestionPipeline(sources=[]).run(db, records=records)
         else:
-            # Showcase pipeline: every sample source mirrors a live one —
-            # ownership arrives as PECOS billing inference, like live mode
+            # Test-fixture pipeline (mirrors the live source shapes) —
+            # reachable only via explicit ?mode=sample, used by the tests
             pipeline = IngestionPipeline(
                 sources=[
                     NPIDataSource(),
