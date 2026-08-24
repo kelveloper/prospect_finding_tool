@@ -12,9 +12,9 @@ from app.adapters import (
     CookCountyLiveDataSource,
     IDFPRDataSource,
     IDFPRLiveDataSource,
-    ILSoSDataSource,
     NPIDataSource,
     NPPESDataSource,
+    PECOSSampleDataSource,
 )
 from app.config import get_settings
 from app.database import get_db
@@ -65,13 +65,13 @@ def run_ingestion(
                 )
             result = IngestionPipeline(sources=[]).run(db, records=records)
         else:
-            # Full showcase pipeline: provider sources + all three
-            # enrichment signals (ownership, property, career) on mock data
+            # Showcase pipeline: every sample source mirrors a live one —
+            # ownership arrives as PECOS billing inference, like live mode
             pipeline = IngestionPipeline(
                 sources=[
                     NPIDataSource(),
                     IDFPRDataSource(),
-                    ILSoSDataSource(),
+                    PECOSSampleDataSource(),
                     CookCountyDataSource(),
                     AffiliationsDataSource(),
                 ]

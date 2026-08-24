@@ -18,12 +18,14 @@ The system finds those people in public data and ranks them.
 1. FETCH      Each data-source adapter returns normalized records
               ├─ NPI registry ............. who they are, specialty      [LIVE or mock]
               ├─ IL licensing (IDFPR) ..... license date, active status  [LIVE or mock]
-              ├─ IL business registry ..... their PLLC/LLC   (OWNERSHIP) [mock]
               ├─ Cook County deeds ........ property buys (PROPERTY_EVENT)[LIVE or mock]
               ├─ Affiliations feed ........ promotions (CAREER_ADVANCEMENT)[mock]
-              └─ CMS PECOS ................ billing groups & facilities   [LIVE]
+              └─ CMS PECOS ................ billing groups & facilities  [LIVE or mock]
                                             → career moves (snapshot diff)
-                                            → ownership inference (self-named group)
+                                            → OWNERSHIP inference (self-named group)
+              (registry ownership records — formation dates, officers —
+               have no free API; paid integration planned, see
+               RESEARCH_COMMERCIAL_SOURCES.md)
 
 2. RESOLVE    Identity resolution dedupes and merges person records:
               ├─ Tier 1: same license number → same person (score 1.0)
@@ -113,11 +115,11 @@ cases (proposes; rules + human dispose) and a grounded LLM-written
 narrative in the UI — never inside scoring or as the sole basis of a
 match. See PROGRESS.md.
 
-**Q: Why don't live prospects score above ~62?**
-Missing data, not missing logic: property events (30 timing pts) await a
-real deed source, and career-move events accrue from the second monthly
-PECOS snapshot. The mock showcase demonstrates the full-signal ceiling
-(Smith at 89.2).
+**Q: Why don't most live prospects score above ~62?**
+Missing data, not missing logic: full registry ownership records (25 qual
+pts) await the paid business-registry source, and career-move events
+accrue from the second monthly PECOS snapshot. The mock showcase
+demonstrates the full-signal ceiling (Smith at 87.7).
 
 ## Where things live
 

@@ -64,9 +64,9 @@ open http://localhost:8000/docs
 
 | Prospect | Score | The story to tell |
 |---|---|---|
-| **John A Smith** | 89.2 | The hero: ortho surgeon, licensed 8mo ago, formed **Smith Orthopedics PLLC** 5mo ago, bought a **$985k property** 2mo ago — the full career → ownership → financial-event chain |
+| **John A Smith** | 87.7 | The hero: ortho surgeon, licensed 8mo ago, bills Medicare under his own **Smith Orthopedics PLLC**, bought a **$985k property** 2mo ago — the full career → ownership → financial-event chain |
 | **David Chen** | ~77 | Recently licensed dermatologist + fresh property purchase; also shows fuzzy identity matching ("D Chen" ≡ "David Chen") |
-| **Maria Gonzalez** | ~76 | Cardiologist with her own PLLC — strong qualification, timing cooling off |
+| **Maria Gonzalez** | ~75 | Cardiologist billing under her own PLLC — strong qualification, timing cooling off |
 | **Robert Kaplan** | ~72 | Perfect career signals + new attending role, but no ownership yet |
 | **Priya Raman** | ~67 | **Career advancement**: named Partner 4 months ago |
 | **Sarah Okafor** | ~45 | The contrast: owns an LLC and property, but everything is *old* — weak timing |

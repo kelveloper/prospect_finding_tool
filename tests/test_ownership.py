@@ -1,14 +1,16 @@
-"""THE PROOF: a physician resolved from profession data (NPI + IDFPR) can be
-found in an unrelated public dataset (IL SoS business registry) by
-deterministic name matching — with near-miss records correctly rejected."""
+"""OWNERSHIP signal proof — billing-inference mechanism (mirrors live PECOS).
+
+The registry mock was removed (no obtainable API for IL SoS data; the paid
+Cobalt integration will supply formation dates + official officer records).
+Sample ownership now arrives exactly like live mode earns it: NPI-keyed
+entity records inferred from Medicare billing groups."""
 from datetime import date
 
-from app.adapters import IDFPRDataSource, ILSoSDataSource, NPIDataSource
-from app.adapters.base import EnrichmentRecord
+from app.adapters import IDFPRDataSource, NPIDataSource, PECOSSampleDataSource
 from app.identity import EnrichmentMatcher, IdentityResolver
 from app.scoring import ScoringEngine, SignalDetector
 
-REF = date(2026, 8, 18)
+REF = date(2026, 8, 23)
 
 
 def _resolved_prospects():
@@ -17,42 +19,34 @@ def _resolved_prospects():
 
 
 def _attach_entities(prospects):
-    entities = list(ILSoSDataSource().fetch())
+    entities = list(PECOSSampleDataSource().fetch())
     matched = EnrichmentMatcher().attach(prospects, entities)
     return entities, matched
 
 
-def test_physician_found_in_business_registry():
+def test_ownership_attaches_by_npi():
     prospects = _resolved_prospects()
     _, matched = _attach_entities(prospects)
 
     smith = next(p for p in prospects if p.last_name == "Smith")
     assert len(smith.enrichments) == 1
-    entity = smith.enrichments[0]
-    assert entity.entity_name == "Smith Orthopedics PLLC"
+    assert smith.enrichments[0].entity_name == "Smith Orthopedics PLLC"
 
-    # The attachment is auditable: recorded as match evidence with a reason
-    il_sos_matches = [m for m in smith.matches if m.source_b == "il_sos"]
-    assert len(il_sos_matches) == 1
-    assert il_sos_matches[0].score >= 0.8
-    assert "exact first and last name" in il_sos_matches[0].reason
+    pecos_matches = [m for m in smith.matches if m.source_b == "pecos"]
+    assert len(pecos_matches) == 1
+    assert pecos_matches[0].score == 1.0
+    assert pecos_matches[0].reason == "NPI match"
 
 
-def test_near_miss_records_are_rejected():
+def test_unknown_npi_never_attaches():
     prospects = _resolved_prospects()
     entities, matched = _attach_entities(prospects)
 
-    # 4 entity records; Palumbo (no such physician) and nobody named
-    # Smithfield exist, so only Smith, Gonzalez, Okafor attach
+    # 4 sample entities; the Palumbo trap carries an untracked NPI
     assert len(entities) == 4
     assert matched == 3
-
-    attached_entities = {e.entity_name for p in prospects for e in p.enrichments}
-    assert "Windy City Landscaping LLC" not in attached_entities
-
-    # "Jonathan Smithfield" must NOT attach to "John Smith"
-    smith = next(p for p in prospects if p.last_name == "Smith")
-    assert all(e.owner_last_name == "Smith" for e in smith.enrichments)
+    attached = {e.entity_name for p in prospects for e in p.enrichments}
+    assert "Windy City Landscaping LLC" not in attached
 
 
 def test_ownership_signal_emitted_and_scored():
@@ -63,11 +57,11 @@ def test_ownership_signal_emitted_and_scored():
     signals = SignalDetector().detect(smith, REF)
     ownership = [s for s in signals if s.signal_type == "OWNERSHIP"]
     assert len(ownership) == 1
-    # Active PLLC (professional entity) = 0.9 strength
-    assert ownership[0].strength == 0.9
+    # Billing inference: active PLLC = 0.8 strength, labeled as inference
+    assert ownership[0].strength == 0.8
+    assert "Bills Medicare under own entity" in ownership[0].description
     assert "Smith Orthopedics PLLC" in ownership[0].description
 
-    # Ownership lifts qualification above an otherwise-identical physician
     without = [s for s in signals if s.signal_type != "OWNERSHIP"]
     engine = ScoringEngine()
     assert (
@@ -87,20 +81,3 @@ def test_generic_llc_scores_below_professional_entity():
     smith_own = [s for s in detector.detect(smith, REF) if s.signal_type == "OWNERSHIP"]
     okafor_own = [s for s in detector.detect(okafor, REF) if s.signal_type == "OWNERSHIP"]
     assert smith_own[0].strength > okafor_own[0].strength
-
-
-def test_state_mismatch_rejected():
-    prospects = _resolved_prospects()
-    ny_entity = EnrichmentRecord(
-        source="il_sos",
-        source_record_id="X-1",
-        kind="ENTITY",
-        owner_first_name="John",
-        owner_last_name="Smith",
-        state="NY",
-        entity_name="Smith Ortho NY PLLC",
-        entity_type="PLLC",
-        entity_status="ACTIVE",
-    )
-    matched = EnrichmentMatcher().attach(prospects, [ny_entity])
-    assert matched == 0

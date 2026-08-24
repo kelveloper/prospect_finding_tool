@@ -4,8 +4,8 @@ from app.adapters.cook_county.live import CookCountyLiveDataSource
 from app.adapters.cook_county.source import CookCountyDataSource
 from app.adapters.idfpr.live import IDFPRLiveDataSource
 from app.adapters.idfpr.source import IDFPRDataSource
-from app.adapters.il_sos.source import ILSoSDataSource
 from app.adapters.npi.live import NPPESDataSource
+from app.adapters.pecos.sample import PECOSSampleDataSource
 from app.adapters.npi.source import NPIDataSource
 
 __all__ = [
@@ -16,7 +16,7 @@ __all__ = [
     "NPPESDataSource",
     "IDFPRDataSource",
     "IDFPRLiveDataSource",
-    "ILSoSDataSource",
+    "PECOSSampleDataSource",
     "CookCountyDataSource",
     "CookCountyLiveDataSource",
     "AffiliationsDataSource",

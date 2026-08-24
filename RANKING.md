@@ -48,7 +48,7 @@ No signal → no points. The system never guesses.
 |---|---|---|
 | **Physician standing** | 40 | Active verified license = 1.0 · NPI-only, unverified = 0.7 · inactive license = 0.5 |
 | **Specialty earning tier** | 35 | Orthopedic/neuro/plastic surgery = 1.0 · cardiology = 0.95 · dermatology/gastro = 0.9 · anesthesiology = 0.85 · family medicine/pediatrics = 0.4 · unknown = 0.4 |
-| **Practice ownership** | 25 | Active PLLC/PC (professional entity) = 0.9 · generic LLC = 0.6 · inactive entity discounted |
+| **Practice ownership** | 25 | Billing inference (bills Medicare under self-named entity): active PLLC/PC = 0.8 · generic LLC = 0.55. Registry records (paid integration, planned) will score 0.9/0.6 with formation dates |
 
 Points = max pts × strength. Example: an active-licensed dermatologist with
 no business entity = 40×1.0 + 35×0.9 + 25×0 = **71.5**.
@@ -84,17 +84,17 @@ scores 40×0.85 = 34; one licensed in 2018 scores 40×0.1 = 4.
 
 ## 5. Two worked examples
 
-**Dr. John Smith — 89.2, #1 on the showcase board** (the full hypothesis chain)
+**Dr. John Smith — 87.7, #1 on the showcase board** (the full hypothesis chain)
 
 ```
 QUALIFICATION                                    TIMING
 Physician standing   40 × 1.0  = 40.0            License (8 mo)      40 × 0.85 = 34.0
 Ortho surgery        35 × 1.0  = 35.0            Property (2 mo)     30 × 1.0  = 30.0
-Active PLLC          25 × 0.9  = 22.5            Enumeration (7 mo)  15 × 0.85 = 12.8
+Own PLLC (billing)   25 × 0.8  = 20.0            Enumeration (7 mo)  15 × 0.85 = 12.8
                                 ------            Career (none)       15 × 0    =  0.0
-                                 97.5                                          ------
+                                 95.0                                          ------
                                                                                 76.8
-TOTAL = 97.5 × 0.6 + 76.8 × 0.4 = 58.5 + 30.7 = 89.2
+TOTAL = 95.0 × 0.6 + 76.8 × 0.4 = 57.0 + 30.7 = 87.7
 ```
 
 **Dr. Michael Brooks — 27.6, bottom of the board** (why he ranks low)

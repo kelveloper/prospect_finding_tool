@@ -58,25 +58,82 @@ pricing, typically per-verification).
 
 ## Pillar 3 — Ownership / business entities  ← biggest gap, cheapest fix
 
+### Why this is the one dataset we have to pay for
+
+Every other pillar has a free government API, and we integrated them all
+(NPPES, IDFPR, PECOS, Cook County deeds). Business-registry ownership is
+the exception: Illinois prohibits bulk access to its corporate/LLC
+database and sells it only by contract, and no open-data copy exists.
+
+What we get free vs. what only the paid registry provides:
+
+| Question | Free (PECOS billing inference — LIVE) | Paid registry (Cobalt, ~$0.50/lookup) |
+|---|---|---|
+| Does the physician own a practice? | Inferred: they bill Medicare through a self-named entity ("Bradley Ashpole Md Llc") — found **7 real owners** | Confirmed: official officer/organizer record |
+| **When did they become an owner?** | ✗ unknown — no dates in billing data | ✓ **formation date** → this is a *timing* signal ("formed a PLLC 5 months ago" = emerging-affluent moment) |
+| Non-medical entities (holding LLCs, real-estate LLCs) | ✗ invisible — only Medicare billing groups appear | ✓ every registered entity, searchable **by person name** |
+| Evidence grade | Behavioral inference (0.8 strength, 0.7 confidence) | Legal record (0.9 strength, 0.85 confidence) |
+
+In short: free tells us *that* some physicians own practices; paid tells
+us *when they became owners* and *what else they own* — and "when" is
+worth 40% of the score. One-time cohort cost: **~$100–400**.
+
 **Have today:** mock IL SoS file + **live PECOS inference** (self-named
-billing groups — 7 real owners found). No formation dates, no officer
-records, inference only.
+billing groups — 7 real owners found).
+
+**Free routes exhausted (2026-08-23):** IL SoS has no API or downloadable
+data (paid product only); data.illinois.gov has no registry dataset;
+OpenCorporates ended its free commercial tier. We also trialed Chicago's
+Business Owners city-license dataset and **removed it**: name-only joins
+against 330K rows produced mostly collisions (a surgeon "Jamal Ahmad"
+matched a grocery-store owner; "Syed Z Abbas" ≠ "Syed K Abbas"), and after
+a strict medical-keyword filter it contributed nothing for this cohort.
+Lesson kept: registries must key ownership to people via filings and
+addresses, not name luck — which is what the paid tier provides.
 
 **What's missing:** the legal record — who formed the entity, when
 (formation date = timing signal), officers, registered agent, status.
 
 | Vendor | Adds | Price signal | Notes |
 |---|---|---|---|
+| **OpenSOSData** | Live SoS lookups, all 50 states + DC + territories: registered agent, status, addresses | **$0.10/lookup** (down to ~$0.03 at volume; cached $0.01), 10 free lookups, no contract | Budget disruptor; verify ToS + officer-field depth in trial |
 | **Cobalt Intelligence** | Live Secretary-of-State pulls, all 50 states + DC: entity name, status, **formation date, registered agent, officers**, filing history (22 fields) | **$0.50–$2.00 per lookup**, 20 free test lookups, pay-as-you-go | API-first; the data layer other vendors resell |
 | **Middesk** | Same core + compliance platform (KYB) | **$1.00+/lookup**, platform subscription | Full-service, heavier |
 | **OpenCorporates** | Aggregated registries, historical | **£2,250/yr** (500 calls/mo) | No free commercial tier anymore; annual commitment |
 
-**Verdict: Cobalt Intelligence, clearly.** Pay-per-lookup fits our
-targeted pipeline perfectly: we only look up physicians we already track
-(~200 prospects ≈ $100–$400 total, vs OpenCorporates' £2,250 floor). The
-20 free lookups let us validate against our PECOS-inferred owners before
-paying anything. Replaces the mock `il_sos` adapter one-for-one and scales
-to all 50 states.
+**Deep-dive findings (2026-08-23) — how to actually replace the mock:**
+
+1. **A free machine-readable route does not exist.** IL SoS's own site
+   states the database is for individual searches only and *bulk searches
+   or downloads are prohibited* — so scraping it isn't just fragile, it's
+   against the state's stated terms. The state sells data via
+   phone-arranged contracts only (Dept. of Business Services,
+   217-782-6961, no published pricing).
+
+2. **Cobalt searches by PERSON name.** Confirmed in their docs: lookups by
+   business name, entity ID, **or a person's name** + state — which is
+   exactly the query the mock adapter simulates ("entities where officer =
+   Dr. X"). Returns up to 22 fields for Illinois including **officers,
+   formation date**, registered agent, status. This makes Cobalt a true
+   one-for-one mock replacement, not just an entity-name verifier.
+
+3. **The 7-lookup validation is free.** PECOS already gave us exact entity
+   names for 7 real physician-owned practices ("Bradley Ashpole Md Llc"…).
+   Looking those up consumes 7 of Cobalt's 20 free trial lookups and
+   proves field quality + match accuracy before any spend. OpenSOSData's
+   10 free lookups can run the same test ($0.10/lookup after), but its
+   officer-field depth is undocumented — verify in trial before relying
+   on it.
+
+**Recommended implementation sequence for the team:**
+1. Sign up for Cobalt trial (20 free) → run the 7 PECOS-entity validation
+2. If officers + formation dates come back clean → build
+   `ILSoSLiveDataSource` against Cobalt (search-by-person per tracked
+   physician; the adapter pattern and matcher are already in place)
+3. Cohort cost at $0.50–2.00/lookup: ~$100–400 one-time, then deltas only
+4. Re-run the OpenSOSData comparison at volume time ($0.10/lookup) if
+   Cobalt's per-lookup cost matters at scale
+5. Statewide/bulk ambitions → price the IL SoS direct data contract
 
 ---
 

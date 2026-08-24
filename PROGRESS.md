@@ -36,9 +36,19 @@ Status as of 2026-08-21. Spec: `PROJECT_SPEC.md` · Mechanics:
       snapshot; ownership *inference* fires immediately when a physician
       bills under a self-named entity (real IL run: 673 affiliations across
       144 physicians, 7 ownership inferences on first pull)
-- [ ] Ownership — real IL Secretary of State / OpenCorporates integration
-      (mock `il_sos` now; PECOS name-matched billing groups already provide
-      live ownership *inference*)
+- [~] Ownership — live via PECOS billing-group inference (7 real owners);
+      **the mock IL SoS registry adapter was removed 2026-08-23** — the
+      sample showcase now earns ownership through the same PECOS-style
+      mechanism live mode uses, so every demo signal mirrors an obtainable
+      source. Registry records (formation dates, officers, non-medical
+      entities): **no free machine-readable source exists** (IL SoS
+      prohibits bulk access; data sold by phone contract). Ready-to-execute
+      paid plan + "why we pay" comparison in
+      `RESEARCH_COMMERCIAL_SOURCES.md`: Cobalt trial (person-name search;
+      20 free lookups validate the 7 PECOS-known entities), then
+      `ILSoSLiveDataSource` (~$100–400 one-time).
+      (A free Chicago city-license source was also trialed and removed —
+      name collisions made it net-negative.)
 - [x] **Property — Cook County Assessor Parcel Sales (LIVE, 2026-08-23)** —
       free Socrata API *with buyer names*; targeted name queries over the
       36-month decay window, price floor, dedupe by deed doc. First live IL
