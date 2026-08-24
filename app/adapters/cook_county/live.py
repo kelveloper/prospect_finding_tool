@@ -5,7 +5,7 @@ prices, and dates. Queried BY BUYER NAME for the physicians we already
 track (same targeted pattern as the IDFPR/PECOS adapters), limited to the
 scoring decay window.
 
-Known limits (see RESEARCH_PROPERTY_SIGNAL.md): Cook County only, and the
+Known limits (see docs/RESEARCH_PROPERTY_SIGNAL.md): Cook County only, and the
 join is name+state — the strict enrichment matcher plus the price floor
 keep false attaches down until a paid, address-keyed source is added.
 """

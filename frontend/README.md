@@ -5,12 +5,14 @@ in the KelvinSucksEggs repo, now integrated here and wired to live endpoints).
 
 ## Pages
 
-- `/` — scoreboard: featured candidate + ranked list (`GET /prospects/ranked`;
-  auto-triggers `POST /ingest/run` when the database is empty)
-- `/candidate/[id]` — dossier built from real signals: career signal, identity
-  resolution, score breakdown, detected signals (`GET /prospects/{id}`)
-- `/candidate/[id]/follow-up` — assessment + supporting signals + advisor
-  feedback panel (`POST /feedback`, `GET /prospects/{id}/feedback`)
+- `/` — scoreboard: featured prospect + ranked list (`GET /prospects/ranked`;
+  auto-triggers a LIVE `POST /ingest/run` when the database is empty — the
+  first load takes a minute or two while real government APIs are queried)
+- `/candidate/[id]` — dossier: identity trust badge, Career Signal /
+  Ownership & Practice / Financial Activity cards, expandable Score
+  Breakdown (`GET /prospects/{id}`)
+- `/candidate/[id]/follow-up` — supporting signals with source badges +
+  advisor feedback panel (`POST /feedback`, `GET /prospects/{id}/feedback`)
 
 ## Run
 

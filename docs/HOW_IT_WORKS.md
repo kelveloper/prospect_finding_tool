@@ -80,7 +80,7 @@ A fixture cohort still exists behind an explicit `?mode=sample`, but it is
 APIs on every run. No user-facing surface ever loads it, and fixture
 records can never attach to real people.
 
-## FAQ (likely showcase questions)
+## FAQ (likely demo questions)
 
 **Q: What is PECOS, and how does it give you ownership data?**
 PECOS is Medicare's enrollment database — before any physician can bill
@@ -133,5 +133,5 @@ app/services/      ingestion pipeline, ranking service
 app/api/routes.py  HTTP endpoints (no business logic)
 app/models/        SQLAlchemy tables: prospects, signals, identity_matches, feedback
 frontend/          ProspectIQ UI (Next.js) — src/lib/api.ts is the API client
-tests/             40 tests: identity, scoring, reasons, adapters, API, ownership proof
+tests/             50 tests: identity, scoring, reasons, adapters, API, ownership proof
 ```

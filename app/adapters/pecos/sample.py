@@ -1,7 +1,7 @@
 """Sample PECOS-style ownership records for the offline showcase.
 
 The mock IL SoS registry adapter was removed (no obtainable API exists for
-that data — see RESEARCH_COMMERCIAL_SOURCES.md). The demo now shows the
+that data — see docs/RESEARCH_COMMERCIAL_SOURCES.md). The demo now shows the
 OWNERSHIP signal exactly the way live mode earns it: Medicare
 billing-group inference, NPI-keyed. Records mirror the live PECOSService
 output shape one-for-one.

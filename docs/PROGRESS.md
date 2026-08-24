@@ -1,8 +1,8 @@
 # Progress
 
-Status as of 2026-08-21. Spec: `PROJECT_SPEC.md` · Mechanics:
-`HOW_IT_WORKS.md` · Ranking: `RANKING.md` · Career-source research:
-`RESEARCH_CAREER_SIGNAL.md`
+Status as of 2026-08-23. Spec: `PROJECT_SPEC.md` · Mechanics:
+`HOW_IT_WORKS.md` · Ranking: `RANKING.md` · Data-source research:
+`RESEARCH_COMMERCIAL_SOURCES.md` (+ career/property deep-dives)
 
 ## ✅ Completed
 

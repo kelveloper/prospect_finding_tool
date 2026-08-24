@@ -78,8 +78,9 @@ In short: free tells us *that* some physicians own practices; paid tells
 us *when they became owners* and *what else they own* — and "when" is
 worth 40% of the score. One-time cohort cost: **~$100–400**.
 
-**Have today:** mock IL SoS file + **live PECOS inference** (self-named
-billing groups — 7 real owners found).
+**Have today:** **live PECOS inference** (self-named billing groups — 7
+real owners found). The IL SoS registry mock was removed 2026-08-23; the
+demo earns ownership the same way live mode does.
 
 **Free routes exhausted (2026-08-23):** IL SoS has no API or downloadable
 data (paid product only); data.illinois.gov has no registry dataset;
@@ -200,9 +201,9 @@ which only make sense at scale.
 
 Every vendor above slots into the existing adapter pattern — one new
 `app/adapters/<vendor>/` per source, `fetch()` → records, nothing else
-changes. Cobalt ≈ the same shape as our IL SoS mock (drop-in). ATTOM ≈ the
-Cook County mock shape. PDL ≈ the affiliations mock shape. The pipeline,
-matcher, scoring, and UI are already built for all of them.
+changes. Cobalt maps onto the existing ENTITY enrichment shape; ATTOM onto
+the Cook County adapter's PROPERTY shape; PDL onto the CAREER shape. The
+pipeline, matcher, scoring, and UI are already built for all of them.
 
 ## Sources
 
