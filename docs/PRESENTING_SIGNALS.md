@@ -57,6 +57,11 @@ question answered.
 
 ## Anticipated follow-up questions
 
+- **"What's a 100% prospect? When would we see one?"** → Never on first
+  ingestion — the day-one ceiling is **91** (career signal needs a
+  later-sync diff to fire; full ownership proof needs registry data). Points
+  above 91 are earned only by monitoring over time — full answer in the
+  `HOW_IT_WORKS.md` FAQ.
 - **"Where do the signals come from?"** → Four free government sources
   (NPPES, IDFPR, CMS PECOS, Cook County deeds) — see `DATA_SOURCES.md`.
 - **"Why deterministic weights instead of AI?"** → The score must be

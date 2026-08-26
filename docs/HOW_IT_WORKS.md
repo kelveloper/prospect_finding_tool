@@ -125,6 +125,21 @@ cases (proposes; rules + human dispose) and a grounded LLM-written
 narrative in the UI — never inside scoring or as the sole basis of a
 match. See PROGRESS.md.
 
+**Q: What counts as a 100% prospect — and when could we ever see one?**
+Never on first ingestion — by design. The day-one ceiling is **91**: a newly
+licensed tier-1 specialist (qualification 95: physician 40 + specialty 35 +
+own-PLLC billing inference 20) who just bought property (timing 85: IDFPR
+license 40 + NPI enumeration 15 + property 30). The missing 9 points are two
+kinds of honest headroom. Six points of CAREER_ADVANCEMENT can only be
+*earned over time* — the first PECOS sync seeds a baseline and events come
+from diffing later syncs, so a single snapshot can never prove "they just
+changed jobs." Three points of OWNERSHIP need registry-grade proof (the paid
+business-registry source) beyond our billing inference, which caps at 0.8
+strength. So a score above 91 certifies longitudinal evidence: we watched
+this person move. The presentation phrasing: "scores are out of 100, but 91
+is the day-one maximum — points above that can only be earned by monitoring
+a prospect over time."
+
 **Q: Why don't most prospects score above ~62?**
 Missing data, not missing logic: full registry ownership records await the
 paid business-registry source, and career-move events accrue from the
