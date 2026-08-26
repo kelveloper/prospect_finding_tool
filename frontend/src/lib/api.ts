@@ -270,6 +270,7 @@ function toScoreComponents(d: ApiDetail): ScoreComponentItem[] {
   return (d.score_components ?? []).map((c) => ({
     category: c.category,
     label: c.label,
+    strength: c.strength,
     points: c.points,
     maxPoints: c.max_points,
   }));

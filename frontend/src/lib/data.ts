@@ -60,6 +60,8 @@ export type MatchEvidenceItem = {
 export type ScoreComponentItem = {
   category: "qualification" | "timing";
   label: string;
+  /** Signal strength 0–1 — recency decay, specialty tier, entity type. */
+  strength: number;
   points: number;
   maxPoints: number;
 };
