@@ -61,27 +61,45 @@ export default function CandidateCard({ candidate, rank, active }: Props) {
           />
         </div>
 
-        {/* Quick overview: which signal categories were captured */}
+        {/* Quick overview: signal coverage per category */}
         <div className="mt-2 flex gap-1.5">
-          {candidate.categories.map(({ label, captured }) => (
-            <span
-              key={label}
-              title={captured ? `${label} signals captured` : `No ${label.toLowerCase()} signals yet`}
-              className={
-                "inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-display text-[10px] font-semibold " +
-                (captured
-                  ? "bg-surface-tint text-brand-dark"
-                  : "bg-surface-soft text-ink-faint")
-              }
-            >
+          {candidate.categories.map(({ label, captured, total }) => {
+            const full = captured === total;
+            const none = captured === 0;
+            return (
               <span
-                className={
-                  "size-1.5 rounded-full " + (captured ? "bg-brand" : "bg-ink-faint/40")
+                key={label}
+                title={
+                  none
+                    ? `No ${label.toLowerCase()} signals found yet`
+                    : `${captured} of ${total} ${label.toLowerCase()} signal types captured`
                 }
-              />
-              {label}
-            </span>
-          ))}
+                className={
+                  "inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-display text-[10px] font-semibold " +
+                  (none
+                    ? "bg-surface-soft text-ink-faint"
+                    : full
+                      ? "bg-tier-strong-bg text-tier-strong-fg"
+                      : "bg-surface-tint text-brand-dark")
+                }
+              >
+                <span
+                  className={
+                    "size-1.5 rounded-full " +
+                    (none
+                      ? "bg-ink-faint/40"
+                      : full
+                        ? "bg-tier-strong"
+                        : "bg-brand")
+                  }
+                />
+                {label}
+                <span className={none ? "font-normal" : "font-bold"}>
+                  {captured}/{total}
+                </span>
+              </span>
+            );
+          })}
         </div>
       </div>
     </Link>

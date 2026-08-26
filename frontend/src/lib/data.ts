@@ -19,8 +19,8 @@ export type Candidate = {
   strength: string;
   summary: string;
   tags: string[];
-  /** Which signal categories were captured — the scoreboard quick overview. */
-  categories: { label: string; captured: boolean }[];
+  /** Signal coverage per category — the scoreboard quick overview. */
+  categories: { label: string; captured: number; total: number }[];
 };
 
 export type ProfileRow = {

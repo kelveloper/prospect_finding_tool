@@ -191,7 +191,8 @@ function toCategories(signalTypes: string[]): Candidate["categories"] {
   const present = new Set(signalTypes);
   return CATEGORY_SIGNALS.map(({ label, types }) => ({
     label,
-    captured: types.some((t) => present.has(t)),
+    captured: types.filter((t) => present.has(t)).length,
+    total: types.length,
   }));
 }
 
