@@ -105,6 +105,7 @@ export default async function CandidateProfilePage({
           {profile.sections.map((section) => (
             <SectionCard key={section.title} section={section} />
           ))}
+          {contactKit && <ContactKitCard kit={contactKit} />}
           <ScoreBreakdownCard
             qualificationScore={candidate.qualificationScore}
             timingScore={candidate.timingScore}
@@ -112,9 +113,6 @@ export default async function CandidateProfilePage({
             components={scoreComponents}
           />
         </div>
-
-        {/* ── Contact kit: the first touch ───────────────── */}
-        {contactKit && <ContactKitCard kit={contactKit} />}
 
         {/* ── Actions ────────────────────────────────────── */}
         <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
