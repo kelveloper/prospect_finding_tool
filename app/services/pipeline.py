@@ -15,7 +15,7 @@ from app.adapters.base import BaseDataSource, EnrichmentRecord, RawProviderRecor
 from app.config import get_settings
 from app.identity.enrichment import EnrichmentMatcher
 from app.identity.resolver import IdentityResolver, ResolvedProspect
-from app.models import IdentityMatch, Prospect, Signal
+from app.models import IdentityMatch, Prospect, ScoreSnapshot, Signal
 from app.repositories import ProspectRepository
 from app.scoring import ScoringEngine, SignalDetector, build_reason_summary
 
@@ -129,6 +129,16 @@ class IngestionPipeline:
         prospect.total_score = breakdown.total_score
         prospect.reason_summary = summary
         prospect.identity_confidence = profile.identity_confidence
+
+        # Append (never replace) — the score trajectory across ingests is
+        # what makes rising/falling prospects visible
+        prospect.score_history.append(
+            ScoreSnapshot(
+                qualification_score=breakdown.qualification_score,
+                timing_score=breakdown.timing_score,
+                total_score=breakdown.total_score,
+            )
+        )
 
         prospect.signals = [
             Signal(

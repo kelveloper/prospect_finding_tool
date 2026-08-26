@@ -2,23 +2,17 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from typing import Literal
-
 import httpx
 
 from app.adapters import (
-    AffiliationsDataSource,
-    CookCountyDataSource,
     CookCountyLiveDataSource,
-    IDFPRDataSource,
     IDFPRLiveDataSource,
-    NPIDataSource,
     NPPESDataSource,
-    PECOSSampleDataSource,
 )
 from app.config import get_settings
 from app.database import get_db
 from app.feedback.service import FeedbackService, ProspectNotFoundError
+from app.outreach import ContactKitService
 from app.schemas import (
     FeedbackIn,
     FeedbackOut,
@@ -26,7 +20,7 @@ from app.schemas import (
     ProspectDetail,
     RankedProspect,
 )
-from app.schemas.api import ScoreComponent
+from app.schemas.api import ContactKitOut, ScoreComponent
 from app.scoring import ScoringEngine
 from app.services import IngestionPipeline, RankingService
 from app.services.pecos_sync import PECOSService
@@ -36,49 +30,30 @@ router = APIRouter()
 
 @router.post("/ingest/run", response_model=IngestResult)
 def run_ingestion(
-    # Live real-data ingestion is the default. "sample" loads the fixture
-    # cohort and exists for automated tests only — never used by the UI.
-    mode: Literal["live", "sample"] = Query(default="live"),
     state: str = Query(default="IL", min_length=2, max_length=2),
     limit: int = Query(default=25, ge=1, le=200, description="per specialty"),
     db: Session = Depends(get_db),
 ):
     try:
-        if mode == "live":
-            # Phase 1: real physicians from NPPES. Phase 2: verify their
-            # licenses against real IDFPR data, queried by license number.
-            # Sample files are excluded — they must never attach to real
-            # people who happen to share a sample name.
-            nppes = NPPESDataSource(state=state, limit_per_specialty=limit)
-            records = list(nppes.fetch())
-            if state.upper() == "IL":
-                licenses = [r.license_number for r in records if r.license_number]
-                records += list(IDFPRLiveDataSource(license_numbers=licenses).fetch())
-            # PECOS: career moves + ownership inference, keyed by NPI
-            npi_names = {
-                r.npi: (r.first_name, r.last_name) for r in records if r.npi
-            }
-            pecos_records, _ = PECOSService(db).sync(npi_names)
-            records += pecos_records
-            # Cook County deeds: property purchases by our physicians' names
-            if state.upper() == "IL":
-                records += list(
-                    CookCountyLiveDataSource(buyer_names=npi_names.values()).fetch()
-                )
-            result = IngestionPipeline(sources=[]).run(db, records=records)
-        else:
-            # Test-fixture pipeline (mirrors the live source shapes) —
-            # reachable only via explicit ?mode=sample, used by the tests
-            pipeline = IngestionPipeline(
-                sources=[
-                    NPIDataSource(),
-                    IDFPRDataSource(),
-                    PECOSSampleDataSource(),
-                    CookCountyDataSource(),
-                    AffiliationsDataSource(),
-                ]
+        # Phase 1: real physicians from NPPES. Phase 2: verify their
+        # licenses against real IDFPR data, queried by license number.
+        nppes = NPPESDataSource(state=state, limit_per_specialty=limit)
+        records = list(nppes.fetch())
+        if state.upper() == "IL":
+            licenses = [r.license_number for r in records if r.license_number]
+            records += list(IDFPRLiveDataSource(license_numbers=licenses).fetch())
+        # PECOS: career moves + ownership inference, keyed by NPI
+        npi_names = {
+            r.npi: (r.first_name, r.last_name) for r in records if r.npi
+        }
+        pecos_records, _ = PECOSService(db).sync(npi_names)
+        records += pecos_records
+        # Cook County deeds: property purchases by our physicians' names
+        if state.upper() == "IL":
+            records += list(
+                CookCountyLiveDataSource(buyer_names=npi_names.values()).fetch()
             )
-            result = pipeline.run(db)
+        result = IngestionPipeline(sources=[]).run(db, records=records)
     except httpx.HTTPError as exc:
         raise HTTPException(status_code=502, detail=f"External API error: {exc}")
     return IngestResult(**result.__dict__)
@@ -106,6 +81,14 @@ def prospect_detail(prospect_id: str, db: Session = Depends(get_db)):
         ScoreComponent(**c) for c in engine.components(prospect.signals)
     ]
     return detail
+
+
+@router.get("/prospects/{prospect_id}/contact-kit", response_model=ContactKitOut)
+def contact_kit(prospect_id: str, db: Session = Depends(get_db)):
+    prospect = RankingService(db).get(prospect_id)
+    if prospect is None:
+        raise HTTPException(status_code=404, detail="Prospect not found")
+    return ContactKitOut.model_validate(ContactKitService().build(prospect))
 
 
 @router.post("/feedback", response_model=FeedbackOut, status_code=201)

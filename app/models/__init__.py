@@ -4,6 +4,7 @@ from app.models.entities import (
     Feedback,
     IdentityMatch,
     Prospect,
+    ScoreSnapshot,
     Signal,
 )
 
@@ -14,4 +15,5 @@ __all__ = [
     "Feedback",
     "AffiliationSnapshot",
     "CareerEvent",
+    "ScoreSnapshot",
 ]

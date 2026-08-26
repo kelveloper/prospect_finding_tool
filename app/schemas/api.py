@@ -15,6 +15,15 @@ class SignalOut(BaseModel):
     confidence: float
 
 
+class ScoreSnapshotOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    qualification_score: float
+    timing_score: float
+    total_score: float
+    recorded_at: datetime
+
+
 class RankedProspect(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -27,6 +36,8 @@ class RankedProspect(BaseModel):
     qualification_score: float
     timing_score: float
     reason_summary: str | None
+    # Movement since the previous ingest; None until two snapshots exist
+    score_change: float | None = None
 
 
 class ScoreComponent(BaseModel):
@@ -52,6 +63,52 @@ class ProspectDetail(RankedProspect):
     identity_confidence: float
     signals: list[SignalOut]
     score_components: list[ScoreComponent] = []
+    score_history: list[ScoreSnapshotOut] = []
+
+
+class MailChannelOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    address_line: str | None
+    city: str | None
+    state: str | None
+    zip_code: str | None
+    complete: bool
+
+
+class PhoneChannelOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    number: str | None
+    note: str
+
+
+class TriggerOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    signal_type: str
+    description: str
+    event_date: date | None
+
+
+class LetterOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    salutation: str
+    body: str
+
+
+class ContactKitOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    prospect_id: str
+    name: str
+    mail: MailChannelOut
+    phone: PhoneChannelOut
+    primary_trigger: TriggerOut | None
+    letter: LetterOut
+    urgency: Literal["standard", "elevated"]
+    rules: list[str]
 
 
 class FeedbackIn(BaseModel):

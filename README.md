@@ -71,7 +71,7 @@ curl -X POST localhost:8000/ingest/run
 
 | Method | Path | Purpose |
 |---|---|---|
-| POST | `/ingest/run` | Run the live pipeline (default): real physicians from NPPES per scored specialty, licenses verified against IDFPR by license number, PECOS billing groups + career snapshots, Cook County deed matches. `?state=IL&limit=25` tunes the pull. (`?mode=sample` loads the offline fixture cohort — automated tests only, never the UI) |
+| POST | `/ingest/run` | Run the live pipeline (default): real physicians from NPPES per scored specialty, licenses verified against IDFPR by license number, PECOS billing groups + career snapshots, Cook County deed matches. `?state=IL&limit=25` tunes the pull. |
 | GET | `/prospects/ranked?limit=50` | Ranked leads, highest score first |
 | GET | `/prospects/{id}` | Full profile: scores, signals, identity confidence |
 | POST | `/feedback` | Advisor verdict: `good_fit` \| `revisit_later` \| `not_fit` |

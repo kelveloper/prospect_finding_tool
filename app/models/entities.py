@@ -55,6 +55,20 @@ class Prospect(Base):
     feedback: Mapped[list["Feedback"]] = relationship(
         back_populates="prospect", cascade="all, delete-orphan"
     )
+    score_history: Mapped[list["ScoreSnapshot"]] = relationship(
+        back_populates="prospect",
+        cascade="all, delete-orphan",
+        order_by="ScoreSnapshot.recorded_at",
+    )
+
+    @property
+    def score_change(self) -> float | None:
+        """Movement since the previous ingest; None until two snapshots exist."""
+        if len(self.score_history) < 2:
+            return None
+        return round(
+            self.score_history[-1].total_score - self.score_history[-2].total_score, 1
+        )
 
 
 class Signal(Base):
@@ -71,6 +85,25 @@ class Signal(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
 
     prospect: Mapped[Prospect] = relationship(back_populates="signals")
+
+
+class ScoreSnapshot(Base):
+    """One row per prospect per ingest run — the score trajectory over time.
+
+    The prospect row always holds the *current* score; this table keeps the
+    history so movement is visible: a new property purchase pushes a prospect
+    up, an aging license decays them down, and both survive re-ingests."""
+
+    __tablename__ = "score_history"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    prospect_id: Mapped[str] = mapped_column(ForeignKey("prospects.id"), index=True)
+    qualification_score: Mapped[float] = mapped_column(Float)
+    timing_score: Mapped[float] = mapped_column(Float)
+    total_score: Mapped[float] = mapped_column(Float)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+
+    prospect: Mapped[Prospect] = relationship(back_populates="score_history")
 
 
 class IdentityMatch(Base):

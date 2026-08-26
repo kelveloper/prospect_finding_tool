@@ -23,7 +23,10 @@ class ProspectRepository:
     def ranked(self, limit: int = 50) -> list[Prospect]:
         stmt = (
             select(Prospect)
-            .options(selectinload(Prospect.signals))
+            .options(
+                selectinload(Prospect.signals),
+                selectinload(Prospect.score_history),
+            )
             .order_by(Prospect.total_score.desc())
             .limit(limit)
         )

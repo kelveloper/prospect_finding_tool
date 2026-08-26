@@ -71,14 +71,23 @@ and a human-readable reason ("license number match", "exact first and last
 name, same state") — so any claim on a dossier can be audited back to the
 records that produced it.
 
-## Live by default — no mock data in the product
+## Live only — no mock data anywhere
 
 `POST /ingest/run` pulls real data (the UI's auto-ingest does too; the
 first load takes a minute or two while four government APIs are queried).
-A fixture cohort still exists behind an explicit `?mode=sample`, but it is
-**for the automated test suite only** — tests can't call real external
-APIs on every run. No user-facing surface ever loads it, and fixture
-records can never attach to real people.
+There is no sample mode and no fixture data in the product — the sample
+adapters and their JSON cohorts were deleted. The automated tests build
+their own in-memory records and stub the sources at the route boundary,
+so no test can call a real external API either.
+
+### The four data sources
+
+| Adapter | Real data source | Endpoint | Keyed by |
+|---|---|---|---|
+| NPPES | CMS NPI Registry API (National Plan & Provider Enumeration System) | `npiregistry.cms.hhs.gov/api/` — free, no key | specialty + state query |
+| IDFPR | Illinois Dept. of Financial & Professional Regulation licensee roster (State of Illinois Socrata open data) | `data.illinois.gov/resource/pzzh-kp68.json` | license number (batches of 50) |
+| PECOS | CMS *Revalidation Clinic Group Reassignment* + *Facility Affiliation* (provider-data `27ea-46a8`) | `data.cms.gov` | NPI (batches of 50) |
+| Cook County | Cook County Assessor *Parcel Sales* (county Socrata open data) | `datacatalog.cookcountyil.gov/resource/wvhk-k5uv.json` | buyer name (batches of 25) |
 
 ## FAQ (likely demo questions)
 
@@ -126,12 +135,13 @@ signal (new license + own PLLC + fresh property purchase) would score
 ## Where things live
 
 ```
-app/adapters/      one folder per data source (sample + live variants)
+app/adapters/      one folder per live data source
 app/identity/      resolver (person merging) + enrichment matcher
 app/scoring/       signal detector, scoring engine, reason summaries
+app/outreach/      contact kit: trigger-matched letter templates + channel rules
 app/services/      ingestion pipeline, ranking service
 app/api/routes.py  HTTP endpoints (no business logic)
-app/models/        SQLAlchemy tables: prospects, signals, identity_matches, feedback
+app/models/        SQLAlchemy tables: prospects, signals, identity_matches, score_history, feedback
 frontend/          ProspectIQ UI (Next.js) — src/lib/api.ts is the API client
 tests/             50 tests: identity, scoring, reasons, adapters, API, ownership proof
 ```

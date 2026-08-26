@@ -1,27 +1,54 @@
 """OWNERSHIP signal proof — billing-inference mechanism (mirrors live PECOS).
 
-The registry mock was removed (no obtainable API for IL SoS data; the paid
-Cobalt integration will supply formation dates + official officer records).
-Sample ownership now arrives exactly like live mode earns it: NPI-keyed
-entity records inferred from Medicare billing groups."""
+Records are built inline exactly the way live mode earns them: NPI-keyed
+entity records inferred from Medicare billing groups. (The registry mock was
+removed — no obtainable API for IL SoS data; the paid Cobalt integration
+will supply formation dates + official officer records.)"""
 from datetime import date
 
-from app.adapters import IDFPRDataSource, NPIDataSource, PECOSSampleDataSource
+from app.adapters.base import EnrichmentRecord, RawProviderRecord
 from app.identity import EnrichmentMatcher, IdentityResolver
 from app.scoring import ScoringEngine, SignalDetector
 
 REF = date(2026, 8, 23)
 
 
+def _npi(npi, first, last, specialty, license_number=None):
+    return RawProviderRecord(
+        source="npi", source_record_id=npi, first_name=first, last_name=last,
+        specialty=specialty, state="IL", npi=npi, license_number=license_number,
+        enumeration_date=date(2026, 2, 1),
+    )
+
+
+def _entity(npi, first, last, entity_name, entity_type):
+    return EnrichmentRecord(
+        source="pecos", source_record_id=f"{npi}-entity", kind="ENTITY",
+        owner_first_name=first, owner_last_name=last, state="IL", npi=npi,
+        entity_name=entity_name, entity_type=entity_type, entity_status="ACTIVE",
+    )
+
+
+PROVIDER_RECORDS = [
+    _npi("1234567801", "John", "Smith", "Orthopaedic Surgery", "036-111111"),
+    _npi("1234567804", "Sarah", "Okafor", "Family Medicine", "036-444444"),
+]
+
+ENTITY_RECORDS = [
+    _entity("1234567801", "John", "Smith", "Smith Orthopedics PLLC", "PLLC"),
+    _entity("1234567804", "Sarah", "Okafor", "Okafor Family Care LLC", "LLC"),
+    # Trap: an NPI we don't track — must never attach to anyone
+    _entity("9999999999", "Gregory", "Palumbo", "Windy City Landscaping LLC", "LLC"),
+]
+
+
 def _resolved_prospects():
-    provider = [*NPIDataSource().fetch(), *IDFPRDataSource().fetch()]
-    return IdentityResolver().resolve(provider)
+    return IdentityResolver().resolve(PROVIDER_RECORDS)
 
 
 def _attach_entities(prospects):
-    entities = list(PECOSSampleDataSource().fetch())
-    matched = EnrichmentMatcher().attach(prospects, entities)
-    return entities, matched
+    matched = EnrichmentMatcher().attach(prospects, ENTITY_RECORDS)
+    return ENTITY_RECORDS, matched
 
 
 def test_ownership_attaches_by_npi():
@@ -42,9 +69,9 @@ def test_unknown_npi_never_attaches():
     prospects = _resolved_prospects()
     entities, matched = _attach_entities(prospects)
 
-    # 4 sample entities; the Palumbo trap carries an untracked NPI
-    assert len(entities) == 4
-    assert matched == 3
+    # 3 entities; the Palumbo trap carries an untracked NPI
+    assert len(entities) == 3
+    assert matched == 2
     attached = {e.entity_name for p in prospects for e in p.enrichments}
     assert "Windy City Landscaping LLC" not in attached
 

@@ -63,7 +63,9 @@ Status as of 2026-08-23. Spec: `PROJECT_SPEC.md` · Mechanics:
 - [ ] Scale live pull beyond 25/specialty (NPPES pages to ~1,200 per query)
 
 **Product & platform**
-- [ ] Live-mode toggle in the UI (today: sample by default, live via API param)
+- [x] Live data only — sample mode and all fixture adapters removed; tests stub sources at the route boundary
+- [x] Score history — every ingest appends a (qualification, timing, total) snapshot per prospect to `score_history`; movement since the last run is exposed as `score_change` on the ranked list and the full trajectory on the detail endpoint
+- [x] Contact kit v1 — `GET /prospects/{id}/contact-kit`: practice mail address + phone + primary trigger + deterministic trigger-matched letter draft (OWNERSHIP > CAREER > NEW_LICENSE; property never mentioned, urgency only). Email draft joins when an email source is ingested (RESEARCH_CONTACT_OUTREACH.md build order steps 2–3)
 - [ ] Feedback-informed weight calibration (data is being captured; no learning yet)
 - [ ] Real Alembic migrations (prototype uses create_all; schema changes need `rm prospects.db`)
 - [ ] Lawyers and other professions (future phase per spec)
