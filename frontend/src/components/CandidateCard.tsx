@@ -60,6 +60,29 @@ export default function CandidateCard({ candidate, rank, active }: Props) {
             style={{ width: `${candidate.score}%`, backgroundColor: style.accent }}
           />
         </div>
+
+        {/* Quick overview: which signal categories were captured */}
+        <div className="mt-2 flex gap-1.5">
+          {candidate.categories.map(({ label, captured }) => (
+            <span
+              key={label}
+              title={captured ? `${label} signals captured` : `No ${label.toLowerCase()} signals yet`}
+              className={
+                "inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-display text-[10px] font-semibold " +
+                (captured
+                  ? "bg-surface-tint text-brand-dark"
+                  : "bg-surface-soft text-ink-faint")
+              }
+            >
+              <span
+                className={
+                  "size-1.5 rounded-full " + (captured ? "bg-brand" : "bg-ink-faint/40")
+                }
+              />
+              {label}
+            </span>
+          ))}
+        </div>
       </div>
     </Link>
   );

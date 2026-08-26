@@ -38,6 +38,8 @@ class RankedProspect(BaseModel):
     reason_summary: str | None
     # Movement since the previous ingest; None until two snapshots exist
     score_change: float | None = None
+    # Distinct detected signal types — powers the scoreboard category chips
+    signal_types: list[str] = []
 
 
 class ScoreComponent(BaseModel):

@@ -32,6 +32,7 @@ type ApiRanked = {
   qualification_score: number;
   timing_score: number;
   reason_summary: string | null;
+  signal_types: string[];
 };
 
 type ApiSignal = {
@@ -176,6 +177,24 @@ function strengthWord(qualification: number): string {
   return qualification >= 80 ? "High" : qualification >= 55 ? "Medium" : "Low";
 }
 
+// The three dossier categories and the signal types that feed each one
+const CATEGORY_SIGNALS: { label: string; types: string[] }[] = [
+  {
+    label: "Profession",
+    types: ["PHYSICIAN", "SPECIALTY", "NEW_LICENSE", "CAREER_ADVANCEMENT"],
+  },
+  { label: "Ownership", types: ["OWNERSHIP"] },
+  { label: "Financial", types: ["PROPERTY_EVENT"] },
+];
+
+function toCategories(signalTypes: string[]): Candidate["categories"] {
+  const present = new Set(signalTypes);
+  return CATEGORY_SIGNALS.map(({ label, types }) => ({
+    label,
+    captured: types.some((t) => present.has(t)),
+  }));
+}
+
 function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
   const { tier, label } = tierFromScore(p.score);
   const specialty = p.specialty ?? "Physician";
@@ -222,6 +241,9 @@ function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
     strength: strengthWord(p.qualification_score),
     summary: p.reason_summary ?? "No signals recorded yet.",
     tags,
+    categories: toCategories(
+      detail ? detail.signals.map((s) => s.signal_type) : p.signal_types ?? [],
+    ),
   };
 }
 

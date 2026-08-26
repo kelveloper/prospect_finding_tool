@@ -62,6 +62,11 @@ class Prospect(Base):
     )
 
     @property
+    def signal_types(self) -> list[str]:
+        """Distinct detected signal types — the scoreboard's quick overview."""
+        return sorted({s.signal_type for s in self.signals})
+
+    @property
     def score_change(self) -> float | None:
         """Movement since the previous ingest; None until two snapshots exist."""
         if len(self.score_history) < 2:

@@ -177,6 +177,9 @@ def test_ranked_endpoint_orders_by_score_desc(client):
             "reason_summary"} <= top.keys()
     # Fresh ortho license + his own PLLC in the billing data tops the board
     assert top["name"] == "John Smith"
+    # Scoreboard quick overview: distinct signal types ride on the list
+    assert "OWNERSHIP" in top["signal_types"]
+    assert "PHYSICIAN" in top["signal_types"]
     # Stale primary care with no license join lands at the bottom
     assert ranked[-1]["name"] == "Michael Brooks"
 
