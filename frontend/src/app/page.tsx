@@ -35,7 +35,9 @@ export default async function ScoreboardPage({
   const featuredId = id && ranked.some((c) => c.id === id) ? id : ranked[0].id;
   // Detail fetch enriches the featured panel with licence tenure + signal tags
   const detail = await fetchCandidateDetail(featuredId);
-  const featured = detail?.candidate ?? ranked[0];
+  // Fall back to the ranked row for the selected id, never to whoever is first.
+  const featured =
+    detail?.candidate ?? ranked.find((c) => c.id === featuredId) ?? ranked[0];
   const style = tierStyle(featured.tier);
 
   return (
