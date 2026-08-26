@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import ContactKitCard from "@/components/ContactKitCard";
 import Header from "@/components/Header";
 import ScoreBreakdownCard from "@/components/ScoreBreakdownCard";
 import SectionCard from "@/components/SectionCard";
 import { InfoIcon, ShuffleIcon, PinIcon } from "@/components/icons";
-import { fetchCandidateDetail } from "@/lib/api";
+import { fetchCandidateDetail, fetchContactKit } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,10 @@ export default async function CandidateProfilePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const detail = await fetchCandidateDetail(id);
+  const [detail, contactKit] = await Promise.all([
+    fetchCandidateDetail(id),
+    fetchContactKit(id),
+  ]);
   if (!detail) notFound();
   const { candidate, profile, scoreComponents } = detail;
 
@@ -108,6 +112,9 @@ export default async function CandidateProfilePage({
             components={scoreComponents}
           />
         </div>
+
+        {/* ── Contact kit: the first touch ───────────────── */}
+        {contactKit && <ContactKitCard kit={contactKit} />}
 
         {/* ── Actions ────────────────────────────────────── */}
         <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">

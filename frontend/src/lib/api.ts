@@ -68,6 +68,71 @@ type ApiScoreComponent = {
   points: number;
 };
 
+type ApiContactKit = {
+  prospect_id: string;
+  name: string;
+  mail: {
+    address_line: string | null;
+    city: string | null;
+    state: string | null;
+    zip_code: string | null;
+    complete: boolean;
+  };
+  phone: { number: string | null; note: string };
+  primary_trigger: {
+    signal_type: string;
+    description: string;
+    event_date: string | null;
+  } | null;
+  letter: { salutation: string; body: string };
+  urgency: "standard" | "elevated";
+  rules: string[];
+};
+
+export type ContactKit = {
+  name: string;
+  addressLines: string[];
+  addressComplete: boolean;
+  phone: string | null;
+  phoneNote: string;
+  trigger: { label: string; description: string; eventDate: string | null } | null;
+  letter: { salutation: string; body: string };
+  urgency: "standard" | "elevated";
+  rules: string[];
+};
+
+const TRIGGER_LABELS: Record<string, string> = {
+  OWNERSHIP: "New practice entity",
+  CAREER_ADVANCEMENT: "Career move",
+  NEW_LICENSE: "Newly licensed",
+};
+
+function toContactKit(k: ApiContactKit): ContactKit {
+  const cityLine = [k.mail.city, k.mail.state].filter(Boolean).join(", ");
+  return {
+    name: k.name,
+    addressLines: [
+      k.mail.address_line,
+      [cityLine, k.mail.zip_code].filter(Boolean).join(" "),
+    ].filter((line): line is string => Boolean(line)),
+    addressComplete: k.mail.complete,
+    phone: k.phone.number,
+    phoneNote: k.phone.note,
+    trigger: k.primary_trigger
+      ? {
+          label:
+            TRIGGER_LABELS[k.primary_trigger.signal_type] ??
+            k.primary_trigger.signal_type,
+          description: k.primary_trigger.description,
+          eventDate: k.primary_trigger.event_date,
+        }
+      : null,
+    letter: k.letter,
+    urgency: k.urgency,
+    rules: k.rules,
+  };
+}
+
 type ApiFeedback = {
   id: string;
   prospect_id: string;
@@ -353,6 +418,15 @@ export async function fetchCandidateDetail(id: string): Promise<
       signals: toSignalItems(detail),
       scoreComponents: toScoreComponents(detail),
     };
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) return undefined;
+    throw err;
+  }
+}
+
+export async function fetchContactKit(id: string): Promise<ContactKit | undefined> {
+  try {
+    return toContactKit(await api<ApiContactKit>(`/prospects/${id}/contact-kit`));
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) return undefined;
     throw err;
