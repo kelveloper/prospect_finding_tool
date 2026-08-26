@@ -1,65 +1,87 @@
 import type { MatchEvidenceItem } from "@/lib/data";
 
-type TierKey = "license" | "name" | "initial" | "single" | "npi" | "attach-name";
+type TierKey = "license" | "name" | "initial" | "single" | "npi" | "deed-name";
 
-const IDENTITY_TIERS: { key: TierKey; label: string; score: string; note: string }[] = [
-  {
-    key: "license",
-    label: "License number match",
-    score: "1.0",
-    note: "Shared government ID — certainty",
-  },
-  {
-    key: "name",
-    label: "Exact first + last name, same state",
-    score: "0.95",
-    note: "+0.15 if specialty matches, capped at 1.0",
-  },
-  {
-    key: "initial",
-    label: "First initial + last name, same state",
-    score: "0.85",
-    note: "Needs the specialty bonus to clear the 0.80 merge bar",
-  },
-  {
-    key: "single",
-    label: "Single source — no corroboration",
-    score: "0.6",
-    note: "NPPES only; license number found no IDFPR row",
-  },
-];
+type Tier = { key: TierKey; label: string; score: string; note: string };
 
-const ATTACH_TIERS: { key: TierKey; label: string; score: string; note: string }[] = [
+/** Tier ladders organized per connection — each join has its own rules. */
+const JOINS: {
+  title: string;
+  subtitle: string;
+  tiers: Tier[];
+  footnote?: string;
+}[] = [
   {
-    key: "npi",
-    label: "NPI match",
-    score: "1.0",
-    note: "Zero name-match risk (PECOS entities)",
+    title: "NPPES ↔ IDFPR",
+    subtitle: "Merging two records into one person",
+    tiers: [
+      {
+        key: "license",
+        label: "License number match",
+        score: "1.0",
+        note: "Shared government ID — certainty",
+      },
+      {
+        key: "name",
+        label: "Exact first + last name, same state",
+        score: "0.95",
+        note: "+0.15 if specialty matches, capped at 1.0",
+      },
+      {
+        key: "initial",
+        label: "First initial + last name, same state",
+        score: "0.85",
+        note: "0.70 alone — needs the specialty bonus to clear the bar",
+      },
+      {
+        key: "single",
+        label: "No match found — single source",
+        score: "0.6",
+        note: "License number found no IDFPR row; NPPES stands alone",
+      },
+    ],
+    footnote:
+      "Merge threshold is 0.80 — anything below becomes a separate prospect.",
   },
   {
-    key: "attach-name",
-    label: "Exact first + last name, same state",
-    score: "0.9",
-    note: "Deeds — anything less exact is dropped, never guessed",
+    title: "NPPES ↔ PECOS",
+    subtitle: "Attaching billing entities & career data",
+    tiers: [
+      {
+        key: "npi",
+        label: "NPI match",
+        score: "1.0",
+        note: "The only tier — PECOS is queried by NPI, so it's exact or nothing",
+      },
+    ],
+    footnote: "No name fallback by design: zero name-match risk on this join.",
+  },
+  {
+    title: "NPPES ↔ Cook County",
+    subtitle: "Attaching property deeds",
+    tiers: [
+      {
+        key: "deed-name",
+        label: "Exact first + last name, same state",
+        score: "0.9",
+        note: "The only tier — deeds carry no NPI; a near-miss is dropped, never guessed",
+      },
+    ],
+    footnote:
+      "Weakest join in the system — mitigated by the $100k price floor and drop-don't-guess matching.",
   },
 ];
 
 function tierOf(m: MatchEvidenceItem): TierKey {
   if (m.reason === "license number match") return "license";
   if (m.reason === "NPI match") return "npi";
-  if (m.reason.includes("exact first and last name")) return "attach-name";
+  if (m.reason.includes("exact first and last name")) return "deed-name";
   if (m.reason.startsWith("exact first name")) return "name";
   if (m.reason.startsWith("first initial")) return "initial";
   return "single";
 }
 
-function TierRow({
-  tier,
-  used,
-}: {
-  tier: { label: string; score: string; note: string };
-  used: boolean;
-}) {
+function TierRow({ tier, used }: { tier: Tier; used: boolean }) {
   return (
     <div
       className={
@@ -75,7 +97,11 @@ function TierRow({
           }
         >
           {tier.label}
-          {used && <span className="ml-2 text-[11px] font-bold uppercase tracking-[0.5px]">✓ how this one matched</span>}
+          {used && (
+            <span className="ml-2 text-[11px] font-bold uppercase tracking-[0.5px]">
+              ✓ how this one matched
+            </span>
+          )}
         </p>
         <p className="text-[12px] text-ink-faint">{tier.note}</p>
       </div>
@@ -91,8 +117,8 @@ function TierRow({
   );
 }
 
-/** The tier ladder with this prospect's actual tiers highlighted, plus the
- *  raw audit rows from identity_matches. */
+/** Per-connection tier ladders with this prospect's tiers highlighted,
+ *  plus the raw audit rows from identity_matches. */
 export default function MatchEvidencePanel({
   matches,
   identityConfidence,
@@ -101,37 +127,50 @@ export default function MatchEvidencePanel({
   identityConfidence: number;
 }) {
   const used = new Set<TierKey>(matches.map(tierOf));
-  // No person-merge evidence at all → the single-source default applied
-  const hasIdentityMerge = used.has("license") || used.has("name") || used.has("initial");
-  if (!hasIdentityMerge) used.add("single");
+  // No IDFPR merge evidence → the single-source default applied
+  if (!used.has("license") && !used.has("name") && !used.has("initial")) {
+    used.add("single");
+  }
 
   return (
     <div className="flex flex-col gap-5">
-      <div>
-        <p className="eyebrow">Identity — how records became one person</p>
-        <div className="mt-2 flex flex-col gap-2">
-          {IDENTITY_TIERS.map((t) => (
-            <TierRow key={t.key} tier={t} used={used.has(t.key)} />
-          ))}
+      {JOINS.map((join) => (
+        <div key={join.title}>
+          <p className="eyebrow">
+            {join.title}{" "}
+            <span className="normal-case text-ink-faint">· {join.subtitle}</span>
+          </p>
+          <div className="mt-2 flex flex-col gap-2">
+            {join.tiers.map((t) => (
+              <TierRow key={t.key} tier={t} used={used.has(t.key)} />
+            ))}
+          </div>
+          {join.footnote && (
+            <p className="mt-1.5 text-[12px] text-ink-faint">{join.footnote}</p>
+          )}
         </div>
-        <p className="mt-2 text-[12px] text-ink-faint">
-          Merge threshold is 0.80 — anything below becomes a separate
-          prospect. Identity confidence for this prospect:{" "}
-          <span className="font-semibold text-ink-muted">
-            {Math.round(identityConfidence * 100)}%
-          </span>{" "}
-          (the weakest link among its merges).
+      ))}
+
+      <div>
+        <p className="eyebrow">
+          PECOS ↔ itself over time{" "}
+          <span className="normal-case text-ink-faint">· career move detection</span>
+        </p>
+        <p className="mt-1.5 rounded-[10px] bg-canvas px-4 py-3 text-[13px] leading-[20px] text-ink-muted">
+          Not a scored match — an exact NPI-keyed diff. Each sync compares
+          today&apos;s billing groups and facilities against the stored
+          baseline; anything new becomes a career event. That&apos;s why the
+          career signal can never fire on a first ingest.
         </p>
       </div>
 
-      <div>
-        <p className="eyebrow">Attachments — how entities &amp; deeds joined</p>
-        <div className="mt-2 flex flex-col gap-2">
-          {ATTACH_TIERS.map((t) => (
-            <TierRow key={t.key} tier={t} used={used.has(t.key)} />
-          ))}
-        </div>
-      </div>
+      <p className="text-[12px] text-ink-faint">
+        Identity confidence for this prospect:{" "}
+        <span className="font-semibold text-ink-muted">
+          {Math.round(identityConfidence * 100)}%
+        </span>{" "}
+        — the weakest link among its merges.
+      </p>
 
       {matches.length > 0 && (
         <div>
