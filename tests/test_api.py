@@ -195,6 +195,11 @@ def test_prospect_detail_exposes_signals(client):
     assert "OWNERSHIP" in types
     assert all(0 <= s["strength"] <= 1 for s in detail["signals"])
 
+    # Match evidence rides on the detail for the breakdown page
+    reasons = {m["reason"] for m in detail["identity_matches"]}
+    assert "license number match" in reasons
+    assert "NPI match" in reasons
+
 
 def test_score_history_appends_every_ingest(client):
     _ingest(client)

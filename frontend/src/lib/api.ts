@@ -9,6 +9,7 @@ import type {
   Candidate,
   CandidateProfile,
   FeedbackEntry,
+  MatchEvidenceItem,
   ProfileSection,
   ScoreComponentItem,
   SignalItem,
@@ -58,6 +59,14 @@ type ApiDetail = ApiRanked & {
   identity_confidence: number;
   signals: ApiSignal[];
   score_components: ApiScoreComponent[];
+  identity_matches: ApiIdentityMatch[];
+};
+
+type ApiIdentityMatch = {
+  source_a: string;
+  source_b: string;
+  score: number;
+  reason: string;
 };
 
 type ApiScoreComponent = {
@@ -431,6 +440,8 @@ export async function fetchCandidateDetail(id: string): Promise<
     profile: CandidateProfile;
     signals: SignalItem[];
     scoreComponents: ScoreComponentItem[];
+    matches: MatchEvidenceItem[];
+    identityConfidence: number;
   } | undefined
 > {
   try {
@@ -440,6 +451,13 @@ export async function fetchCandidateDetail(id: string): Promise<
       profile: toProfile(detail),
       signals: toSignalItems(detail),
       scoreComponents: toScoreComponents(detail),
+      matches: (detail.identity_matches ?? []).map((m) => ({
+        sourceA: m.source_a,
+        sourceB: m.source_b,
+        score: m.score,
+        reason: m.reason,
+      })),
+      identityConfidence: detail.identity_confidence,
     };
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) return undefined;

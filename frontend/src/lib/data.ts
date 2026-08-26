@@ -50,6 +50,13 @@ export type CandidateProfile = {
   sections: ProfileSection[];
 };
 
+export type MatchEvidenceItem = {
+  sourceA: string;
+  sourceB: string;
+  score: number;
+  reason: string;
+};
+
 export type ScoreComponentItem = {
   category: "qualification" | "timing";
   label: string;

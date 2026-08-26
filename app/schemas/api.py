@@ -51,6 +51,15 @@ class ScoreComponent(BaseModel):
     points: float
 
 
+class IdentityMatchOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    source_a: str
+    source_b: str
+    score: float
+    reason: str
+
+
 class ProspectDetail(RankedProspect):
     profession: str
     npi: str | None
@@ -66,6 +75,8 @@ class ProspectDetail(RankedProspect):
     signals: list[SignalOut]
     score_components: list[ScoreComponent] = []
     score_history: list[ScoreSnapshotOut] = []
+    # The audit trail: every merge/attach decision with its tier and score
+    identity_matches: list[IdentityMatchOut] = []
 
 
 class MailChannelOut(BaseModel):
