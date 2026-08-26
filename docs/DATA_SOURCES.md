@@ -128,6 +128,41 @@ the strict enrichment matcher); PIN→street-address resolution not yet built.
 
 ---
 
+## How the records connect (the join map)
+
+One person ends up as one prospect because every source is tied back to the
+NPPES record by a specific key:
+
+```
+                    NPPES record (per physician)
+                    npi · name · license_number
+                         │
+     license_number      │ npi                │ "FIRST LAST"
+          ▼              ▼                    ▼
+       IDFPR           PECOS             Cook County
+   (same person,   (same person,      (same person, by
+   by license #)      by NPI)          name + state)
+```
+
+| Connection | Key | Rule (where enforced) | Certainty |
+|---|---|---|---|
+| NPPES ↔ IDFPR | **state license number**, normalized (`036.057912` → `036057912`) | exact match = 1.0 merge; else name+state tiers ≥ 0.80 (`IdentityResolver`) | strongest — a shared government ID |
+| NPPES ↔ PECOS | **NPI** | exact NPI = attach; no NPI = no attach (`EnrichmentMatcher`) | zero name-match risk |
+| NPPES ↔ Cook County | **buyer name** = "FIRST LAST" + state IL | exact normalized first + last + state = 0.9 attach; anything less is dropped (`EnrichmentMatcher`) | weakest link — mitigated by the $100k floor and drop-don't-guess matching |
+| PECOS ↔ itself over time | **NPI** | current pull diffed against `affiliation_snapshots` → `career_events` (`PECOSService`) | exact |
+
+Two different strictness philosophies, on purpose:
+
+- **Person records (NPPES + IDFPR)** describe the same kind of thing, so
+  they *merge* into one identity, tiered by evidence quality.
+- **Enrichment records (PECOS entities, deeds)** would corrupt a dossier if
+  mis-attached (someone else's LLC or house), so they *attach or drop* —
+  never merge, never fuzzy-match. A miss is acceptable; a false match is not.
+
+Every merge and every attach writes a row to `identity_matches` with its
+score and a human-readable reason, so any claim on a dossier can be audited
+back to the records that produced it.
+
 ## Contact channels this already gives us
 
 For every prospect we already store, from NPPES: **practice street address,
