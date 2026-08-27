@@ -5,7 +5,7 @@ easy to tangle; this is the untangled version.
 
 ## The three-sentence version (lead with this)
 
-> "We track **six signals** about each physician, organized into **three
+> "We track **seven signals** about each physician, organized into **three
 > categories**: their profession, their practice ownership, and their
 > financial activity. Every signal answers one of two questions — *is this
 > a valuable prospect?* and *is now the right moment?* — and the score is
@@ -13,7 +13,7 @@ easy to tangle; this is the untangled version.
 
 ## The elevator version (one sentence)
 
-> "Six public-record signals, three categories, one auditable score —
+> "Seven public-record signals, three categories, one auditable score —
 > 60% how valuable the prospect is, 40% how hot the timing is."
 
 ## Drilling down, one layer at a time
@@ -27,11 +27,11 @@ section cards on the candidate profile page:
 | Ownership | Whether they own their practice |
 | Financial activity | Big money moves |
 
-**Layer 2 — the six signals (what we detect):**
+**Layer 2 — the seven signals (what we detect):**
 
 | Category | Signals |
 |---|---|
-| Profession | Active license · Specialty tier · Newly licensed · Career move |
+| Profession | Active license · Specialty tier · Entered practice (NPI) · Newly licensed · Career move |
 | Ownership | Bills Medicare under their own PLLC |
 | Financial activity | Recent property purchase (≥ $100k, Cook County deeds) |
 
@@ -40,7 +40,7 @@ section cards on the candidate profile page:
 | Question | Weight | Signals that answer it |
 |---|---|---|
 | Is this a valuable prospect? (**Qualification**) | 60% | Licensed physician (40) + high-earning specialty (35) + practice owner (25) |
-| Is now the right moment? (**Timing**) | 40% | New license (40/15 by source) + property purchase (30) + career move (15) — all fade as they age |
+| Is now the right moment? (**Timing**) | 40% | Entered practice (15) + new license (40) + property purchase (30) + career move (15) — all fade as they age |
 
 ## The trap to avoid
 

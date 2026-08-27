@@ -20,16 +20,15 @@ QUAL_WEIGHTS: dict[str, float] = {
     "OWNERSHIP": 25,
 }
 
-# Timing components (points sum to 100), keyed by (signal_type, source);
-# source None matches any source. A recent property purchase is the
-# "financial event" step; a fresh appointment is a career inflection.
-TIMING_WEIGHTS: dict[tuple[str, str | None], float] = {
-    # Ordered by career chronology: NPI enumeration (entering practice)
-    # typically precedes the full state license
-    ("NEW_LICENSE", "npi"): 15,
-    ("NEW_LICENSE", "idfpr"): 40,
-    ("PROPERTY_EVENT", None): 30,
-    ("CAREER_ADVANCEMENT", None): 15,
+# Timing components (points sum to 100). Ordered by career chronology:
+# practice entry (NPI enumeration) typically precedes the full state
+# license. A recent property purchase is the "financial event" step; a
+# fresh appointment is a career inflection.
+TIMING_WEIGHTS: dict[str, float] = {
+    "PRACTICE_ENTRY": 15,
+    "NEW_LICENSE": 40,
+    "PROPERTY_EVENT": 30,
+    "CAREER_ADVANCEMENT": 15,
 }
 
 
@@ -39,12 +38,21 @@ QUAL_LABELS: dict[str, str] = {
     "SPECIALTY": "Specialty earning tier",
     "OWNERSHIP": "Practice ownership",
 }
-TIMING_LABELS: dict[tuple[str, str | None], str] = {
-    ("NEW_LICENSE", "npi"): "Practice entry (NPI enumeration)",
-    ("NEW_LICENSE", "idfpr"): "License recency",
-    ("PROPERTY_EVENT", None): "Property purchase recency",
-    ("CAREER_ADVANCEMENT", None): "Career advancement",
+TIMING_LABELS: dict[str, str] = {
+    "PRACTICE_ENTRY": "Practice entry (NPI enumeration)",
+    "NEW_LICENSE": "License recency",
+    "PROPERTY_EVENT": "Property purchase recency",
+    "CAREER_ADVANCEMENT": "Career advancement",
 }
+
+
+def _effective_type(signal) -> str:
+    """Stored Signal rows written before the PRACTICE_ENTRY split still say
+    NEW_LICENSE/npi; treat them as PRACTICE_ENTRY until the next ingest
+    replaces them."""
+    if signal.signal_type == "NEW_LICENSE" and signal.source == "npi":
+        return "PRACTICE_ENTRY"
+    return signal.signal_type
 
 
 @dataclass(frozen=True)
@@ -87,11 +95,11 @@ class ScoringEngine:
                 "strength": round(strength, 2),
                 "points": round(weight * strength, 1),
             })
-        for (signal_type, source), weight in TIMING_WEIGHTS.items():
-            strength = self._max_strength(signals, signal_type, source)
+        for signal_type, weight in TIMING_WEIGHTS.items():
+            strength = self._max_strength(signals, signal_type)
             out.append({
                 "category": "timing",
-                "label": TIMING_LABELS[(signal_type, source)],
+                "label": TIMING_LABELS[signal_type],
                 "signal_type": signal_type,
                 "max_points": weight,
                 "strength": round(strength, 2),
@@ -100,13 +108,9 @@ class ScoringEngine:
         return out
 
     @staticmethod
-    def _max_strength(
-        signals: list[DetectedSignal], signal_type: str, source: str | None = None
-    ) -> float:
+    def _max_strength(signals: list[DetectedSignal], signal_type: str) -> float:
         matching = [
-            s.strength
-            for s in signals
-            if s.signal_type == signal_type and (source is None or s.source == source)
+            s.strength for s in signals if _effective_type(s) == signal_type
         ]
         return max(matching, default=0.0)
 
@@ -119,7 +123,7 @@ class ScoringEngine:
 
     def _timing(self, signals: list[DetectedSignal]) -> float:
         score = sum(
-            weight * self._max_strength(signals, signal_type, source)
-            for (signal_type, source), weight in TIMING_WEIGHTS.items()
+            weight * self._max_strength(signals, signal_type)
+            for signal_type, weight in TIMING_WEIGHTS.items()
         )
         return min(100.0, score)

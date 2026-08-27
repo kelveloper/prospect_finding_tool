@@ -135,6 +135,7 @@ const TRIGGER_LABELS: Record<string, string> = {
   OWNERSHIP: "New practice entity",
   CAREER_ADVANCEMENT: "Career move",
   NEW_LICENSE: "Newly licensed",
+  PRACTICE_ENTRY: "Entered practice",
 };
 
 function toContactKit(k: ApiContactKit): ContactKit {
@@ -210,7 +211,13 @@ function strengthWord(qualification: number): string {
 const CATEGORY_SIGNALS: { label: string; types: string[] }[] = [
   {
     label: "Profession",
-    types: ["PHYSICIAN", "SPECIALTY", "NEW_LICENSE", "CAREER_ADVANCEMENT"],
+    types: [
+      "PHYSICIAN",
+      "SPECIALTY",
+      "PRACTICE_ENTRY",
+      "NEW_LICENSE",
+      "CAREER_ADVANCEMENT",
+    ],
   },
   { label: "Ownership", types: ["OWNERSHIP"] },
   { label: "Financial", types: ["PROPERTY_EVENT"] },
@@ -446,13 +453,16 @@ export class ApiError extends Error {
   }
 }
 
+// The API defaults to 50; ask for its maximum so the whole board shows.
+const RANKED_PATH = "/prospects/ranked?limit=500";
+
 /** How many prospects are on the board — for the nav bar on every page.
  *  Deliberately never triggers ingestion, and never breaks the header when
  *  the API is down; the same GET is memoised alongside the scoreboard's own
  *  ranked fetch, so this costs nothing on `/`. */
 export async function fetchCandidateCount(): Promise<number | undefined> {
   try {
-    const ranked = await api<ApiRanked[]>("/prospects/ranked");
+    const ranked = await api<ApiRanked[]>(RANKED_PATH);
     return ranked.length;
   } catch {
     return undefined;
@@ -461,10 +471,10 @@ export async function fetchCandidateCount(): Promise<number | undefined> {
 
 /** Ranked list; runs ingestion first if the database is empty. */
 export async function fetchRankedCandidates(): Promise<Candidate[]> {
-  let ranked = await api<ApiRanked[]>("/prospects/ranked");
+  let ranked = await api<ApiRanked[]>(RANKED_PATH);
   if (ranked.length === 0) {
     await api("/ingest/run", { method: "POST" });
-    ranked = await api<ApiRanked[]>("/prospects/ranked");
+    ranked = await api<ApiRanked[]>(RANKED_PATH);
   }
   return ranked.map((p) => toCandidate(p));
 }

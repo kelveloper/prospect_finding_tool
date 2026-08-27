@@ -11,7 +11,7 @@ Status as of 2026-08-23. Spec: `PROJECT_SPEC.md` · Mechanics:
 - [x] Adapter architecture (`BaseDataSource`) — new sources plug in without touching scoring
 - [x] Identity resolution, tiered: license-number join (1.0) → deterministic name+state rules (0.85–0.95); every merge stored with score + reason in `identity_matches`
 - [x] Enrichment matching (entities/deeds/promotions → prospects), strict exact-name+state; near-miss traps rejected and tested
-- [x] All 6 signal types detected: PHYSICIAN, SPECIALTY, NEW_LICENSE, OWNERSHIP, PROPERTY_EVENT, CAREER_ADVANCEMENT
+- [x] All 7 signal types detected: PHYSICIAN, SPECIALTY, PRACTICE_ENTRY, NEW_LICENSE, OWNERSHIP, PROPERTY_EVENT, CAREER_ADVANCEMENT (practice entry split from new-license 2026-08-27 — 1:1 signals-to-components)
 - [x] Scoring engine with configurable weights (env settings)
 - [x] Deterministic plain-English reason summaries (no LLM)
 - [x] Feedback capture (`good_fit` / `revisit_later` / `not_fit` + notes + history)
@@ -67,7 +67,7 @@ Status as of 2026-08-23. Spec: `PROJECT_SPEC.md` · Mechanics:
 - [x] Score history — every ingest appends a (qualification, timing, total) snapshot per prospect to `score_history`; movement since the last run is exposed as `score_change` on the ranked list and the full trajectory on the detail endpoint
 - [x] Contact kit v1 — `GET /prospects/{id}/contact-kit`: practice mail address + phone + primary trigger + deterministic trigger-matched letter draft (OWNERSHIP > CAREER > NEW_LICENSE; property never mentioned, urgency only). Email draft joins when an email source is ingested (RESEARCH_CONTACT_OUTREACH.md build order steps 2–3)
 - [x] Score movement arrow on scoreboard cards — ▲/▼ + points delta from `score_change`
-- [ ] Field-change visibility ("changed from → to"): new `field_changes` table populated in the pipeline upsert when a captured value differs. Display tiers: **score-affecting** fields (specialty, license_status, license_issue_date, enumeration_date, license_number) get loud from→to + points impact; **contact-relevant** fields (address_line, city, zip, phone) get an "updated" marker on the dossier + contact kit even though the score doesn't move; **identity fields** (npi, name, state) get a caution flag — they should rarely change; cosmetic diffs (case/format-only) stay silent. Recency decay is NOT a field change — the arrow covers it
+- [x] Field-change visibility ("changed from → to") — built 2026-08-27: `field_changes` table populated in the pipeline upsert when a captured value differs. Display tiers: **score-affecting** fields (specialty, license_status, license_issue_date, enumeration_date, license_number) get loud from→to + points impact; **contact-relevant** fields (address_line, city, zip, phone) get an "updated" marker on the dossier + contact kit even though the score doesn't move; **identity fields** (npi, name, state) get a caution flag — they should rarely change; cosmetic diffs (case/format-only) stay silent. Recency decay is NOT a field change — the arrow covers it
 - [ ] NPPES self-diff (same pattern as PECOS snapshots): detect SPECIALTY_CHANGE (fellowship → tier jump, one of the strongest emerging-affluent moments) and PRACTICE_RELOCATED as real signals rather than silent overwrites
 - [ ] Scoreboard freshness states (every card always declares its ingest status, not just movers):
       **NEW** badge — prospect first appeared in the latest ingest (detectable today: exactly one score snapshot, or created_at within the last run) ·

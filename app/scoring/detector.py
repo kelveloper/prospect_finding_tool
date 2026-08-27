@@ -1,7 +1,9 @@
 """Signal detection: turn a resolved prospect profile into scored signals.
 
 All six spec signal types are active:
-- PHYSICIAN, SPECIALTY, NEW_LICENSE from the provider sources (NPI, IDFPR)
+- PHYSICIAN, SPECIALTY, NEW_LICENSE, PRACTICE_ENTRY from the provider
+  sources (NPI, IDFPR) — practice entry (NPI enumeration) and license
+  issuance are distinct career moments, so they are distinct signals
 - OWNERSHIP from business-entity records (IL Secretary of State)
 - PROPERTY_EVENT from deed transfers (Cook County recorder)
 - CAREER_ADVANCEMENT from appointment/promotion announcements
@@ -12,6 +14,7 @@ from datetime import date
 from app.identity.resolver import ResolvedProspect
 
 SIGNAL_TYPES = (
+    "PRACTICE_ENTRY",
     "NEW_LICENSE",
     "PHYSICIAN",
     "SPECIALTY",
@@ -167,7 +170,7 @@ class SignalDetector:
             months = int((reference_date - prospect.enumeration_date).days / 30.44)
             signals.append(
                 DetectedSignal(
-                    signal_type="NEW_LICENSE",
+                    signal_type="PRACTICE_ENTRY",
                     source="npi",
                     description=(
                         f"NPI enumerated {months} month(s) ago "

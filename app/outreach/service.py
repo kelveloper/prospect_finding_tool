@@ -11,7 +11,8 @@ from app.outreach import templates
 
 # Which trigger the letter is written around, best first. PROPERTY_EVENT is
 # deliberately absent — it raises urgency but is never written about.
-TRIGGER_PRIORITY = ("OWNERSHIP", "CAREER_ADVANCEMENT", "NEW_LICENSE")
+# PRACTICE_ENTRY shares the newly-licensed letter as the last resort.
+TRIGGER_PRIORITY = ("OWNERSHIP", "CAREER_ADVANCEMENT", "NEW_LICENSE", "PRACTICE_ENTRY")
 
 
 @dataclass(frozen=True)

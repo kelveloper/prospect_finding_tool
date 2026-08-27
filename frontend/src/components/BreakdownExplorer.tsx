@@ -254,7 +254,7 @@ export default function BreakdownExplorer({
   const strip = [
     { label: "Entry", value: "✓ eligible" },
     { label: "Identity", value: `${Math.round(identityConfidence * 100)}%` },
-    { label: "Signals", value: `${signalTypesCount} of 6` },
+    { label: "Signals", value: `${signalTypesCount} of 7` },
     { label: "Score", value: `${totalScore}` },
   ];
 
