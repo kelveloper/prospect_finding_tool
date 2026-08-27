@@ -52,6 +52,14 @@ export type CandidateProfile = {
   sections: ProfileSection[];
 };
 
+export type FieldChangeItem = {
+  field: string;
+  oldValue: string | null;
+  newValue: string | null;
+  tier: "score" | "contact" | "identity";
+  changedAt: string;
+};
+
 export type MatchEvidenceItem = {
   sourceA: string;
   sourceB: string;

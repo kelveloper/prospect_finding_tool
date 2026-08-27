@@ -15,7 +15,36 @@ from app.adapters.base import BaseDataSource, EnrichmentRecord, RawProviderRecor
 from app.config import get_settings
 from app.identity.enrichment import EnrichmentMatcher
 from app.identity.resolver import IdentityResolver, ResolvedProspect
-from app.models import IdentityMatch, Prospect, ScoreSnapshot, Signal
+from app.models import FieldChange, IdentityMatch, Prospect, ScoreSnapshot, Signal
+
+# Captured fields whose changes are recorded as from -> to, by display tier.
+# Cosmetic (case/format-only) diffs are skipped; recency decay is not a
+# field change (the date never changes — time does).
+TRACKED_FIELDS: dict[str, str] = {
+    # score-affecting
+    "specialty": "score",
+    "license_status": "score",
+    "license_issue_date": "score",
+    "enumeration_date": "score",
+    "license_number": "score",
+    # contact-relevant
+    "address_line": "contact",
+    "city": "contact",
+    "zip_code": "contact",
+    "phone": "contact",
+    # identity — should rarely change; flagged in the UI
+    "npi": "identity",
+    "first_name": "identity",
+    "last_name": "identity",
+    "state": "identity",
+}
+
+
+def _canon(value) -> str | None:
+    """Cosmetic-diff filter: case/whitespace-insensitive comparison key."""
+    if value is None:
+        return None
+    return " ".join(str(value).split()).casefold() or None
 from app.repositories import ProspectRepository
 from app.scoring import ScoringEngine, SignalDetector, build_reason_summary
 
@@ -73,6 +102,7 @@ class IngestionPipeline:
         for profile in resolved:
             existing = self._find_existing(repo, profile)
             if existing:
+                self._record_field_changes(existing, profile)
                 self._apply(existing, profile, reference_date)
                 updated += 1
             else:
@@ -100,6 +130,25 @@ class IngestionPipeline:
             if found:
                 return found
         return repo.find_by_name_state(profile.full_name, profile.state)
+
+    @staticmethod
+    def _record_field_changes(prospect: Prospect, profile: ResolvedProspect) -> None:
+        """Append 'changed from -> to' rows before the upsert overwrites.
+        Only real changes count — a new value of None (source temporarily
+        missing a field) and cosmetic case/format diffs are skipped."""
+        for field, tier in TRACKED_FIELDS.items():
+            old = getattr(prospect, field)
+            new = getattr(profile, field)
+            if new is None or _canon(old) == _canon(new):
+                continue
+            prospect.field_changes.append(
+                FieldChange(
+                    field=field,
+                    old_value=str(old) if old is not None else None,
+                    new_value=str(new),
+                    tier=tier,
+                )
+            )
 
     def _apply(
         self, prospect: Prospect, profile: ResolvedProspect, reference_date: date

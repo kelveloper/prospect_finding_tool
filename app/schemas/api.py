@@ -51,6 +51,16 @@ class ScoreComponent(BaseModel):
     points: float
 
 
+class FieldChangeOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    field: str
+    old_value: str | None
+    new_value: str | None
+    tier: Literal["score", "contact", "identity"]
+    changed_at: datetime
+
+
 class IdentityMatchOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -77,6 +87,8 @@ class ProspectDetail(RankedProspect):
     score_history: list[ScoreSnapshotOut] = []
     # The audit trail: every merge/attach decision with its tier and score
     identity_matches: list[IdentityMatchOut] = []
+    # Captured-field changes across ingests, oldest first
+    field_changes: list[FieldChangeOut] = []
 
 
 class MailChannelOut(BaseModel):

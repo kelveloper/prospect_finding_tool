@@ -243,6 +243,68 @@ def test_new_property_raises_score_and_shows_movement(client, live_stub):
     assert len(totals) == 2 and totals[1] > totals[0]
 
 
+def test_field_changes_recorded_with_tiers(client, live_stub):
+    _ingest(client)
+
+    # New information: Brooks finished fellowship (specialty change → score
+    # tier) and the practice moved (city change → contact tier)
+    feeds = live_stub["feeds"]
+    feeds["nppes"] = [
+        r
+        for r in feeds["nppes"]
+        if r.last_name != "Brooks"
+    ] + [
+        RawProviderRecord(
+            source="npi", source_record_id="1234567803",
+            first_name="Michael", last_name="Brooks",
+            specialty="Cardiovascular Disease", state="IL", npi="1234567803",
+            enumeration_date=date(2017, 5, 1), city="Evanston", address_state="IL",
+        )
+    ]
+    _ingest(client)
+
+    brooks = next(
+        p for p in client.get("/prospects/ranked").json() if p["name"] == "Michael Brooks"
+    )
+    detail = client.get(f"/prospects/{brooks['id']}").json()
+    changes = {c["field"]: c for c in detail["field_changes"]}
+
+    assert changes["specialty"]["old_value"] == "Pediatrics"
+    assert changes["specialty"]["new_value"] == "Cardiovascular Disease"
+    assert changes["specialty"]["tier"] == "score"
+    assert changes["city"]["old_value"] == "Chicago"
+    assert changes["city"]["new_value"] == "Evanston"
+    assert changes["city"]["tier"] == "contact"
+    # The specialty jump moved the score, and the board shows the movement
+    assert brooks["score_change"] > 0
+
+
+def test_identical_and_cosmetic_reingests_record_nothing(client, live_stub):
+    _ingest(client)
+    _ingest(client)  # identical
+
+    # Cosmetic-only: same specialty, different casing — must stay silent
+    feeds = live_stub["feeds"]
+    feeds["nppes"] = [
+        r
+        for r in feeds["nppes"]
+        if r.last_name != "Smith"
+    ] + [
+        RawProviderRecord(
+            source="npi", source_record_id="1234567801",
+            first_name="John", last_name="Smith",
+            specialty="ORTHOPAEDIC SURGERY", state="IL", npi="1234567801",
+            enumeration_date=TODAY - timedelta(days=90),
+            license_number="036-111111", city="Chicago", address_state="IL",
+        )
+    ]
+    _ingest(client)
+
+    for p in client.get("/prospects/ranked").json():
+        detail = client.get(f"/prospects/{p['id']}").json()
+        assert detail["field_changes"] == []
+
+
 def test_contact_kit_endpoint(client):
     _ingest(client)
     smith = next(

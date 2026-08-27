@@ -60,6 +60,11 @@ class Prospect(Base):
         cascade="all, delete-orphan",
         order_by="ScoreSnapshot.recorded_at",
     )
+    field_changes: Mapped[list["FieldChange"]] = relationship(
+        back_populates="prospect",
+        cascade="all, delete-orphan",
+        order_by="FieldChange.changed_at",
+    )
 
     @property
     def signal_types(self) -> list[str]:
@@ -109,6 +114,28 @@ class ScoreSnapshot(Base):
     recorded_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
 
     prospect: Mapped[Prospect] = relationship(back_populates="score_history")
+
+
+class FieldChange(Base):
+    """Append-only 'changed from → to' record for captured fields.
+
+    Written by the pipeline upsert when a re-ingested value differs from the
+    stored one (cosmetic case/format-only diffs are skipped). Tier drives
+    display: 'score' fields move points, 'contact' fields change where the
+    advisor reaches out, 'identity' fields should rarely change and get a
+    caution flag."""
+
+    __tablename__ = "field_changes"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    prospect_id: Mapped[str] = mapped_column(ForeignKey("prospects.id"), index=True)
+    field: Mapped[str] = mapped_column(String(40))
+    old_value: Mapped[str | None] = mapped_column(Text)
+    new_value: Mapped[str | None] = mapped_column(Text)
+    tier: Mapped[str] = mapped_column(String(10))  # score | contact | identity
+    changed_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+
+    prospect: Mapped[Prospect] = relationship(back_populates="field_changes")
 
 
 class IdentityMatch(Base):

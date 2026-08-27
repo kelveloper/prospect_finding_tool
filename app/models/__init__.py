@@ -2,6 +2,7 @@ from app.models.entities import (
     AffiliationSnapshot,
     CareerEvent,
     Feedback,
+    FieldChange,
     IdentityMatch,
     Prospect,
     ScoreSnapshot,
@@ -16,4 +17,5 @@ __all__ = [
     "AffiliationSnapshot",
     "CareerEvent",
     "ScoreSnapshot",
+    "FieldChange",
 ]

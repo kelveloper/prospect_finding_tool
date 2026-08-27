@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ContactKitCard from "@/components/ContactKitCard";
+import WhatChangedCard from "@/components/WhatChangedCard";
 import Header from "@/components/Header";
 import ScoreBreakdownCard from "@/components/ScoreBreakdownCard";
 import SectionCard from "@/components/SectionCard";
@@ -20,7 +21,7 @@ export default async function CandidateProfilePage({
     fetchContactKit(id),
   ]);
   if (!detail) notFound();
-  const { candidate, profile } = detail;
+  const { candidate, profile, fieldChanges } = detail;
 
   return (
     <div className="min-h-screen pb-12">
@@ -105,6 +106,7 @@ export default async function CandidateProfilePage({
           {profile.sections.map((section) => (
             <SectionCard key={section.title} section={section} />
           ))}
+          {fieldChanges.length > 0 && <WhatChangedCard changes={fieldChanges} />}
           {contactKit && <ContactKitCard kit={contactKit} />}
           <ScoreBreakdownCard
             prospectId={candidate.id}
