@@ -20,7 +20,7 @@ export default async function CandidateProfilePage({
     fetchContactKit(id),
   ]);
   if (!detail) notFound();
-  const { candidate, profile } = detail;
+  const { candidate, profile, scoreComponents } = detail;
 
   return (
     <div className="min-h-screen pb-12">
@@ -111,6 +111,7 @@ export default async function CandidateProfilePage({
             qualificationScore={candidate.qualificationScore}
             timingScore={candidate.timingScore}
             totalScore={candidate.score}
+            components={scoreComponents}
           />
         </div>
 
