@@ -36,9 +36,12 @@ function Group({
   color: string;
 }) {
   return (
-    <div>
+    <div
+      className="rounded-[12px] bg-canvas px-4 py-4"
+      style={{ borderLeft: `3px solid ${color}` }}
+    >
       <div className="flex items-baseline justify-between">
-        <p className="eyebrow">{title}</p>
+        <p className="eyebrow" style={{ color }}>{title}</p>
         <p className="font-display text-[14px] font-bold text-ink tabular-nums">
           {subtotal}
           <span className="font-normal text-ink-faint"> / 100</span>
@@ -113,7 +116,7 @@ export default function ScoreCalculation({
         color={TIMING}
       />
 
-      <div className="border-t border-surface-soft pt-4">
+      <div className="rounded-[12px] bg-canvas px-4 py-4">
         <div className="flex items-baseline justify-between">
           <p className="eyebrow">Total</p>
           <p className="font-display text-[14px] font-bold text-ink tabular-nums">
