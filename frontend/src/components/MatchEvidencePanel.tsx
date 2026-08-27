@@ -248,7 +248,7 @@ export default function MatchEvidencePanel({
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-3">
+      <div className="grid grid-cols-1 items-start gap-5 md:grid-cols-2 lg:grid-cols-4">
         {JOINS.map((join) => (
           <div key={join.title}>
             <p className="eyebrow">{join.title}</p>
@@ -272,31 +272,31 @@ export default function MatchEvidencePanel({
             )}
           </div>
         ))}
-      </div>
 
-      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
+        {/* 4th column: the unscored join */}
         <div>
-          <p className="eyebrow">
-            PECOS ↔ itself over time{" "}
-            <span className="normal-case text-ink-faint">· career move detection</span>
-          </p>
-          <p className="mt-1.5 rounded-[10px] bg-canvas px-4 py-3 text-[12px] leading-[19px] text-ink-muted">
+          <p className="eyebrow">PECOS ↔ itself over time</p>
+          <p className="text-[11px] text-ink-faint">Career move detection</p>
+          <p className="mt-2 rounded-[10px] bg-canvas px-3.5 py-2.5 text-[12px] leading-[19px] text-ink-muted">
             Not a scored match — an exact NPI-keyed diff. Each sync compares
             today&apos;s billing groups and facilities against the stored
             baseline; anything new becomes a career event. That&apos;s why the
             career signal can never fire on a first ingest.
           </p>
-          <p className="mt-2 text-[12px] text-ink-faint">
-            Identity confidence:{" "}
-            <span className="font-semibold text-ink-muted">
-              {Math.round(identityConfidence * 100)}%
-            </span>{" "}
-            — the weakest link among this prospect&apos;s merges.
-          </p>
         </div>
+      </div>
+
+      <div>
+        <p className="text-[12px] text-ink-faint">
+          Identity confidence:{" "}
+          <span className="font-semibold text-ink-muted">
+            {Math.round(identityConfidence * 100)}%
+          </span>{" "}
+          — the weakest link among this prospect&apos;s merges.
+        </p>
 
         {matches.length > 0 && (
-          <div>
+          <div className="mt-3">
             <p className="eyebrow">Audit trail — every recorded decision</p>
             <div className="mt-2 overflow-x-auto">
               <table className="w-full text-[13px]">
