@@ -69,6 +69,11 @@ Status as of 2026-08-23. Spec: `PROJECT_SPEC.md` · Mechanics:
 - [x] Score movement arrow on scoreboard cards — ▲/▼ + points delta from `score_change`
 - [ ] Field-change visibility ("changed from → to"): new `field_changes` table populated in the pipeline upsert when a captured value differs. Display tiers: **score-affecting** fields (specialty, license_status, license_issue_date, enumeration_date, license_number) get loud from→to + points impact; **contact-relevant** fields (address_line, city, zip, phone) get an "updated" marker on the dossier + contact kit even though the score doesn't move; **identity fields** (npi, name, state) get a caution flag — they should rarely change; cosmetic diffs (case/format-only) stay silent. Recency decay is NOT a field change — the arrow covers it
 - [ ] NPPES self-diff (same pattern as PECOS snapshots): detect SPECIALTY_CHANGE (fellowship → tier jump, one of the strongest emerging-affluent moments) and PRACTICE_RELOCATED as real signals rather than silent overwrites
+- [ ] Scoreboard freshness states (every card always declares its ingest status, not just movers):
+      **NEW** badge — prospect first appeared in the latest ingest (detectable today: exactly one score snapshot, or created_at within the last run) ·
+      **▲ / ▼** green/red arrow — score moved (built) ·
+      **· grey dot / "no change"** — re-ingested, nothing moved: an explicit "we checked, still the same" instead of silent absence ·
+      **"not seen"** marker — prospect wasn't returned by the latest pull (license lapsed, left the state, fell out of the specialty query) — today they silently keep their last score forever; needs a last_seen_at timestamp on the prospect, stamped each ingest. Ordering idea: NEW and big movers float a "Movers & arrivals" strip above the ranked list
 - [ ] Feedback-informed weight calibration (data is being captured; no learning yet)
 - [ ] Real Alembic migrations (prototype uses create_all; schema changes need `rm prospects.db`)
 - [ ] Lawyers and other professions (future phase per spec)
