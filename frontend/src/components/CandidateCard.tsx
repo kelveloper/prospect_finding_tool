@@ -13,19 +13,18 @@ type Props = {
 
 export default function CandidateCard({ candidate, rank, active }: Props) {
   const style = tierStyle(candidate.tier);
-  // Two-step: an unselected card previews into the left panel, the selected one opens.
-  const href = active ? `/candidate/${candidate.id}` : `/?id=${candidate.id}`;
 
   return (
     <Link
-      href={href}
-      // Previewing must not yank the list back to the top of the page.
-      scroll={active ? undefined : false}
+      // One click opens the whole profile in the panel beside this list.
+      href={`/?id=${candidate.id}`}
+      // Switching candidates must not yank the list back to the top of the page.
+      scroll={false}
       aria-current={active ? "true" : undefined}
       title={
         active
-          ? `Open ${candidate.name}'s profile`
-          : `Preview ${candidate.name}`
+          ? `Showing ${candidate.name}'s profile`
+          : `Open ${candidate.name}'s profile`
       }
       className={
         "block rounded-[12px] bg-white p-4 shadow-raised transition-shadow hover:shadow-float " +
@@ -76,7 +75,7 @@ export default function CandidateCard({ candidate, rank, active }: Props) {
             )}
           </span>
           <span className="text-[11px] text-ink-faint">
-            {active ? "Click again to open →" : "Fit score"}
+            {active ? "Showing profile →" : "Fit score"}
           </span>
         </div>
         <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-surface-soft">

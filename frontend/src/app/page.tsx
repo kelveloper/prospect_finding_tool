@@ -3,9 +3,11 @@ import Header from "@/components/Header";
 import ScoreRing from "@/components/ScoreRing";
 import Badge from "@/components/Badge";
 import CandidateCard from "@/components/CandidateCard";
+import CandidateDossier from "@/components/CandidateDossier";
+import { ChartIcon, InfoIcon } from "@/components/icons";
 import { tierStyle } from "@/lib/tier";
 import { PERIOD } from "@/lib/data";
-import { fetchCandidateDetail, fetchRankedCandidates } from "@/lib/api";
+import { fetchCandidateDetail, fetchContactKit, fetchRankedCandidates } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -33,11 +35,16 @@ export default async function ScoreboardPage({
   }
 
   const featuredId = id && ranked.some((c) => c.id === id) ? id : ranked[0].id;
-  // Detail fetch enriches the featured panel with licence tenure + signal tags
-  const detail = await fetchCandidateDetail(featuredId);
+  // One click on a card shows the whole dossier here, so the featured panel
+  // needs everything the old standalone profile page fetched.
+  const [detail, contactKit] = await Promise.all([
+    fetchCandidateDetail(featuredId),
+    fetchContactKit(featuredId),
+  ]);
   // Fall back to the ranked row for the selected id, never to whoever is first.
   const featured =
     detail?.candidate ?? ranked.find((c) => c.id === featuredId) ?? ranked[0];
+  const profile = detail?.profile;
   const style = tierStyle(featured.tier);
 
   return (
@@ -47,7 +54,7 @@ export default async function ScoreboardPage({
         meta={`${ranked.length} Candidates · ${PERIOD}`}
       />
 
-      <div className="mx-auto grid max-w-[1470px] grid-cols-1 items-start lg:grid-cols-[minmax(0,1fr)_445px]">
+      <div className="mx-auto grid max-w-[1560px] grid-cols-1 items-start lg:grid-cols-[minmax(0,1fr)_420px]">
         {/* ── Featured candidate ─────────────────────────── */}
         <main className="min-h-[calc(100vh-4rem)] bg-white px-8 py-8">
           <div className="flex items-start justify-between gap-8">
@@ -57,7 +64,25 @@ export default async function ScoreboardPage({
                 {featured.name}
               </h1>
               <p className="mt-1 text-[16px] text-ink-muted">{featured.practiceLine}</p>
-              <p className="mt-2 text-[14px] text-ink-muted">📍 {featured.location}</p>
+              <p className="mt-2 text-[14px] text-ink-muted">
+                📍 {profile?.address ?? featured.location}
+              </p>
+
+              {/* Trust line: how sure we are these records are the same person */}
+              {profile ? (
+                <p className="mt-3">
+                  <span
+                    className={
+                      "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-display text-[12px] font-semibold " +
+                      (profile.identityVerified
+                        ? "bg-tier-strong-bg text-tier-strong-fg"
+                        : "bg-tier-neutral-bg text-tier-neutral-fg")
+                    }
+                  >
+                    {profile.identityVerified ? "✓" : "◌"} {profile.identityLine}
+                  </span>
+                </p>
+              ) : null}
             </div>
             <ScoreRing
               score={featured.score}
@@ -131,19 +156,42 @@ export default async function ScoreboardPage({
             </section>
           ) : null}
 
-          {/* Actions */}
+          {/* ── Dossier ──────────────────────────────────── */}
+          {detail && profile ? (
+            <div className="-mx-8 mt-8 bg-canvas px-8 py-8">
+              <h2 className="eyebrow">Candidate Profile</h2>
+              <div className="mt-4">
+                <CandidateDossier
+                  candidate={featured}
+                  profile={profile}
+                  fieldChanges={detail.fieldChanges}
+                  scoreHistory={detail.scoreHistory}
+                  contactKit={contactKit}
+                />
+              </div>
+            </div>
+          ) : (
+            <p className="mt-8 rounded-[12px] bg-canvas px-4 py-4 text-[13px] text-ink-muted">
+              The full dossier for this prospect could not be loaded — the ranked
+              summary above is all the API returned.
+            </p>
+          )}
+
+          {/* Actions — the two pages that go deeper than this dossier */}
           <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Link
               href={`/candidate/${featured.id}/follow-up`}
-              className="flex items-center justify-center rounded-[8px] bg-brand px-6 py-3.5 font-display text-[14px] font-semibold text-white shadow-brand transition-colors hover:bg-brand-dark"
+              className="flex items-center justify-center gap-2 rounded-[8px] bg-brand px-6 py-3.5 font-display text-[14px] font-semibold text-white shadow-brand transition-colors hover:bg-brand-dark"
             >
-              Review & Give Feedback
+              <InfoIcon className="size-4" />
+              Review &amp; Give Feedback
             </Link>
             <Link
-              href={`/candidate/${featured.id}`}
-              className="flex items-center justify-center rounded-[8px] border border-hairline bg-white px-6 py-3.5 font-display text-[14px] font-semibold text-brand transition-colors hover:bg-surface-soft"
+              href={`/candidate/${featured.id}/breakdown`}
+              className="flex items-center justify-center gap-2 rounded-[8px] border border-hairline bg-white px-6 py-3.5 font-display text-[14px] font-semibold text-brand transition-colors hover:bg-surface-soft"
             >
-              View More
+              <ChartIcon className="size-4" />
+              Full Score &amp; Match Breakdown
             </Link>
           </div>
         </main>

@@ -36,6 +36,22 @@ export function InfoIcon({ className }: IconProps) {
   );
 }
 
+export function ChartIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className={className ?? base} aria-hidden>
+      <path
+        d="M2 13.5h12"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <rect x="3" y="8" width="2.6" height="4" rx="0.8" fill="currentColor" />
+      <rect x="6.7" y="5" width="2.6" height="7" rx="0.8" fill="currentColor" opacity="0.7" />
+      <rect x="10.4" y="2.5" width="2.6" height="9.5" rx="0.8" fill="currentColor" />
+    </svg>
+  );
+}
+
 export function ShuffleIcon({ className }: IconProps) {
   return (
     <svg viewBox="0 0 16 16" fill="none" className={className ?? base} aria-hidden>

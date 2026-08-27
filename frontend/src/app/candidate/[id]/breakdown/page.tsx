@@ -20,7 +20,7 @@ export default async function ScoreBreakdownPage({
     <div className="min-h-screen pb-12">
       <Header
         crumbs={[{ label: "Score & Match Breakdown" }]}
-        back={{ label: "Back to Profile", href: `/candidate/${candidate.id}` }}
+        back={{ label: "Back to Profile", href: `/?id=${candidate.id}` }}
       />
 
       <div className="mx-auto max-w-[1124px] px-8 py-8">

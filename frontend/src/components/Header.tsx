@@ -18,7 +18,7 @@ type Props = {
 export default function Header({ crumbs = [], pill, meta, back }: Props) {
   return (
     <header className="sticky top-0 z-10 border-b border-hairline/60 bg-white">
-      <div className="mx-auto flex h-16 max-w-[1470px] items-center justify-between px-8">
+      <div className="mx-auto flex h-16 max-w-[1560px] items-center justify-between px-8">
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-3">
             <span className="flex size-8 items-center justify-center rounded-[8px] bg-brand text-white">
