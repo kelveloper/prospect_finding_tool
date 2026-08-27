@@ -52,6 +52,13 @@ export type CandidateProfile = {
   sections: ProfileSection[];
 };
 
+export type ScoreSnapshotItem = {
+  qualification: number;
+  timing: number;
+  total: number;
+  recordedAt: string;
+};
+
 export type FieldChangeItem = {
   field: string;
   oldValue: string | null;

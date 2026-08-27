@@ -13,6 +13,7 @@ import type {
   MatchEvidenceItem,
   ProfileSection,
   ScoreComponentItem,
+  ScoreSnapshotItem,
   SignalItem,
   Tier,
 } from "./data";
@@ -63,6 +64,14 @@ type ApiDetail = ApiRanked & {
   score_components: ApiScoreComponent[];
   identity_matches: ApiIdentityMatch[];
   field_changes: ApiFieldChange[];
+  score_history: ApiScoreSnapshot[];
+};
+
+type ApiScoreSnapshot = {
+  qualification_score: number;
+  timing_score: number;
+  total_score: number;
+  recorded_at: string;
 };
 
 type ApiFieldChange = {
@@ -456,6 +465,7 @@ export async function fetchCandidateDetail(id: string): Promise<
     matches: MatchEvidenceItem[];
     identityConfidence: number;
     fieldChanges: FieldChangeItem[];
+    scoreHistory: ScoreSnapshotItem[];
   } | undefined
 > {
   try {
@@ -478,6 +488,12 @@ export async function fetchCandidateDetail(id: string): Promise<
         newValue: c.new_value,
         tier: c.tier,
         changedAt: c.changed_at,
+      })),
+      scoreHistory: (detail.score_history ?? []).map((s) => ({
+        qualification: s.qualification_score,
+        timing: s.timing_score,
+        total: s.total_score,
+        recordedAt: s.recorded_at,
       })),
     };
   } catch (err) {

@@ -1,10 +1,13 @@
 import Link from "next/link";
+import ScoreSparkline from "./ScoreSparkline";
+import type { ScoreSnapshotItem } from "@/lib/data";
 
 type Props = {
   prospectId: string;
   qualificationScore: number;
   timingScore: number;
   totalScore: number;
+  history: ScoreSnapshotItem[];
 };
 
 /** Summary panel — clicking it opens the full breakdown page (calculation,
@@ -14,6 +17,7 @@ export default function ScoreBreakdownCard({
   qualificationScore,
   timingScore,
   totalScore,
+  history,
 }: Props) {
   return (
     <Link
@@ -53,7 +57,14 @@ export default function ScoreBreakdownCard({
         </div>
       </dl>
 
-      <p className="px-6 pb-6 pt-1 text-center font-display text-[13px] font-semibold text-brand">
+      <div className="border-t border-surface-soft px-6 pt-3.5">
+        <p className="eyebrow">Score History</p>
+        <div className="mt-1.5">
+          <ScoreSparkline history={history} />
+        </div>
+      </div>
+
+      <p className="px-6 pb-6 pt-2 text-center font-display text-[13px] font-semibold text-brand">
         Full calculation, scoring rules &amp; match evidence →
       </p>
     </Link>
