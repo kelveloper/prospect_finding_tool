@@ -58,9 +58,23 @@ export default function CandidateCard({ candidate, rank, active }: Props) {
 
       <div className="pt-[10px]">
         <div className="flex items-center justify-between">
-          <Badge bg={style.badgeBg} fg={style.badgeFg}>
-            {candidate.tier}
-          </Badge>
+          <span className="flex items-center gap-1.5">
+            <Badge bg={style.badgeBg} fg={style.badgeFg}>
+              {candidate.tier}
+            </Badge>
+            {/* Movement since the last ingest */}
+            {candidate.scoreChange !== null && candidate.scoreChange !== 0 && (
+              <span
+                title={`Score moved ${candidate.scoreChange > 0 ? "up" : "down"} ${Math.abs(candidate.scoreChange)} points since the last ingest`}
+                className={
+                  "font-display text-[11px] font-bold tabular-nums " +
+                  (candidate.scoreChange > 0 ? "text-tier-strong-fg" : "text-tier-poor")
+                }
+              >
+                {candidate.scoreChange > 0 ? "▲" : "▼"} {Math.abs(candidate.scoreChange)}
+              </span>
+            )}
+          </span>
           <span className="text-[11px] text-ink-faint">
             {active ? "Click again to open →" : "Fit score"}
           </span>

@@ -66,6 +66,9 @@ Status as of 2026-08-23. Spec: `PROJECT_SPEC.md` · Mechanics:
 - [x] Live data only — sample mode and all fixture adapters removed; tests stub sources at the route boundary
 - [x] Score history — every ingest appends a (qualification, timing, total) snapshot per prospect to `score_history`; movement since the last run is exposed as `score_change` on the ranked list and the full trajectory on the detail endpoint
 - [x] Contact kit v1 — `GET /prospects/{id}/contact-kit`: practice mail address + phone + primary trigger + deterministic trigger-matched letter draft (OWNERSHIP > CAREER > NEW_LICENSE; property never mentioned, urgency only). Email draft joins when an email source is ingested (RESEARCH_CONTACT_OUTREACH.md build order steps 2–3)
+- [x] Score movement arrow on scoreboard cards — ▲/▼ + points delta from `score_change`
+- [ ] Field-change visibility ("changed from → to"): new `field_changes` table populated in the pipeline upsert when a captured value differs. Display tiers: **score-affecting** fields (specialty, license_status, license_issue_date, enumeration_date, license_number) get loud from→to + points impact; **contact-relevant** fields (address_line, city, zip, phone) get an "updated" marker on the dossier + contact kit even though the score doesn't move; **identity fields** (npi, name, state) get a caution flag — they should rarely change; cosmetic diffs (case/format-only) stay silent. Recency decay is NOT a field change — the arrow covers it
+- [ ] NPPES self-diff (same pattern as PECOS snapshots): detect SPECIALTY_CHANGE (fellowship → tier jump, one of the strongest emerging-affluent moments) and PRACTICE_RELOCATED as real signals rather than silent overwrites
 - [ ] Feedback-informed weight calibration (data is being captured; no learning yet)
 - [ ] Real Alembic migrations (prototype uses create_all; schema changes need `rm prospects.db`)
 - [ ] Lawyers and other professions (future phase per spec)
@@ -74,7 +77,15 @@ Status as of 2026-08-23. Spec: `PROJECT_SPEC.md` · Mechanics:
 ## 🤖 Where AI will help (planned, agreed 2026-08-21)
 
 The scoring pipeline stays deterministic — that's its credibility. AI gets
-added around it, in two places, with guardrails:
+added around it, with guardrails:
+
+0. **Change narrator (added to the list 2026-08-27)** — when a score moves
+   between ingests, an LLM writes the one-line "why": grounded ONLY in the
+   recorded diff (field changes + new/expired signals + decay), never in
+   the scoring itself. "▲ 6.2 — specialty updated Internal Medicine →
+   Cardiovascular Disease" instead of a bare number. Blocked on the
+   field-change table above; the deterministic diff is the source of
+   truth, the LLM only phrases it.
 
 1. **Match assistant (identity resolution)** — an LLM reviews only the
    *ambiguous middle* of matching: pairs scoring ~0.5–0.8 that rules alone

@@ -21,6 +21,8 @@ export type Candidate = {
   tags: string[];
   /** Signal coverage per category — the scoreboard quick overview. */
   categories: { label: string; captured: number; total: number }[];
+  /** Points moved since the previous ingest; null until two snapshots exist. */
+  scoreChange: number | null;
 };
 
 export type ProfileRow = {
