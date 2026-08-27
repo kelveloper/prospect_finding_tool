@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
+import BreakdownExplorer from "@/components/BreakdownExplorer";
 import Header from "@/components/Header";
-import MatchEvidencePanel from "@/components/MatchEvidencePanel";
-import ScoreCalculation from "@/components/ScoreCalculation";
 import { fetchCandidateDetail } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
@@ -29,35 +28,18 @@ export default async function ScoreBreakdownPage({
           {candidate.name} — {candidate.score} / 100
         </h1>
         <p className="mt-1 text-[14px] text-ink-muted">
-          Every point traced to a public record, and every record traced to the
-          match rule that connected it.
+          Click Qualification or Timing to see each signal&apos;s scoring rules
+          and which tier this prospect landed on.
         </p>
 
-        <div className="mt-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
-          <section className="rounded-[16px] bg-white p-6 shadow-card">
-            <div className="mb-4 flex items-center gap-2">
-              <span className="h-4 w-[3px] shrink-0 rounded-full bg-brand" />
-              <h2 className="eyebrow">The Calculation</h2>
-            </div>
-            <ScoreCalculation
-              qualificationScore={candidate.qualificationScore}
-              timingScore={candidate.timingScore}
-              totalScore={candidate.score}
-              components={scoreComponents}
-            />
-          </section>
-
-          <section className="rounded-[16px] bg-white p-6 shadow-card">
-            <div className="mb-4 flex items-center gap-2">
-              <span className="h-4 w-[3px] shrink-0 rounded-full bg-brand" />
-              <h2 className="eyebrow">How We Matched This Person</h2>
-            </div>
-            <MatchEvidencePanel
-              matches={matches}
-              identityConfidence={identityConfidence}
-            />
-          </section>
-        </div>
+        <BreakdownExplorer
+          qualificationScore={candidate.qualificationScore}
+          timingScore={candidate.timingScore}
+          totalScore={candidate.score}
+          components={scoreComponents}
+          matches={matches}
+          identityConfidence={identityConfidence}
+        />
       </div>
     </div>
   );
