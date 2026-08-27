@@ -12,6 +12,30 @@ The pipeline's mental model. Companions: `USER_JOURNEY.md` (demo + setup) ·
 
 The system finds those people in public data and ranks them.
 
+## The engine in one line
+
+```
+sources → three gate layers → signals → strength × weight → 60/40 blend
+        → score history → contact kit
+```
+
+**Gates reject; scoring weighs.** Everything before the scoreboard is a
+gate — binary, about trust, each decision auditable. Everything from the
+scoreboard on is continuous — about value. Nothing is ever rejected after
+gating; by then it can only be worth more or less.
+
+| Gate layer | Where | Question it answers |
+|---|---|---|
+| 1. Entry | inside each adapter | Are you even eligible? (physician taxonomy, IL, individual license, deed ≥ $100k & ≤ 36 mo, Reassignment rows only) |
+| 2. Identity | resolver + matcher | Do these records belong to the same person? (license 1.0 / name tiers ≥ 0.80 to merge; NPI-exact or name-exact to attach, else drop) |
+| 3. Derivation | signal detector | What is this fact allowed to claim? (own-name-in-entity for OWNERSHIP; snapshot diff for career; strength ≥ 0.3 to be narrated) |
+
+A fact that fails any gate doesn't exist downstream — a failed IDFPR merge
+isn't a penalty, it's a missing row (license recency 0/40). A match score
+opens the door; it never adds a point. And identity confidence is reported
+*beside* the score, never multiplied into it: the score says how good the
+prospect is, confidence says how sure we are it's the right person.
+
 ## The flow (what happens on POST /ingest/run)
 
 ```
