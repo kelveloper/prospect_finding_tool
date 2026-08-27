@@ -24,8 +24,10 @@ QUAL_WEIGHTS: dict[str, float] = {
 # source None matches any source. A recent property purchase is the
 # "financial event" step; a fresh appointment is a career inflection.
 TIMING_WEIGHTS: dict[tuple[str, str | None], float] = {
-    ("NEW_LICENSE", "idfpr"): 40,
+    # Ordered by career chronology: NPI enumeration (entering practice)
+    # typically precedes the full state license
     ("NEW_LICENSE", "npi"): 15,
+    ("NEW_LICENSE", "idfpr"): 40,
     ("PROPERTY_EVENT", None): 30,
     ("CAREER_ADVANCEMENT", None): 15,
 }
@@ -38,8 +40,8 @@ QUAL_LABELS: dict[str, str] = {
     "OWNERSHIP": "Practice ownership",
 }
 TIMING_LABELS: dict[tuple[str, str | None], str] = {
-    ("NEW_LICENSE", "idfpr"): "License recency",
     ("NEW_LICENSE", "npi"): "Practice entry (NPI enumeration)",
+    ("NEW_LICENSE", "idfpr"): "License recency",
     ("PROPERTY_EVENT", None): "Property purchase recency",
     ("CAREER_ADVANCEMENT", None): "Career advancement",
 }
