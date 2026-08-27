@@ -248,9 +248,9 @@ export default function MatchEvidencePanel({
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="grid grid-cols-1 items-start gap-5 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 items-start md:grid-cols-2 lg:grid-cols-4 lg:divide-x lg:divide-surface-soft">
         {JOINS.map((join) => (
-          <div key={join.title}>
+          <div key={join.title} className="py-2 lg:px-5 lg:py-0 lg:first:pl-0 lg:last:pr-0">
             <p className="eyebrow">{join.title}</p>
             <p className="text-[11px] text-ink-faint">{join.subtitle}</p>
             <div className="mt-2 flex flex-col gap-1.5">
@@ -274,7 +274,7 @@ export default function MatchEvidencePanel({
         ))}
 
         {/* 4th column: the unscored join */}
-        <div>
+        <div className="py-2 lg:px-5 lg:py-0 lg:last:pr-0">
           <p className="eyebrow">PECOS ↔ itself over time</p>
           <p className="text-[11px] text-ink-faint">Career move detection</p>
           <p className="mt-2 rounded-[10px] bg-canvas px-3.5 py-2.5 text-[12px] leading-[19px] text-ink-muted">
@@ -286,7 +286,7 @@ export default function MatchEvidencePanel({
         </div>
       </div>
 
-      <div>
+      <div className="border-t border-surface-soft pt-4">
         <p className="text-[12px] text-ink-faint">
           Identity confidence:{" "}
           <span className="font-semibold text-ink-muted">
