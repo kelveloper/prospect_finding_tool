@@ -4,11 +4,18 @@ type TierKey = "license" | "name" | "initial" | "single" | "npi" | "deed-name";
 
 type Tier = { key: TierKey; label: string; score: string; note: string };
 
+type Gate = {
+  /** Any tier ≥ the bar opens the same door — the gate is binary. */
+  open: { label: string; detail: string };
+  closed: { label: string; detail: string };
+};
+
 /** Tier ladders organized per connection — each join has its own rules. */
 const JOINS: {
   title: string;
   subtitle: string;
   tiers: Tier[];
+  gate: Gate;
   footnote?: string;
 }[] = [
   {
@@ -40,6 +47,18 @@ const JOINS: {
         note: "License number found no IDFPR row; NPPES stands alone",
       },
     ],
+    gate: {
+      open: {
+        label: "Gate cleared — IDFPR data unlocked",
+        detail:
+          "License verified: Physician standing can reach 1.00 × 40, and License recency is active (up to 40 timing pts). Any tier ≥ 0.80 opens this same door.",
+      },
+      closed: {
+        label: "Gate not cleared — NPPES stands alone",
+        detail:
+          "License unverified: Physician standing capped at 0.70 × 40 = 28, and License recency locked at 0 / 40 timing pts.",
+      },
+    },
     footnote:
       "Merge threshold is 0.80 — anything below becomes a separate prospect.",
   },
@@ -54,6 +73,18 @@ const JOINS: {
         note: "The only tier — PECOS is queried by NPI, so it's exact or nothing",
       },
     ],
+    gate: {
+      open: {
+        label: "Gate cleared — billing data attached",
+        detail:
+          "Practice ownership can earn up to 20 qual pts (own PLLC × 0.8), and career-move tracking is armed (up to 15 timing pts from the next sync).",
+      },
+      closed: {
+        label: "Gate not cleared — no PECOS rows for this NPI",
+        detail:
+          "Practice ownership locked at 0 / 25 and Career advancement at 0 / 15. Common for physicians who don't bill Medicare under a group.",
+      },
+    },
     footnote: "No name fallback by design: zero name-match risk on this join.",
   },
   {
@@ -67,10 +98,28 @@ const JOINS: {
         note: "The only tier — deeds carry no NPI; a near-miss is dropped, never guessed",
       },
     ],
+    gate: {
+      open: {
+        label: "Gate cleared — deed attached",
+        detail:
+          "Property purchase recency is active: up to 30 timing pts, decaying with the sale date.",
+      },
+      closed: {
+        label: "Gate not cleared — no deed matched",
+        detail:
+          "Property purchase recency locked at 0 / 30. A near-miss on the buyer name is dropped, never guessed.",
+      },
+    },
     footnote:
       "Weakest join in the system — mitigated by the $100k price floor and drop-don't-guess matching.",
   },
 ];
+
+const GATE_OPENERS: Record<string, TierKey[]> = {
+  "NPPES ↔ IDFPR": ["license", "name", "initial"],
+  "NPPES ↔ PECOS": ["npi"],
+  "NPPES ↔ Cook County": ["deed-name"],
+};
 
 function tierOf(m: MatchEvidenceItem): TierKey {
   if (m.reason === "license number match") return "license";
@@ -117,6 +166,51 @@ function TierRow({ tier, used }: { tier: Tier; used: boolean }) {
   );
 }
 
+function GateOutcome({ gate, isOpen }: { gate: Gate; isOpen: boolean }) {
+  const rows = [
+    { ...gate.open, active: isOpen, tone: "open" as const },
+    { ...gate.closed, active: !isOpen, tone: "closed" as const },
+  ];
+  return (
+    <div className="mt-2 flex flex-col gap-1.5">
+      {rows.map((row) => (
+        <div
+          key={row.label}
+          className={
+            "rounded-[10px] border px-4 py-2.5 " +
+            (row.active
+              ? row.tone === "open"
+                ? "border-tier-strong/40 bg-tier-strong-bg"
+                : "border-tier-neutral-fg/30 bg-tier-neutral-bg"
+              : "border-transparent bg-canvas opacity-50")
+          }
+        >
+          <p
+            className={
+              "font-display text-[13px] font-semibold " +
+              (row.active
+                ? row.tone === "open"
+                  ? "text-tier-strong-fg"
+                  : "text-tier-neutral-fg"
+                : "text-ink-muted")
+            }
+          >
+            {row.tone === "open" ? "🔓" : "🔒"} {row.label}
+            {row.active && (
+              <span className="ml-1.5 text-[10px] font-bold uppercase tracking-[0.5px]">
+                ← this prospect
+              </span>
+            )}
+          </p>
+          <p className="mt-0.5 text-[12px] leading-[18px] text-ink-muted">
+            {row.detail}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /** Per-connection tier ladders with this prospect's tiers highlighted,
  *  plus the raw audit rows from identity_matches. */
 export default function MatchEvidencePanel({
@@ -145,6 +239,10 @@ export default function MatchEvidencePanel({
               <TierRow key={t.key} tier={t} used={used.has(t.key)} />
             ))}
           </div>
+          <GateOutcome
+            gate={join.gate}
+            isOpen={(GATE_OPENERS[join.title] ?? []).some((k) => used.has(k))}
+          />
           {join.footnote && (
             <p className="mt-1.5 text-[12px] text-ink-faint">{join.footnote}</p>
           )}
