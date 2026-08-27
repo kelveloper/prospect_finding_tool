@@ -279,22 +279,81 @@ export default function BreakdownExplorer({
         ))}
       </div>
 
-      {/* ── Tab 1: Gates ──────────────────────────────────────────── */}
+      {/* ── Tab 1: Gates — all three layers, in order ─────────────── */}
       {tab === "gates" && (
-        <section className="mt-4 rounded-[16px] bg-white p-6 shadow-card">
-          <div className="mb-4 flex items-center gap-2">
-            <span className="h-4 w-[3px] shrink-0 rounded-full bg-brand" />
-            <h2 className="eyebrow">How We Matched This Person</h2>
-          </div>
-          <MatchEvidencePanel
-            matches={matches}
-            identityConfidence={identityConfidence}
-            onSeeScoring={(group) => {
-              setSelected(group);
-              setTab("scoring");
-            }}
-          />
-        </section>
+        <div className="mt-4 flex flex-col gap-4">
+          {/* Gate 1 · Entry — passed by definition: anyone with a dossier
+              cleared every eligibility filter during the pull */}
+          <section className="rounded-[16px] bg-white px-6 py-4 shadow-card">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <span className="h-4 w-[3px] shrink-0 rounded-full bg-brand" />
+              <h2 className="eyebrow">Gate 1 · Entry — who gets in at all</h2>
+              <span className="ml-auto rounded-full bg-tier-strong-bg px-2.5 py-1 font-display text-[11px] font-semibold text-tier-strong-fg">
+                ✓ passed — this prospect exists
+              </span>
+            </div>
+            <p className="mt-2 text-[12px] leading-[18px] text-ink-muted">
+              Applied inside each adapter during the pull: physician taxonomy
+              only (codes starting 20) · licensed or practicing in IL ·
+              individual &quot;Physician and Surgeon&quot; licenses only ·
+              deeds ≥ $100k within 36 months · Medicare reassignment rows
+              only. Records that fail never become prospects — so every
+              dossier you can open has already cleared this gate.
+            </p>
+          </section>
+
+          {/* Gate 2 · Identity — the only gate where prospects differ */}
+          <section className="rounded-[16px] bg-white p-6 shadow-card">
+            <div className="mb-4 flex items-center gap-2">
+              <span className="h-4 w-[3px] shrink-0 rounded-full bg-brand" />
+              <h2 className="eyebrow">
+                Gate 2 · Identity — how we matched this person
+              </h2>
+            </div>
+            <MatchEvidencePanel
+              matches={matches}
+              identityConfidence={identityConfidence}
+              onSeeScoring={(group) => {
+                setSelected(group);
+                setTab("scoring");
+              }}
+            />
+          </section>
+
+          {/* Gate 3 · Derivation — what surviving facts may claim */}
+          <section className="rounded-[16px] bg-white px-6 py-4 shadow-card">
+            <div className="flex items-center gap-2">
+              <span className="h-4 w-[3px] shrink-0 rounded-full bg-brand" />
+              <h2 className="eyebrow">
+                Gate 3 · Derivation — what the facts are allowed to claim
+              </h2>
+            </div>
+            <div className="mt-2 grid grid-cols-1 gap-2 text-[12px] leading-[18px] text-ink-muted lg:grid-cols-3">
+              <p className="rounded-[10px] bg-canvas px-3.5 py-2.5">
+                <span className="font-semibold text-ink">Ownership:</span> a
+                billing group only counts if the physician&apos;s own name is
+                in its legal name — billing under a hospital group earns 0.
+              </p>
+              <p className="rounded-[10px] bg-canvas px-3.5 py-2.5">
+                <span className="font-semibold text-ink">Career:</span> the
+                first PECOS sync only seeds a baseline — moves exist only as
+                diffs against it, never on day one.
+              </p>
+              <p className="rounded-[10px] bg-canvas px-3.5 py-2.5">
+                <span className="font-semibold text-ink">Narration:</span>{" "}
+                signals below 0.3 strength score points but don&apos;t earn a
+                sentence in the written reason.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setTab("scoring")}
+              className="mt-2 font-display text-[11px] font-semibold text-brand"
+            >
+              These appear as the zero rows in Scoring →
+            </button>
+          </section>
+        </div>
       )}
 
       {/* ── Tab 2: Scoring ────────────────────────────────────────── */}
