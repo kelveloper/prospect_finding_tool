@@ -452,6 +452,14 @@ export default function BreakdownExplorer({
                 </div>
               ))}
             </div>
+            <button
+              type="button"
+              onClick={() => setTab("scoring")}
+              className="mt-3 font-display text-[12px] font-semibold text-brand"
+            >
+              See the full scoreboard — these verdicts are its zero and
+              non-zero rows →
+            </button>
           </section>
         </div>
       )}
