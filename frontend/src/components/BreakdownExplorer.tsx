@@ -1,8 +1,28 @@
 "use client";
 
 import { useState } from "react";
-import type { MatchEvidenceItem, ScoreComponentItem } from "@/lib/data";
+import type { MatchEvidenceItem, ScoreComponentItem, SignalItem } from "@/lib/data";
 import MatchEvidencePanel from "./MatchEvidencePanel";
+
+/* ── Gate 3 verdicts, computed from this prospect's own records ──── */
+
+type Verdict = {
+  tone: "allowed" | "refused" | "untestable";
+  text: string;
+  /** Adds a tab-switching link into Scoring, pre-selecting this group. */
+  scoringTarget?: "qualification" | "timing";
+};
+
+function verdictStyle(tone: Verdict["tone"]): string {
+  if (tone === "allowed") return "border-tier-strong/40 bg-tier-strong-bg text-tier-strong-fg";
+  if (tone === "refused") return "border-tier-neutral-fg/30 bg-tier-neutral-bg text-tier-neutral-fg";
+  return "border-transparent bg-surface-soft text-ink-muted";
+}
+
+function entityFrom(description: string): string | null {
+  const m = description.match(/'([^']+)'/);
+  return m ? m[1] : null;
+}
 
 /* ── The scoring rulebook, mirrored from app/scoring/detector.py ──── */
 
@@ -211,6 +231,7 @@ export default function BreakdownExplorer({
   matches,
   identityConfidence,
   signalTypesCount,
+  signals,
 }: {
   qualificationScore: number;
   timingScore: number;
@@ -219,6 +240,7 @@ export default function BreakdownExplorer({
   matches: MatchEvidenceItem[];
   identityConfidence: number;
   signalTypesCount: number;
+  signals: SignalItem[];
 }) {
   const [tab, setTab] = useState<"gates" | "scoring">("gates");
   const [selected, setSelected] = useState<"qualification" | "timing">("qualification");
@@ -234,6 +256,75 @@ export default function BreakdownExplorer({
     { label: "Identity", value: `${Math.round(identityConfidence * 100)}%` },
     { label: "Signals", value: `${signalTypesCount} of 6` },
     { label: "Score", value: `${totalScore}` },
+  ];
+
+  /* ── Gate 3: this prospect's own verdicts ── */
+  const hasPecos = matches.some((m) => m.reason === "NPI match");
+  const ownSignal = signals.find((s) => s.type === "OWNERSHIP");
+  const careerSignal = signals.find((s) => s.type === "CAREER_ADVANCEMENT");
+  const ownComp = components.find((c) => c.label === "Practice ownership");
+  const careerComp = components.find((c) => c.label === "Career advancement");
+
+  const ownershipVerdict: Verdict = ownSignal
+    ? {
+        tone: "allowed",
+        text: `✓ Claim allowed — "${entityFrom(ownSignal.description) ?? "self-named entity"}" bears their name → ${ownSignal.strength.toFixed(2)} × ${ownComp?.maxPoints ?? 25} = ${ownComp?.points ?? "?"} pts`,
+        scoringTarget: "qualification",
+      }
+    : hasPecos
+      ? {
+          tone: "refused",
+          text: `✗ Claim refused — bills through a group not bearing their name → 0.00 × ${ownComp?.maxPoints ?? 25} = 0. Note the layering: Gate 2 attached the billing data; this gate rejected the claim.`,
+          scoringTarget: "qualification",
+        }
+      : {
+          tone: "untestable",
+          text: "— Not testable: no PECOS billing rows attached (Gate 2 above was closed).",
+        };
+
+  const careerVerdict: Verdict = careerSignal
+    ? {
+        tone: "allowed",
+        text: `✓ Claim allowed — ${careerSignal.description} → ${careerSignal.strength.toFixed(2)} × ${careerComp?.maxPoints ?? 15} = ${careerComp?.points ?? "?"} pts`,
+        scoringTarget: "timing",
+      }
+    : hasPecos
+      ? {
+          tone: "refused",
+          text: `✗ Claim refused — first sync seeded the baseline; no diff to read yet → 0.00 × ${careerComp?.maxPoints ?? 15} = 0. Unlocks from the next monthly sync.`,
+          scoringTarget: "timing",
+        }
+      : {
+          tone: "untestable",
+          text: "— Not testable: no PECOS billing rows to diff (Gate 2 above was closed).",
+        };
+
+  const narratedCount = signals.filter((s) => s.strength >= 0.3).length;
+  const silentCount = signals.length - narratedCount;
+  const narrationVerdict: Verdict = {
+    tone: "allowed",
+    text:
+      silentCount === 0
+        ? `✓ All ${narratedCount} signals are ≥ 0.3 — every one earns a sentence in the written reason.`
+        : `✓ ${narratedCount} signal${narratedCount === 1 ? "" : "s"} narrated · ${silentCount} below 0.3 score points but stay out of the written reason.`,
+  };
+
+  const gate3Cards: { title: string; rule: string; verdict: Verdict }[] = [
+    {
+      title: "Ownership",
+      rule: "A billing group only counts if the physician's own name is in its legal name — billing under a hospital group earns 0.",
+      verdict: ownershipVerdict,
+    },
+    {
+      title: "Career",
+      rule: "The first PECOS sync only seeds a baseline — moves exist only as diffs against it, never on day one.",
+      verdict: careerVerdict,
+    },
+    {
+      title: "Narration",
+      rule: "Signals below 0.3 strength score points but don't earn a sentence in the written reason.",
+      verdict: narrationVerdict,
+    },
   ];
 
   return (
@@ -328,30 +419,39 @@ export default function BreakdownExplorer({
                 Gate 3 · Derivation — what the facts are allowed to claim
               </h2>
             </div>
-            <div className="mt-2 grid grid-cols-1 gap-2 text-[12px] leading-[18px] text-ink-muted lg:grid-cols-3">
-              <p className="rounded-[10px] bg-canvas px-3.5 py-2.5">
-                <span className="font-semibold text-ink">Ownership:</span> a
-                billing group only counts if the physician&apos;s own name is
-                in its legal name — billing under a hospital group earns 0.
-              </p>
-              <p className="rounded-[10px] bg-canvas px-3.5 py-2.5">
-                <span className="font-semibold text-ink">Career:</span> the
-                first PECOS sync only seeds a baseline — moves exist only as
-                diffs against it, never on day one.
-              </p>
-              <p className="rounded-[10px] bg-canvas px-3.5 py-2.5">
-                <span className="font-semibold text-ink">Narration:</span>{" "}
-                signals below 0.3 strength score points but don&apos;t earn a
-                sentence in the written reason.
-              </p>
+            <div className="mt-2 grid grid-cols-1 items-start gap-2 lg:grid-cols-3">
+              {gate3Cards.map((card) => (
+                <div key={card.title} className="rounded-[10px] bg-canvas px-3.5 py-2.5">
+                  <p className="text-[12px] leading-[18px] text-ink-muted">
+                    <span className="font-semibold text-ink">{card.title}:</span>{" "}
+                    {card.rule}
+                  </p>
+                  {/* This prospect's own verdict under the shared rule */}
+                  <div
+                    className={
+                      "mt-2 rounded-[8px] border px-3 py-2 " +
+                      verdictStyle(card.verdict.tone)
+                    }
+                  >
+                    <p className="text-[12px] font-medium leading-[18px]">
+                      {card.verdict.text}
+                    </p>
+                    {card.verdict.scoringTarget && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelected(card.verdict.scoringTarget!);
+                          setTab("scoring");
+                        }}
+                        className="mt-1 font-display text-[11px] font-semibold text-brand"
+                      >
+                        See it in Scoring →
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
-            <button
-              type="button"
-              onClick={() => setTab("scoring")}
-              className="mt-2 font-display text-[11px] font-semibold text-brand"
-            >
-              These appear as the zero rows in Scoring →
-            </button>
           </section>
         </div>
       )}

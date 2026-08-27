@@ -41,6 +41,7 @@ export default async function ScoreBreakdownPage({
           matches={matches}
           identityConfidence={identityConfidence}
           signalTypesCount={signalTypesCount}
+          signals={signals}
         />
       </div>
     </div>
