@@ -16,6 +16,9 @@ const JOINS: {
   subtitle: string;
   tiers: Tier[];
   gate: Gate;
+  openers: TierKey[];
+  /** Which scoring group the cross-link jumps to. */
+  scoringTarget: "qualification" | "timing";
   footnote?: string;
 }[] = [
   {
@@ -59,6 +62,8 @@ const JOINS: {
           "License unverified: Physician standing capped at 0.70 × 40 = 28, and License recency locked at 0 / 40 timing pts.",
       },
     },
+    openers: ["license", "name", "initial"],
+    scoringTarget: "timing",
     footnote:
       "Merge threshold is 0.80 — anything below becomes a separate prospect.",
   },
@@ -85,6 +90,8 @@ const JOINS: {
           "Practice ownership locked at 0 / 25 and Career advancement at 0 / 15. Common for physicians who don't bill Medicare under a group.",
       },
     },
+    openers: ["npi"],
+    scoringTarget: "qualification",
     footnote: "No name fallback by design: zero name-match risk on this join.",
   },
   {
@@ -110,16 +117,12 @@ const JOINS: {
           "Property purchase recency locked at 0 / 30. A near-miss on the buyer name is dropped, never guessed.",
       },
     },
+    openers: ["deed-name"],
+    scoringTarget: "timing",
     footnote:
       "Weakest join in the system — mitigated by the $100k price floor and drop-don't-guess matching.",
   },
 ];
-
-const GATE_OPENERS: Record<string, TierKey[]> = {
-  "NPPES ↔ IDFPR": ["license", "name", "initial"],
-  "NPPES ↔ PECOS": ["npi"],
-  "NPPES ↔ Cook County": ["deed-name"],
-};
 
 function tierOf(m: MatchEvidenceItem): TierKey {
   if (m.reason === "license number match") return "license";
@@ -134,29 +137,29 @@ function TierRow({ tier, used }: { tier: Tier; used: boolean }) {
   return (
     <div
       className={
-        "flex items-center justify-between gap-4 rounded-[10px] px-4 py-3 " +
+        "flex items-center justify-between gap-4 rounded-[10px] px-3.5 py-2.5 " +
         (used ? "bg-tier-strong-bg" : "bg-canvas opacity-60")
       }
     >
       <div className="min-w-0">
         <p
           className={
-            "font-display text-[14px] font-semibold " +
+            "font-display text-[13px] font-semibold " +
             (used ? "text-tier-strong-fg" : "text-ink-muted")
           }
         >
           {tier.label}
           {used && (
-            <span className="ml-2 text-[11px] font-bold uppercase tracking-[0.5px]">
-              ✓ how this one matched
+            <span className="ml-1.5 text-[10px] font-bold uppercase tracking-[0.5px]">
+              ✓ this one
             </span>
           )}
         </p>
-        <p className="text-[12px] text-ink-faint">{tier.note}</p>
+        <p className="text-[11px] leading-[16px] text-ink-faint">{tier.note}</p>
       </div>
       <span
         className={
-          "shrink-0 rounded-full px-2.5 py-1 font-display text-[13px] font-bold " +
+          "shrink-0 rounded-full px-2 py-0.5 font-display text-[12px] font-bold " +
           (used ? "bg-white text-tier-strong-fg" : "bg-surface-soft text-ink-faint")
         }
       >
@@ -166,7 +169,15 @@ function TierRow({ tier, used }: { tier: Tier; used: boolean }) {
   );
 }
 
-function GateOutcome({ gate, isOpen }: { gate: Gate; isOpen: boolean }) {
+function GateOutcome({
+  gate,
+  isOpen,
+  onSeeScoring,
+}: {
+  gate: Gate;
+  isOpen: boolean;
+  onSeeScoring?: () => void;
+}) {
   const rows = [
     { ...gate.open, active: isOpen, tone: "open" as const },
     { ...gate.closed, active: !isOpen, tone: "closed" as const },
@@ -177,7 +188,7 @@ function GateOutcome({ gate, isOpen }: { gate: Gate; isOpen: boolean }) {
         <div
           key={row.label}
           className={
-            "rounded-[10px] border px-4 py-2.5 " +
+            "rounded-[10px] border px-3.5 py-2.5 " +
             (row.active
               ? row.tone === "open"
                 ? "border-tier-strong/40 bg-tier-strong-bg"
@@ -187,7 +198,7 @@ function GateOutcome({ gate, isOpen }: { gate: Gate; isOpen: boolean }) {
         >
           <p
             className={
-              "font-display text-[13px] font-semibold " +
+              "font-display text-[12px] font-semibold " +
               (row.active
                 ? row.tone === "open"
                   ? "text-tier-strong-fg"
@@ -202,23 +213,32 @@ function GateOutcome({ gate, isOpen }: { gate: Gate; isOpen: boolean }) {
               </span>
             )}
           </p>
-          <p className="mt-0.5 text-[12px] leading-[18px] text-ink-muted">
-            {row.detail}
-          </p>
+          <p className="mt-0.5 text-[11px] leading-[17px] text-ink-muted">{row.detail}</p>
+          {row.active && onSeeScoring && (
+            <button
+              type="button"
+              onClick={onSeeScoring}
+              className="mt-1.5 font-display text-[11px] font-semibold text-brand"
+            >
+              See it in scoring →
+            </button>
+          )}
         </div>
       ))}
     </div>
   );
 }
 
-/** Per-connection tier ladders with this prospect's tiers highlighted,
- *  plus the raw audit rows from identity_matches. */
+/** Gate 2 — Identity: per-connection tier ladders side by side, the gate
+ *  outcomes, and the raw audit rows from identity_matches. */
 export default function MatchEvidencePanel({
   matches,
   identityConfidence,
+  onSeeScoring,
 }: {
   matches: MatchEvidenceItem[];
   identityConfidence: number;
+  onSeeScoring?: (group: "qualification" | "timing") => void;
 }) {
   const used = new Set<TierKey>(matches.map(tierOf));
   // No IDFPR merge evidence → the single-source default applied
@@ -228,77 +248,83 @@ export default function MatchEvidencePanel({
 
   return (
     <div className="flex flex-col gap-5">
-      {JOINS.map((join) => (
-        <div key={join.title}>
-          <p className="eyebrow">
-            {join.title}{" "}
-            <span className="normal-case text-ink-faint">· {join.subtitle}</span>
-          </p>
-          <div className="mt-2 flex flex-col gap-2">
-            {join.tiers.map((t) => (
-              <TierRow key={t.key} tier={t} used={used.has(t.key)} />
-            ))}
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-3">
+        {JOINS.map((join) => (
+          <div key={join.title}>
+            <p className="eyebrow">{join.title}</p>
+            <p className="text-[11px] text-ink-faint">{join.subtitle}</p>
+            <div className="mt-2 flex flex-col gap-1.5">
+              {join.tiers.map((t) => (
+                <TierRow key={t.key} tier={t} used={used.has(t.key)} />
+              ))}
+            </div>
+            <GateOutcome
+              gate={join.gate}
+              isOpen={join.openers.some((k) => used.has(k))}
+              onSeeScoring={
+                onSeeScoring ? () => onSeeScoring(join.scoringTarget) : undefined
+              }
+            />
+            {join.footnote && (
+              <p className="mt-1.5 text-[11px] leading-[16px] text-ink-faint">
+                {join.footnote}
+              </p>
+            )}
           </div>
-          <GateOutcome
-            gate={join.gate}
-            isOpen={(GATE_OPENERS[join.title] ?? []).some((k) => used.has(k))}
-          />
-          {join.footnote && (
-            <p className="mt-1.5 text-[12px] text-ink-faint">{join.footnote}</p>
-          )}
-        </div>
-      ))}
-
-      <div>
-        <p className="eyebrow">
-          PECOS ↔ itself over time{" "}
-          <span className="normal-case text-ink-faint">· career move detection</span>
-        </p>
-        <p className="mt-1.5 rounded-[10px] bg-canvas px-4 py-3 text-[13px] leading-[20px] text-ink-muted">
-          Not a scored match — an exact NPI-keyed diff. Each sync compares
-          today&apos;s billing groups and facilities against the stored
-          baseline; anything new becomes a career event. That&apos;s why the
-          career signal can never fire on a first ingest.
-        </p>
+        ))}
       </div>
 
-      <p className="text-[12px] text-ink-faint">
-        Identity confidence for this prospect:{" "}
-        <span className="font-semibold text-ink-muted">
-          {Math.round(identityConfidence * 100)}%
-        </span>{" "}
-        — the weakest link among its merges.
-      </p>
-
-      {matches.length > 0 && (
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
         <div>
-          <p className="eyebrow">Audit trail — every recorded decision</p>
-          <div className="mt-2 overflow-x-auto">
-            <table className="w-full text-[13px]">
-              <thead>
-                <tr className="text-left text-[11px] uppercase tracking-[0.5px] text-ink-faint">
-                  <th className="py-2 pr-4 font-semibold">Sources</th>
-                  <th className="py-2 pr-4 font-semibold">Reason</th>
-                  <th className="py-2 text-right font-semibold">Score</th>
-                </tr>
-              </thead>
-              <tbody>
-                {matches.map((m, i) => (
-                  <tr key={i} className="border-t border-surface-soft">
-                    <td className="py-2.5 pr-4 font-display font-semibold text-ink">
-                      {m.sourceA.toUpperCase()} ↔ {m.sourceB.toUpperCase()}
-                    </td>
-                    <td className="py-2.5 pr-4 text-ink-muted">{m.reason}</td>
-                    <td className="py-2.5 text-right font-display font-semibold text-ink">
-                      {m.score.toFixed(2)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <p className="eyebrow">
+            PECOS ↔ itself over time{" "}
+            <span className="normal-case text-ink-faint">· career move detection</span>
+          </p>
+          <p className="mt-1.5 rounded-[10px] bg-canvas px-4 py-3 text-[12px] leading-[19px] text-ink-muted">
+            Not a scored match — an exact NPI-keyed diff. Each sync compares
+            today&apos;s billing groups and facilities against the stored
+            baseline; anything new becomes a career event. That&apos;s why the
+            career signal can never fire on a first ingest.
+          </p>
+          <p className="mt-2 text-[12px] text-ink-faint">
+            Identity confidence:{" "}
+            <span className="font-semibold text-ink-muted">
+              {Math.round(identityConfidence * 100)}%
+            </span>{" "}
+            — the weakest link among this prospect&apos;s merges.
+          </p>
         </div>
-      )}
+
+        {matches.length > 0 && (
+          <div>
+            <p className="eyebrow">Audit trail — every recorded decision</p>
+            <div className="mt-2 overflow-x-auto">
+              <table className="w-full text-[13px]">
+                <thead>
+                  <tr className="text-left text-[11px] uppercase tracking-[0.5px] text-ink-faint">
+                    <th className="py-2 pr-4 font-semibold">Sources</th>
+                    <th className="py-2 pr-4 font-semibold">Reason</th>
+                    <th className="py-2 text-right font-semibold">Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {matches.map((m, i) => (
+                    <tr key={i} className="border-t border-surface-soft">
+                      <td className="py-2.5 pr-4 font-display font-semibold text-ink">
+                        {m.sourceA.toUpperCase()} ↔ {m.sourceB.toUpperCase()}
+                      </td>
+                      <td className="py-2.5 pr-4 text-ink-muted">{m.reason}</td>
+                      <td className="py-2.5 text-right font-display font-semibold text-ink">
+                        {m.score.toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

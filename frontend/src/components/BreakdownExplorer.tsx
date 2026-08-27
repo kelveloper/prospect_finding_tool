@@ -210,6 +210,7 @@ export default function BreakdownExplorer({
   components,
   matches,
   identityConfidence,
+  signalTypesCount,
 }: {
   qualificationScore: number;
   timingScore: number;
@@ -217,7 +218,9 @@ export default function BreakdownExplorer({
   components: ScoreComponentItem[];
   matches: MatchEvidenceItem[];
   identityConfidence: number;
+  signalTypesCount: number;
 }) {
+  const [tab, setTab] = useState<"gates" | "scoring">("gates");
   const [selected, setSelected] = useState<"qualification" | "timing">("qualification");
   const qual = components.filter((c) => c.category === "qualification");
   const timing = components.filter((c) => c.category === "timing");
@@ -226,86 +229,145 @@ export default function BreakdownExplorer({
   const shown = selected === "qualification" ? qual : timing;
   const shownColor = selected === "qualification" ? QUAL : TIMING;
 
+  const strip = [
+    { label: "Entry", value: "✓ eligible" },
+    { label: "Identity", value: `${Math.round(identityConfidence * 100)}%` },
+    { label: "Signals", value: `${signalTypesCount} of 6` },
+    { label: "Score", value: `${totalScore}` },
+  ];
+
   return (
-    <div className="mt-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
-      {/* ── Left: the calculation, cards select the rules shown right ── */}
-      <section className="rounded-[16px] bg-white p-6 shadow-card">
-        <div className="mb-4 flex items-center gap-2">
-          <span className="h-4 w-[3px] shrink-0 rounded-full bg-brand" />
-          <h2 className="eyebrow">The Calculation</h2>
-        </div>
+    <div className="mt-6">
+      {/* ── Engine strip: this prospect's journey through the pipeline ── */}
+      <div className="flex flex-wrap items-center gap-2 rounded-[12px] bg-white px-5 py-3 shadow-card">
+        {strip.map((stage, i) => (
+          <span key={stage.label} className="flex items-center gap-2">
+            {i > 0 && <span className="text-ink-faint">→</span>}
+            <span className="text-[12px] text-ink-muted">
+              {stage.label}{" "}
+              <span className="font-display font-bold text-ink">{stage.value}</span>
+            </span>
+          </span>
+        ))}
+        <span className="ml-auto text-[11px] text-ink-faint">
+          gates first, then the scoreboard
+        </span>
+      </div>
 
-        <div className="flex flex-col gap-4">
-          <GroupCard
-            title="Qualification · 60% of total"
-            subtotal={qualificationScore}
-            items={qual}
-            color={QUAL}
-            selected={selected === "qualification"}
-            onClick={() => setSelected("qualification")}
-          />
-          <GroupCard
-            title="Timing · 40% of total"
-            subtotal={timingScore}
-            items={timing}
-            color={TIMING}
-            selected={selected === "timing"}
-            onClick={() => setSelected("timing")}
-          />
+      {/* ── Tabs, in pipeline order ───────────────────────────────── */}
+      <div className="mt-4 flex gap-2">
+        {(
+          [
+            { key: "gates", label: "1 · Gates — how the dossier was built" },
+            { key: "scoring", label: "2 · Scoring — what it's worth" },
+          ] as const
+        ).map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            onClick={() => setTab(t.key)}
+            aria-selected={tab === t.key}
+            className={
+              "rounded-[10px] px-4 py-2.5 font-display text-[13px] font-semibold transition-colors " +
+              (tab === t.key
+                ? "bg-brand text-white shadow-brand"
+                : "bg-white text-ink-muted shadow-card hover:text-brand")
+            }
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
-          <div className="rounded-[12px] bg-canvas px-4 py-4">
-            <div className="flex items-baseline justify-between">
-              <p className="eyebrow">Total</p>
-              <p className="font-display text-[14px] font-bold text-ink tabular-nums">
-                {totalScore}
-                <span className="font-normal text-ink-faint"> / 100</span>
-              </p>
-            </div>
-            <div className="mt-2 flex h-6 w-full gap-[2px] overflow-hidden rounded-[6px]">
-              <div className="relative bg-surface-soft" style={{ width: "60%" }}>
-                <div
-                  className="absolute inset-y-0 left-0"
-                  style={{ width: `${qualificationScore}%`, backgroundColor: QUAL }}
-                />
-              </div>
-              <div className="relative bg-surface-soft" style={{ width: "40%" }}>
-                <div
-                  className="absolute inset-y-0 left-0"
-                  style={{ width: `${timingScore}%`, backgroundColor: TIMING }}
-                />
-              </div>
-            </div>
-            <p className="mt-2 text-right font-display text-[13px] text-ink-muted tabular-nums">
-              {qualificationScore} × 0.6 + {timingScore} × 0.4 ={" "}
-              <span className="font-bold text-ink">{totalScore}</span>
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Right: rules for the selected group, then match evidence ── */}
-      <div className="flex flex-col gap-6">
-        <section className="rounded-[16px] bg-white p-6 shadow-card">
-          <div className="mb-4 flex items-center gap-2">
-            <span
-              className="h-4 w-[3px] shrink-0 rounded-full"
-              style={{ backgroundColor: shownColor }}
-            />
-            <h2 className="eyebrow">
-              Scoring Rules — {selected === "qualification" ? "Qualification" : "Timing"}
-            </h2>
-          </div>
-          <RulesPanel items={shown} color={shownColor} />
-        </section>
-
-        <section className="rounded-[16px] bg-white p-6 shadow-card">
+      {/* ── Tab 1: Gates ──────────────────────────────────────────── */}
+      {tab === "gates" && (
+        <section className="mt-4 rounded-[16px] bg-white p-6 shadow-card">
           <div className="mb-4 flex items-center gap-2">
             <span className="h-4 w-[3px] shrink-0 rounded-full bg-brand" />
             <h2 className="eyebrow">How We Matched This Person</h2>
           </div>
-          <MatchEvidencePanel matches={matches} identityConfidence={identityConfidence} />
+          <MatchEvidencePanel
+            matches={matches}
+            identityConfidence={identityConfidence}
+            onSeeScoring={(group) => {
+              setSelected(group);
+              setTab("scoring");
+            }}
+          />
         </section>
-      </div>
+      )}
+
+      {/* ── Tab 2: Scoring ────────────────────────────────────────── */}
+      {tab === "scoring" && (
+        <div className="mt-4 grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
+          <section className="rounded-[16px] bg-white p-6 shadow-card">
+            <div className="mb-4 flex items-center gap-2">
+              <span className="h-4 w-[3px] shrink-0 rounded-full bg-brand" />
+              <h2 className="eyebrow">The Calculation</h2>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <GroupCard
+                title="Qualification · 60% of total"
+                subtotal={qualificationScore}
+                items={qual}
+                color={QUAL}
+                selected={selected === "qualification"}
+                onClick={() => setSelected("qualification")}
+              />
+              <GroupCard
+                title="Timing · 40% of total"
+                subtotal={timingScore}
+                items={timing}
+                color={TIMING}
+                selected={selected === "timing"}
+                onClick={() => setSelected("timing")}
+              />
+
+              <div className="rounded-[12px] bg-canvas px-4 py-4">
+                <div className="flex items-baseline justify-between">
+                  <p className="eyebrow">Total</p>
+                  <p className="font-display text-[14px] font-bold text-ink tabular-nums">
+                    {totalScore}
+                    <span className="font-normal text-ink-faint"> / 100</span>
+                  </p>
+                </div>
+                <div className="mt-2 flex h-6 w-full gap-[2px] overflow-hidden rounded-[6px]">
+                  <div className="relative bg-surface-soft" style={{ width: "60%" }}>
+                    <div
+                      className="absolute inset-y-0 left-0"
+                      style={{ width: `${qualificationScore}%`, backgroundColor: QUAL }}
+                    />
+                  </div>
+                  <div className="relative bg-surface-soft" style={{ width: "40%" }}>
+                    <div
+                      className="absolute inset-y-0 left-0"
+                      style={{ width: `${timingScore}%`, backgroundColor: TIMING }}
+                    />
+                  </div>
+                </div>
+                <p className="mt-2 text-right font-display text-[13px] text-ink-muted tabular-nums">
+                  {qualificationScore} × 0.6 + {timingScore} × 0.4 ={" "}
+                  <span className="font-bold text-ink">{totalScore}</span>
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-[16px] bg-white p-6 shadow-card">
+            <div className="mb-4 flex items-center gap-2">
+              <span
+                className="h-4 w-[3px] shrink-0 rounded-full"
+                style={{ backgroundColor: shownColor }}
+              />
+              <h2 className="eyebrow">
+                Scoring Rules — {selected === "qualification" ? "Qualification" : "Timing"}
+              </h2>
+            </div>
+            <RulesPanel items={shown} color={shownColor} />
+          </section>
+        </div>
+      )}
     </div>
   );
 }

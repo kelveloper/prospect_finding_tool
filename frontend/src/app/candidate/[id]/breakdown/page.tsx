@@ -13,7 +13,8 @@ export default async function ScoreBreakdownPage({
   const { id } = await params;
   const detail = await fetchCandidateDetail(id);
   if (!detail) notFound();
-  const { candidate, scoreComponents, matches, identityConfidence } = detail;
+  const { candidate, scoreComponents, matches, identityConfidence, signals } = detail;
+  const signalTypesCount = new Set(signals.map((s) => s.type)).size;
 
   return (
     <div className="min-h-screen pb-12">
@@ -28,8 +29,8 @@ export default async function ScoreBreakdownPage({
           {candidate.name} — {candidate.score} / 100
         </h1>
         <p className="mt-1 text-[14px] text-ink-muted">
-          Click Qualification or Timing to see each signal&apos;s scoring rules
-          and which tier this prospect landed on.
+          In pipeline order: the gates decide what exists on this dossier,
+          then the scoreboard weighs it.
         </p>
 
         <BreakdownExplorer
@@ -39,6 +40,7 @@ export default async function ScoreBreakdownPage({
           components={scoreComponents}
           matches={matches}
           identityConfidence={identityConfidence}
+          signalTypesCount={signalTypesCount}
         />
       </div>
     </div>
