@@ -6,7 +6,6 @@ import CandidateCard from "@/components/CandidateCard";
 import CandidateDossier from "@/components/CandidateDossier";
 import { ChartIcon, InfoIcon } from "@/components/icons";
 import { tierStyle } from "@/lib/tier";
-import { PERIOD } from "@/lib/data";
 import { fetchCandidateDetail, fetchContactKit, fetchRankedCandidates } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +21,7 @@ export default async function ScoreboardPage({
   if (ranked.length === 0) {
     return (
       <div className="min-h-screen">
-        <Header pill="Scoreboard" meta={PERIOD} />
+        <Header pill="Scoreboard" candidateCount={0} />
         <main className="mx-auto max-w-[720px] px-8 py-16 text-center">
           <h1 className="font-display text-[24px] font-bold text-ink">No prospects yet</h1>
           <p className="mt-2 text-[14px] text-ink-muted">
@@ -49,10 +48,7 @@ export default async function ScoreboardPage({
 
   return (
     <div className="min-h-screen">
-      <Header
-        pill="Scoreboard"
-        meta={`${ranked.length} Candidates · ${PERIOD}`}
-      />
+      <Header pill="Scoreboard" candidateCount={ranked.length} />
 
       <div className="mx-auto grid max-w-[1560px] grid-cols-1 items-start lg:grid-cols-[minmax(0,1fr)_420px]">
         {/* ── Featured candidate ─────────────────────────── */}

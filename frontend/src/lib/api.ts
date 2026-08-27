@@ -446,6 +446,19 @@ export class ApiError extends Error {
   }
 }
 
+/** How many prospects are on the board — for the nav bar on every page.
+ *  Deliberately never triggers ingestion, and never breaks the header when
+ *  the API is down; the same GET is memoised alongside the scoreboard's own
+ *  ranked fetch, so this costs nothing on `/`. */
+export async function fetchCandidateCount(): Promise<number | undefined> {
+  try {
+    const ranked = await api<ApiRanked[]>("/prospects/ranked");
+    return ranked.length;
+  } catch {
+    return undefined;
+  }
+}
+
 /** Ranked list; runs ingestion first if the database is empty. */
 export async function fetchRankedCandidates(): Promise<Candidate[]> {
   let ranked = await api<ApiRanked[]>("/prospects/ranked");

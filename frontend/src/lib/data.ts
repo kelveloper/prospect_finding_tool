@@ -102,3 +102,5 @@ export type FeedbackEntry = {
 const now = new Date();
 export const PERIOD = `Q${Math.floor(now.getMonth() / 3) + 1} ${now.getFullYear()}`;
 export const VIEWER_INITIALS = "AD";
+/** Seven-digit id for the signed-in advisor, shown in the nav bar. */
+export const VIEWER_SID = "4820193";

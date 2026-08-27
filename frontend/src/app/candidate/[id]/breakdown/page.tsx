@@ -19,7 +19,10 @@ export default async function ScoreBreakdownPage({
   return (
     <div className="min-h-screen pb-12">
       <Header
-        crumbs={[{ label: "Score & Match Breakdown" }]}
+        crumbs={[
+          { label: candidate.name, href: `/?id=${candidate.id}` },
+          { label: "Score & Match Breakdown" },
+        ]}
         back={{ label: "Back to Profile", href: `/?id=${candidate.id}` }}
       />
 
