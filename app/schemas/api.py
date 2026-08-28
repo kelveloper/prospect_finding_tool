@@ -48,6 +48,8 @@ class RankedProspect(BaseModel):
     outreach_status: str | None = None
     # Arrived in the book within the last 48 hours — NEW badge + alert
     is_new: bool = False
+    # When ingestion first located this prospect — drives the "found today" tile
+    created_at: datetime
 
 
 class ScoreComponent(BaseModel):

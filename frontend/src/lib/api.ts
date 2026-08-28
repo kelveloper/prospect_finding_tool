@@ -41,6 +41,7 @@ type ApiRanked = {
   score_change: number | null;
   outreach_status: string | null;
   is_new: boolean;
+  created_at: string;
 };
 
 type ApiSignal = {
@@ -257,6 +258,7 @@ function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
     ),
     scoreChange: p.score_change ?? null,
     isNew: p.is_new ?? false,
+    createdAt: p.created_at,
   };
 }
 

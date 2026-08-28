@@ -4,6 +4,7 @@ import { LogoMark, ChevronLeft } from "./icons";
 import RefreshData from "./RefreshData";
 import { fetchCandidateCount, fetchIngestStatus } from "@/lib/api";
 import { VIEWER_INITIALS, VIEWER_SID } from "@/lib/data";
+import { LAUNCH_HREF } from "@/lib/session";
 
 export type Crumb = { label: string; href?: string };
 
@@ -39,14 +40,21 @@ export default async function Header({
       <div className="mx-auto flex h-16 max-w-[1560px] items-center justify-between gap-6 px-8">
         {/* ── Navigation ─────────────────────────────────── */}
         <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-3">
-          <Link href="/" className="flex shrink-0 items-center gap-3">
+          {/* The wordmark is the one way back to the opening screen. A full
+              load rather than a <Link>, so it reopens the overlay even when
+              the router already considers this URL current. */}
+          <a
+            href={LAUNCH_HREF}
+            title="Back to the opening screen"
+            className="flex shrink-0 items-center gap-3"
+          >
             <span className="flex size-8 items-center justify-center rounded-[8px] bg-brand text-white">
               <LogoMark className="size-[18px]" />
             </span>
             <span className="font-display text-[18px] font-bold tracking-[-0.4px] text-ink">
               ProspectIQ
             </span>
-          </Link>
+          </a>
 
           {pill ? (
             <span className="shrink-0 rounded-full bg-surface-tint px-2 py-1 font-display text-[12px] font-semibold text-brand-dark">

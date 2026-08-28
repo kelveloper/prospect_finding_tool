@@ -24,6 +24,8 @@ export type Candidate = {
   /** Points moved since the previous ingest; null until two snapshots exist. */
   scoreChange: number | null;
   isNew: boolean;
+  /** ISO timestamp of when ingestion first located this prospect. */
+  createdAt: string;
 };
 
 export type ProfileRow = {
@@ -112,3 +114,18 @@ export const PERIOD = `Q${Math.floor(now.getMonth() / 3) + 1} ${now.getFullYear(
 export const VIEWER_INITIALS = "AD";
 /** Seven-digit id for the signed-in advisor, shown in the nav bar. */
 export const VIEWER_SID = "4820193";
+/** Signed-in advisor, greeted on the opening page. */
+export const VIEWER_NAME = "Alex Donnelly";
+export const VIEWER_ROLE = "Financial Advisor";
+
+/** Prospects ingestion first located on the viewer's current calendar day.
+ *  `createdAt` comes back as naive UTC, so it is pinned to UTC before being
+ *  compared against the local day. */
+export function locatedToday(candidates: Pick<Candidate, "createdAt">[]): number {
+  const today = new Date().toDateString();
+  return candidates.filter((c) => {
+    const iso = /[Zz]|[+-]\d{2}:?\d{2}$/.test(c.createdAt) ? c.createdAt : `${c.createdAt}Z`;
+    const at = new Date(iso);
+    return !Number.isNaN(at.getTime()) && at.toDateString() === today;
+  }).length;
+}

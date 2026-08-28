@@ -27,6 +27,20 @@ export function ChevronLeft({ className }: IconProps) {
   );
 }
 
+export function ArrowUpIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className={className ?? base} aria-hidden>
+      <path
+        d="M8 13V3.5M3.8 7.7 8 3.5l4.2 4.2"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function InfoIcon({ className }: IconProps) {
   return (
     <svg viewBox="0 0 16 16" fill="none" className={className ?? base} aria-hidden>
