@@ -151,3 +151,55 @@ export const CONTACT_ICONS = {
   globe: GlobeIcon,
   linkedin: LinkedInIcon,
 } as const;
+
+/** Split layout — detail panel beside the ranked list. */
+export function ColumnsIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className={className ?? base} aria-hidden>
+      <rect x="1.6" y="2.6" width="7" height="10.8" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
+      <rect x="10.4" y="2.6" width="4" height="10.8" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
+    </svg>
+  );
+}
+
+/** Open book — the ledger spread. */
+export function BookIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className={className ?? base} aria-hidden>
+      <path
+        d="M8 4.3C6.7 3.3 4.7 2.9 2.2 3.1v9.2c2.5-.2 4.5.2 5.8 1.2 1.3-1 3.3-1.4 5.8-1.2V3.1c-2.5-.2-4.5.2-5.8 1.2Z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      <path d="M8 4.3v9.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function CloseIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className={className ?? base} aria-hidden>
+      <path
+        d="m4.2 4.2 7.6 7.6M11.8 4.2l-7.6 7.6"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+export function ChevronRight({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className={className ?? base} aria-hidden>
+      <path
+        d="M6 3.5 10.5 8 6 12.5"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
