@@ -11,7 +11,11 @@ Constraints handled here:
 from datetime import date
 from typing import Callable, Iterable
 
+import time
+
 import httpx
+
+THROTTLE_SECONDS = 0.25
 
 from app.adapters.base import BaseDataSource, RawProviderRecord
 
@@ -32,6 +36,7 @@ DEFAULT_SPECIALTIES = (
 
 
 def _default_fetch_json(params: dict) -> dict:
+    time.sleep(THROTTLE_SECONDS)  # keyless public API — stay polite
     response = httpx.get(BASE_URL, params=params, timeout=30)
     response.raise_for_status()
     return response.json()

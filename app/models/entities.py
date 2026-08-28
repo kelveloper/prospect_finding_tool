@@ -1,5 +1,5 @@
 import uuid
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy import Date, DateTime, Float, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -43,6 +43,12 @@ class Prospect(Base):
     reason_summary: Mapped[str | None] = mapped_column(Text)
     identity_confidence: Mapped[float] = mapped_column(Float, default=1.0)
 
+    # Advisor-facing narrative, written by `python -m app.summaries` — kept
+    # apart from reason_summary so re-ingests never clobber it
+    advisor_summary: Mapped[str | None] = mapped_column(Text)
+    summary_source: Mapped[str | None] = mapped_column(String(10))  # composed | llm
+    summary_generated_at: Mapped[datetime | None] = mapped_column(DateTime)
+
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, onupdate=_utcnow)
 
@@ -52,8 +58,10 @@ class Prospect(Base):
     identity_matches: Mapped[list["IdentityMatch"]] = relationship(
         back_populates="prospect", cascade="all, delete-orphan"
     )
-    feedback: Mapped[list["Feedback"]] = relationship(
-        back_populates="prospect", cascade="all, delete-orphan"
+    outreach_events: Mapped[list["OutreachEvent"]] = relationship(
+        back_populates="prospect",
+        cascade="all, delete-orphan",
+        order_by="OutreachEvent.created_at",
     )
     score_history: Mapped[list["ScoreSnapshot"]] = relationship(
         back_populates="prospect",
@@ -70,6 +78,26 @@ class Prospect(Base):
     def signal_types(self) -> list[str]:
         """Distinct detected signal types — the scoreboard's quick overview."""
         return sorted({s.signal_type for s in self.signals})
+
+    @property
+    def is_new(self) -> bool:
+        """Arrived in the book within the last 48 hours — powers the NEW
+        badge and the new-prospects alert on the scoreboard."""
+        created = self.created_at
+        if created is None:
+            return False
+        if created.tzinfo is not None:
+            created = created.astimezone(timezone.utc).replace(tzinfo=None)
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
+        return (now - created) <= timedelta(hours=48)
+
+    @property
+    def outreach_status(self) -> str | None:
+        """The most recently logged outreach event type; None if untouched.
+        Powers the book-view status column without an extra query."""
+        if not self.outreach_events:
+            return None
+        return self.outreach_events[-1].event_type
 
     @property
     def score_change(self) -> float | None:
@@ -182,13 +210,38 @@ class CareerEvent(Base):
     detected_at: Mapped[date] = mapped_column(Date)
 
 
-class Feedback(Base):
-    __tablename__ = "feedback"
+class IngestRun(Base):
+    """One row per ingest — the book-level record of when data was pulled
+    and what it did. Powers the 'Data updated …' status in the nav."""
+
+    __tablename__ = "ingest_runs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    state: Mapped[str] = mapped_column(String(2))
+    records_ingested: Mapped[int] = mapped_column(default=0)
+    prospects_created: Mapped[int] = mapped_column(default=0)
+    prospects_updated: Mapped[int] = mapped_column(default=0)
+    ran_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, index=True)
+
+
+class OutreachEvent(Base):
+    """One advisor action on a prospect — the conversion ground truth:
+    the advisor reached the prospect (or couldn't, and why), scheduled a
+    follow-up, and whether it converted into a client. The funnel built
+    from these rows is what lets us recalibrate the scoring model
+    against real outcomes."""
+
+    __tablename__ = "outreach_events"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     prospect_id: Mapped[str] = mapped_column(ForeignKey("prospects.id"), index=True)
-    verdict: Mapped[str] = mapped_column(String(20))  # good_fit | revisit_later | not_fit
+    event_type: Mapped[str] = mapped_column(String(20), index=True)
+    # connected | not_connected | follow_up_later | converted | not_converted
+    channel: Mapped[str | None] = mapped_column(String(10))  # mail | phone | email | other
     notes: Mapped[str | None] = mapped_column(Text)
+    occurred_at: Mapped[date] = mapped_column(Date, default=date.today)
+    # Only for follow_up_later: when the prospect asked to reconnect
+    follow_up_on: Mapped[date | None] = mapped_column(Date)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
 
-    prospect: Mapped[Prospect] = relationship(back_populates="feedback")
+    prospect: Mapped[Prospect] = relationship(back_populates="outreach_events")

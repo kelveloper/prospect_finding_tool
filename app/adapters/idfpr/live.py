@@ -10,7 +10,11 @@ import re
 from datetime import date, datetime
 from typing import Callable, Iterable
 
+import time
+
 import httpx
+
+THROTTLE_SECONDS = 0.25
 
 from app.adapters.base import BaseDataSource, RawProviderRecord
 
@@ -27,6 +31,7 @@ def normalize_license(value: str | None) -> str | None:
 
 
 def _default_fetch_json(params: dict) -> list[dict]:
+    time.sleep(THROTTLE_SECONDS)  # keyless public API — stay polite
     response = httpx.get(DATASET_URL, params=params, timeout=30)
     response.raise_for_status()
     return response.json()

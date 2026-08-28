@@ -12,7 +12,11 @@ keep false attaches down until a paid, address-keyed source is added.
 from datetime import date, timedelta
 from typing import Callable, Iterable
 
+import time
+
 import httpx
+
+THROTTLE_SECONDS = 0.25
 
 from app.adapters.base import BaseDataSource, EnrichmentRecord
 
@@ -23,6 +27,7 @@ LOOKBACK_DAYS = int(36.5 * 30.44)  # ~36 months — beyond that, recency ≈ 0
 
 
 def _default_fetch_json(params: dict) -> list[dict]:
+    time.sleep(THROTTLE_SECONDS)  # keyless public API — stay polite
     response = httpx.get(DATASET_URL, params=params, timeout=60)
     response.raise_for_status()
     return response.json()

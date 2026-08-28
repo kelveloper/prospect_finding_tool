@@ -36,10 +36,18 @@ class RankedProspect(BaseModel):
     qualification_score: float
     timing_score: float
     reason_summary: str | None
+    # Advisor-facing narrative (python -m app.summaries); UI prefers this
+    # over reason_summary when present
+    advisor_summary: str | None = None
+    summary_source: str | None = None
     # Movement since the previous ingest; None until two snapshots exist
     score_change: float | None = None
     # Distinct detected signal types — powers the scoreboard category chips
     signal_types: list[str] = []
+    # Latest logged outreach event type; None until the advisor acts
+    outreach_status: str | None = None
+    # Arrived in the book within the last 48 hours — NEW badge + alert
+    is_new: bool = False
 
 
 class ScoreComponent(BaseModel):
@@ -116,13 +124,6 @@ class TriggerOut(BaseModel):
     event_date: date | None
 
 
-class LetterOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    salutation: str
-    body: str
-
-
 class ContactKitOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -131,25 +132,59 @@ class ContactKitOut(BaseModel):
     mail: MailChannelOut
     phone: PhoneChannelOut
     primary_trigger: TriggerOut | None
-    letter: LetterOut
     urgency: Literal["standard", "elevated"]
     rules: list[str]
 
 
-class FeedbackIn(BaseModel):
-    prospect_id: str
-    verdict: Literal["good_fit", "revisit_later", "not_fit"]
+class OutreachEventIn(BaseModel):
+    # The quick buttons next to the contact info. Reasons ride in notes;
+    # follow_up_on only applies to follow_up_later.
+    event_type: Literal[
+        "connected",
+        "not_connected",
+        "follow_up_later",
+        "converted",
+        "not_converted",
+    ]
+    channel: Literal["mail", "phone", "email", "other"] | None = None
     notes: str | None = None
+    # Defaults to today server-side; advisors can back-date a logged call
+    occurred_at: date | None = None
+    follow_up_on: date | None = None
 
 
-class FeedbackOut(BaseModel):
+class OutreachEventOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: str
     prospect_id: str
-    verdict: str
+    event_type: str
+    channel: str | None
     notes: str | None
+    occurred_at: date
+    follow_up_on: date | None
     created_at: datetime
+
+
+class FunnelBandOut(BaseModel):
+    band: str  # e.g. "60-80"
+    attempted: int  # distinct prospects with any outreach logged
+    connected: int
+    not_connected: int
+    follow_up_later: int
+    converted: int
+    not_converted: int
+    conversion_rate: float  # converted / attempted
+
+
+class IngestStatusOut(BaseModel):
+    # All None until the first recorded run
+    last_run_at: datetime | None
+    state: str | None
+    prospects_created: int | None
+    prospects_updated: int | None
+    # Advisor summaries needing a refresh (python -m app.summaries --stale)
+    stale_summaries: int
 
 
 class IngestResult(BaseModel):

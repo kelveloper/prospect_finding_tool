@@ -305,6 +305,22 @@ def test_identical_and_cosmetic_reingests_record_nothing(client, live_stub):
         assert detail["field_changes"] == []
 
 
+def test_ingest_status_records_runs(client):
+    empty = client.get("/ingest/status").json()
+    assert empty["last_run_at"] is None
+
+    _ingest(client)
+    status = client.get("/ingest/status").json()
+    assert status["last_run_at"] is not None
+    assert status["state"] == "IL"
+    assert status["prospects_created"] > 0
+    # Newcomers get composed summaries at ingest time — nothing pending
+    assert status["stale_summaries"] == 0
+    for p in client.get("/prospects/ranked").json():
+        assert p["advisor_summary"]
+        assert p["summary_source"] == "composed"
+
+
 def test_contact_kit_endpoint(client):
     _ingest(client)
     smith = next(
@@ -313,40 +329,10 @@ def test_contact_kit_endpoint(client):
     kit = client.get(f"/prospects/{smith['id']}/contact-kit").json()
 
     assert kit["primary_trigger"]["signal_type"] == "OWNERSHIP"
-    assert "Smith Orthopedics PLLC" in kit["letter"]["body"]
+    assert "Smith Orthopedics PLLC" in kit["primary_trigger"]["description"]
     assert kit["mail"]["city"] == "Chicago"
     assert kit["rules"]
 
     assert client.get("/prospects/nope/contact-kit").status_code == 404
 
 
-def test_feedback_roundtrip(client):
-    _ingest(client)
-    prospect_id = client.get("/prospects/ranked").json()[0]["id"]
-
-    post = client.post(
-        "/feedback",
-        json={"prospect_id": prospect_id, "verdict": "good_fit", "notes": "Met at event"},
-    )
-    assert post.status_code == 201
-    assert post.json()["verdict"] == "good_fit"
-
-    history = client.get(f"/prospects/{prospect_id}/feedback").json()
-    assert len(history) == 1
-    assert history[0]["notes"] == "Met at event"
-
-
-def test_feedback_rejects_invalid_verdict(client):
-    _ingest(client)
-    prospect_id = client.get("/prospects/ranked").json()[0]["id"]
-    response = client.post(
-        "/feedback", json={"prospect_id": prospect_id, "verdict": "maybe"}
-    )
-    assert response.status_code == 422
-
-
-def test_feedback_unknown_prospect_404(client):
-    response = client.post(
-        "/feedback", json={"prospect_id": "nope", "verdict": "good_fit"}
-    )
-    assert response.status_code == 404

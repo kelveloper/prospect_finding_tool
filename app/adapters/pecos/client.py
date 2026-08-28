@@ -6,9 +6,12 @@ already track:
   bills under (their employer / practice group)
 - Facility Affiliation — which hospitals/facilities they're affiliated with
 """
+import time
 from typing import Callable, Iterable
 
 import httpx
+
+THROTTLE_SECONDS = 0.25
 
 REASSIGNMENT_URL = (
     "https://data.cms.gov/data-api/v1/dataset/"
@@ -21,6 +24,7 @@ BATCH_SIZE = 50
 
 
 def _default_get_json(url: str, params: dict) -> dict | list:
+    time.sleep(THROTTLE_SECONDS)  # keyless public API — stay polite
     response = httpx.get(url, params=params, timeout=60)
     response.raise_for_status()
     return response.json()

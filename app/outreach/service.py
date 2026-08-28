@@ -1,17 +1,16 @@
 """Contact kit — everything an advisor needs for the first touch, built
-from data we already store. v1 is letter + phone: direct mail is the top
-research-ranked channel and the only one fully powered by captured data.
-An email draft joins once an email source is ingested (see
-docs/RESEARCH_CONTACT_OUTREACH.md build order)."""
+from data we already store: practice mail address, practice phone, the
+trigger to talk about, and the handling rules. No drafted correspondence —
+the advisor writes their own outreach (email is deliberately out of scope,
+see docs/RESEARCH_CONTACT_OUTREACH.md)."""
 from dataclasses import dataclass, field
 from datetime import date
 
 from app.models import Prospect
-from app.outreach import templates
 
-# Which trigger the letter is written around, best first. PROPERTY_EVENT is
-# deliberately absent — it raises urgency but is never written about.
-# PRACTICE_ENTRY shares the newly-licensed letter as the last resort.
+# Which trigger the advisor leads with, best first. PROPERTY_EVENT is
+# deliberately absent — it raises urgency but is never mentioned to the
+# prospect. PRACTICE_ENTRY is the last resort.
 TRIGGER_PRIORITY = ("OWNERSHIP", "CAREER_ADVANCEMENT", "NEW_LICENSE", "PRACTICE_ENTRY")
 
 
@@ -38,19 +37,12 @@ class Trigger:
 
 
 @dataclass(frozen=True)
-class Letter:
-    salutation: str
-    body: str
-
-
-@dataclass(frozen=True)
 class ContactKit:
     prospect_id: str
     name: str
     mail: MailChannel
     phone: PhoneChannel
     primary_trigger: Trigger | None
-    letter: Letter
     urgency: str  # "standard" | "elevated"
     rules: list[str] = field(default_factory=list)
 
@@ -61,8 +53,6 @@ class ContactKitService:
         has_property = any(
             s.signal_type == "PROPERTY_EVENT" for s in prospect.signals
         )
-
-        salutation, body = self._letter(prospect, primary)
 
         rules = ["Send to the practice address — never a home address."]
         if has_property:
@@ -97,7 +87,6 @@ class ContactKitService:
                 if primary
                 else None
             ),
-            letter=Letter(salutation, body),
             urgency="elevated" if has_property else "standard",
             rules=rules,
         )
@@ -116,18 +105,3 @@ class ContactKitService:
                 -(s.event_date.toordinal() if s.event_date else 0),
             ),
         )
-
-    @staticmethod
-    def _letter(prospect: Prospect, primary) -> tuple[str, str]:
-        last, specialty = prospect.last_name, prospect.specialty
-        if primary is None:
-            return templates.generic_letter(last, specialty)
-        if primary.signal_type == "OWNERSHIP":
-            return templates.ownership_letter(
-                last, specialty, templates.quoted_name(primary.description)
-            )
-        if primary.signal_type == "CAREER_ADVANCEMENT":
-            return templates.career_letter(
-                last, specialty, templates.quoted_name(primary.description)
-            )
-        return templates.new_license_letter(last, specialty)

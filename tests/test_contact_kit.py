@@ -1,8 +1,8 @@
 """Contact kit — the trigger-matched first-touch package.
 
-Key invariants from docs/RESEARCH_CONTACT_OUTREACH.md: letters are written
-around the best professional trigger (OWNERSHIP > CAREER > NEW_LICENSE),
-and a property purchase is NEVER mentioned — it only raises urgency."""
+Key invariants from docs/RESEARCH_CONTACT_OUTREACH.md: the kit leads with
+the best professional trigger (OWNERSHIP > CAREER > NEW_LICENSE), and a
+property purchase is NEVER a trigger — it only raises urgency."""
 from datetime import date
 
 from app.models import Prospect, Signal
@@ -58,46 +58,37 @@ PROPERTY = _signal(
 )
 
 
-def test_ownership_wins_priority_and_letter_names_the_entity():
+def test_ownership_wins_trigger_priority():
     kit = ContactKitService().build(_prospect([LICENSE, CAREER, OWNERSHIP]))
 
     assert kit.primary_trigger.signal_type == "OWNERSHIP"
-    assert kit.letter.salutation == "Dear Dr. Smith,"
-    assert "Smith Orthopedics PLLC" in kit.letter.body
-    assert "Congratulations" in kit.letter.body
+    assert "Smith Orthopedics PLLC" in kit.primary_trigger.description
 
 
-def test_career_letter_names_the_new_group():
+def test_career_beats_new_license():
     kit = ContactKitService().build(_prospect([LICENSE, CAREER]))
 
     assert kit.primary_trigger.signal_type == "CAREER_ADVANCEMENT"
-    assert "Northwestern Medical Group" in kit.letter.body
-    assert "401(k)" in kit.letter.body
 
 
-def test_new_license_letter_covers_first_attending_topics():
+def test_new_license_is_last_resort_trigger():
     kit = ContactKitService().build(_prospect([LICENSE]))
 
     assert kit.primary_trigger.signal_type == "NEW_LICENSE"
-    assert "disability" in kit.letter.body
 
 
-def test_property_is_never_mentioned_and_only_raises_urgency():
-    # Property-only prospect: generic letter, elevated urgency, silence rule
+def test_property_is_never_a_trigger_and_only_raises_urgency():
+    # Property-only prospect: no trigger, elevated urgency, silence rule
     kit = ContactKitService().build(_prospect([PROPERTY]))
 
     assert kit.primary_trigger is None
     assert kit.urgency == "elevated"
-    body = kit.letter.body.lower()
-    assert "property" not in body
-    assert "purchase" not in body
     assert any("Never reference the property" in r for r in kit.rules)
 
-    # Even with a real trigger present, the letter stays property-silent
+    # Even with a real trigger present, property only raises urgency
     kit = ContactKitService().build(_prospect([OWNERSHIP, PROPERTY]))
     assert kit.urgency == "elevated"
-    assert "property" not in kit.letter.body.lower()
-    assert "$1,200,000" not in kit.letter.body
+    assert kit.primary_trigger.signal_type == "OWNERSHIP"
 
 
 def test_missing_address_flags_incomplete_mail_channel():
