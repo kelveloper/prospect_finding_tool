@@ -23,6 +23,7 @@ export type Candidate = {
   categories: { label: string; captured: number; total: number }[];
   /** Points moved since the previous ingest; null until two snapshots exist. */
   scoreChange: number | null;
+  isNew: boolean;
 };
 
 export type ProfileRow = {
@@ -92,11 +93,18 @@ export type SignalItem = {
   eventDate: string | null;
 };
 
-export type FeedbackEntry = {
+export type OutreachEntry = {
   id: string;
-  verdict: "good_fit" | "revisit_later" | "not_fit";
+  eventType:
+    | "connected"
+    | "not_connected"
+    | "follow_up_later"
+    | "converted"
+    | "not_converted";
+  channel: "mail" | "phone" | "email" | "other" | null;
   notes: string | null;
-  createdAt: string;
+  occurredAt: string;
+  followUpOn: string | null;
 };
 
 const now = new Date();

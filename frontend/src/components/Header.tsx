@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Fragment } from "react";
 import { LogoMark, ChevronLeft } from "./icons";
-import { fetchCandidateCount } from "@/lib/api";
+import RefreshData from "./RefreshData";
+import { fetchCandidateCount, fetchIngestStatus } from "@/lib/api";
 import { VIEWER_INITIALS, VIEWER_SID } from "@/lib/data";
 
 export type Crumb = { label: string; href?: string };
@@ -26,7 +27,12 @@ export default async function Header({
   back,
   candidateCount,
 }: Props) {
-  const count = candidateCount ?? (await fetchCandidateCount());
+  const [count, ingestStatus] = await Promise.all([
+    candidateCount !== undefined
+      ? Promise.resolve(candidateCount)
+      : fetchCandidateCount(),
+    fetchIngestStatus(),
+  ]);
 
   return (
     <header className="sticky top-0 z-10 border-b border-hairline/60 bg-white">
@@ -79,10 +85,14 @@ export default async function Header({
 
         {/* ── Board size · signed-in advisor ─────────────── */}
         <div className="flex shrink-0 items-center gap-3">
+          <RefreshData status={ingestStatus} />
+          <span aria-hidden className="text-[12px] text-ink-faint">
+            ·
+          </span>
           {count !== undefined ? (
             <>
               <span className="text-[12px] text-ink-faint">
-                {count} {count === 1 ? "Candidate" : "Candidates"}
+                {count} {count === 1 ? "Prospect" : "Prospects"}
               </span>
               <span aria-hidden className="text-[12px] text-ink-faint">
                 ·

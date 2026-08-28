@@ -1,8 +1,6 @@
-import ContactKitCard from "./ContactKitCard";
 import ScoreBreakdownCard from "./ScoreBreakdownCard";
 import SectionCard from "./SectionCard";
 import WhatChangedCard from "./WhatChangedCard";
-import type { ContactKit } from "@/lib/api";
 import type {
   Candidate,
   CandidateProfile,
@@ -15,11 +13,11 @@ type Props = {
   profile: CandidateProfile;
   fieldChanges: FieldChangeItem[];
   scoreHistory: ScoreSnapshotItem[];
-  contactKit?: ContactKit;
 };
 
 /** The full dossier grid — Career Signal / Ownership & Practice / Financial
- *  Activity, plus what changed, the contact kit and the score summary.
+ *  Activity, plus what changed and the score summary. The contact kit and
+ *  outcome capture live up in the featured panel, next to the summary.
  *  Rendered inline under the scoreboard's featured panel; two-up once the
  *  viewport is wide enough for the panel to carry two cards. */
 export default function CandidateDossier({
@@ -27,7 +25,6 @@ export default function CandidateDossier({
   profile,
   fieldChanges,
   scoreHistory,
-  contactKit,
 }: Props) {
   return (
     <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
@@ -35,7 +32,6 @@ export default function CandidateDossier({
         <SectionCard key={section.title} section={section} />
       ))}
       {fieldChanges.length > 0 && <WhatChangedCard changes={fieldChanges} />}
-      {contactKit && <ContactKitCard kit={contactKit} />}
       <ScoreBreakdownCard
         prospectId={candidate.id}
         qualificationScore={candidate.qualificationScore}

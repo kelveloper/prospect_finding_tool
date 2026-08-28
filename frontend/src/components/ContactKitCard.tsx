@@ -1,33 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import OutreachActions from "./OutreachActions";
 import type { ContactKit } from "@/lib/api";
+import type { OutreachEntry } from "@/lib/data";
 
-function fmtDate(iso: string | null): string {
-  if (!iso) return "";
-  return new Date(iso).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
-
-/** Dossier panel matching SectionCard's shell: the first-touch essentials.
- *  The full letter draft stays behind the Copy button — not displayed. */
-export default function ContactKitCard({ kit }: { kit: ContactKit }) {
-  const [copied, setCopied] = useState(false);
-
-  async function copyLetter() {
-    await navigator.clipboard.writeText(
-      `${kit.letter.salutation}\n\n${kit.letter.body}`,
-    );
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
-
-  const rows: { label: string; value: React.ReactNode }[] = [
+/** Contact info + outcome capture, rendered in the featured panel right
+ *  after the prospect summary — the advisor reads why, sees how to reach
+ *  them, and logs what happened without leaving the profile. Tiles match
+ *  the key-stat row above; the Hot pill only appears when urgency is
+ *  elevated, so its presence always means something. */
+export default function ContactKitCard({
+  kit,
+  prospectId,
+  outreach,
+}: {
+  kit: ContactKit;
+  prospectId?: string;
+  outreach?: OutreachEntry[];
+}) {
+  const tiles: { label: string; value: React.ReactNode }[] = [
     {
-      label: "Mail — Practice",
+      label: "Practice Address",
       value:
         kit.addressLines.length > 0 ? (
           <>
@@ -35,7 +28,7 @@ export default function ContactKitCard({ kit }: { kit: ContactKit }) {
               <span key={line} className="block">{line}</span>
             ))}
             {!kit.addressComplete && (
-              <span className="block text-[12px] font-normal text-tier-poor">
+              <span className="mt-1 block text-[12px] font-normal text-tier-poor">
                 Incomplete — verify before mailing
               </span>
             )}
@@ -44,77 +37,38 @@ export default function ContactKitCard({ kit }: { kit: ContactKit }) {
           "Not on record"
         ),
     },
-    { label: "Phone — Practice Line", value: kit.phone ?? "Not on record" },
-    {
-      label: "Write About",
-      value: kit.trigger ? (
-        <>
-          {kit.trigger.label}
-          {kit.trigger.eventDate && (
-            <span className="block text-[12px] font-normal text-ink-muted">
-              {fmtDate(kit.trigger.eventDate)}
-            </span>
-          )}
-        </>
-      ) : (
-        "General introduction"
-      ),
-    },
-    {
-      label: "Timing",
-      value: (
-        <span
-          className={
-            "inline-block rounded-full px-2.5 py-1 text-[13px] " +
-            (kit.urgency === "elevated"
-              ? "bg-tier-neutral-bg text-tier-neutral-fg"
-              : "bg-surface-soft text-ink-muted")
-          }
-        >
-          {kit.urgency === "elevated" ? "Hot" : "Standard"}
-        </span>
-      ),
-    },
+    { label: "Practice Line", value: kit.phone ?? "Not on record" },
   ];
 
   return (
-    <section className="rounded-[16px] bg-white shadow-card">
-      <div className="flex items-center gap-2 px-6 pt-6 pb-4">
-        <span className="h-4 w-[3px] shrink-0 rounded-full bg-brand" />
-        <h2 className="eyebrow">Contact Kit</h2>
-        <button
-          onClick={copyLetter}
-          className="ml-auto rounded-[8px] border border-hairline bg-white px-3 py-1.5 font-display text-[12px] font-semibold text-brand transition-colors hover:bg-surface-soft"
-        >
-          {copied ? "Copied ✓" : "Copy Letter Draft"}
-        </button>
+    <section className="mt-8">
+      <div className="flex items-center gap-3">
+        <h2 className="eyebrow">Reach Out</h2>
+        {kit.urgency === "elevated" ? (
+          <span className="rounded-full bg-tier-neutral-bg px-3 py-1 font-display text-[11px] font-semibold text-tier-neutral-fg">
+            Hot — Act Soon
+          </span>
+        ) : null}
       </div>
 
-      <dl className="px-6">
-        {rows.map((row, i) => (
-          <div
-            key={row.label}
-            className={
-              "flex items-start justify-between gap-6 py-3.5 " +
-              (i < rows.length - 1 ? "border-b border-surface-soft" : "")
-            }
-          >
-            <dt className="text-[14px] text-ink-muted">{row.label}</dt>
-            <dd className="text-right font-display text-[14px] font-semibold text-ink">
-              {row.value}
-            </dd>
+      <div className="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {tiles.map((tile) => (
+          <div key={tile.label} className="rounded-[12px] bg-canvas px-4 py-4">
+            <p className="eyebrow">{tile.label}</p>
+            <p className="mt-1 font-display text-[14px] font-semibold leading-[20px] text-ink">
+              {tile.value}
+            </p>
           </div>
         ))}
-      </dl>
+      </div>
 
-      <ul className="space-y-1 px-6 pb-6 pt-2">
-        {kit.rules.map((rule) => (
-          <li key={rule} className="flex gap-1.5 text-[11px] leading-[17px] text-ink-faint">
-            <span className="shrink-0 text-tier-poor">⚠</span>
-            {rule}
-          </li>
-        ))}
-      </ul>
+      {prospectId ? (
+        <OutreachActions
+          prospectId={prospectId}
+          prospectName={kit.name}
+          initialHistory={outreach ?? []}
+        />
+      ) : null}
     </section>
   );
 }

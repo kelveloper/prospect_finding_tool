@@ -39,8 +39,18 @@ export default function CandidateCard({ candidate, rank, active }: Props) {
           {candidate.initials}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate font-display text-[14px] font-semibold text-ink">
-            {candidate.name}
+          <span className="flex items-center gap-1.5">
+            <span className="block truncate font-display text-[14px] font-semibold text-ink">
+              {candidate.name}
+            </span>
+            {candidate.isNew && (
+              <span
+                title="Entered the book within the last 48 hours"
+                className="shrink-0 rounded-full bg-tier-strong-bg px-1.5 py-0.5 font-display text-[9px] font-bold tracking-[0.5px] text-tier-strong-fg"
+              >
+                NEW
+              </span>
+            )}
           </span>
           <span className="block truncate text-[12px] text-ink-faint">
             {candidate.specialty}

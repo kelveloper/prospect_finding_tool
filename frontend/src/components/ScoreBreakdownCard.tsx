@@ -21,7 +21,7 @@ export default function ScoreBreakdownCard({
 }: Props) {
   return (
     <Link
-      href={`/candidate/${prospectId}/breakdown`}
+      href={`/prospect/${prospectId}/breakdown`}
       className="block rounded-[16px] bg-white shadow-card transition-shadow hover:shadow-float"
     >
       <div className="flex items-center gap-2 px-6 pt-6 pb-4">

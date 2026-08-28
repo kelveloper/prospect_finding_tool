@@ -1,8 +1,7 @@
 import { notFound } from "next/navigation";
 import Header from "@/components/Header";
 import ScoreRing from "@/components/ScoreRing";
-import FeedbackPanel from "@/components/FeedbackPanel";
-import { fetchCandidateDetail, fetchFeedbackHistory } from "@/lib/api";
+import { fetchCandidateDetail } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +14,6 @@ export default async function FollowUpPage({
   const detail = await fetchCandidateDetail(id);
   if (!detail) notFound();
   const { candidate, profile, signals } = detail;
-  const history = await fetchFeedbackHistory(id);
 
   const ringAccent =
     candidate.score >= 75
@@ -29,13 +27,13 @@ export default async function FollowUpPage({
       <Header
         crumbs={[
           { label: candidate.name, href: `/?id=${candidate.id}` },
-          { label: "Review & Feedback" },
+          { label: "Signal Evidence" },
         ]}
         back={{ label: "Back to Profile", href: `/?id=${candidate.id}` }}
       />
 
       <div className="mx-auto max-w-[860px] px-8 py-8">
-        <p className="eyebrow">Review &amp; Feedback</p>
+        <p className="eyebrow">Signal Evidence</p>
         <h1 className="mt-1 font-display text-[24px] font-bold tracking-[-0.6px] text-ink">
           Prospect Assessment
         </h1>
@@ -121,8 +119,6 @@ export default async function FollowUpPage({
           </ol>
         </section>
 
-        {/* ── Advisor feedback (live endpoint) ───────────── */}
-        <FeedbackPanel prospectId={candidate.id} initialHistory={history} />
       </div>
     </div>
   );

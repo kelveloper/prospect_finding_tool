@@ -3,14 +3,14 @@
  *
  * Server components call these directly; the base URL comes from API_URL
  * (server) falling back to NEXT_PUBLIC_API_URL (shared with the browser
- * for feedback posts) and finally localhost.
+ * for outreach posts) and finally localhost.
  */
 import type {
   Candidate,
   CandidateProfile,
-  FeedbackEntry,
   FieldChangeItem,
   MatchEvidenceItem,
+  OutreachEntry,
   ProfileSection,
   ScoreComponentItem,
   ScoreSnapshotItem,
@@ -35,8 +35,12 @@ type ApiRanked = {
   qualification_score: number;
   timing_score: number;
   reason_summary: string | null;
+  advisor_summary: string | null;
+  summary_source: string | null;
   signal_types: string[];
   score_change: number | null;
+  outreach_status: string | null;
+  is_new: boolean;
 };
 
 type ApiSignal = {
@@ -114,7 +118,6 @@ type ApiContactKit = {
     description: string;
     event_date: string | null;
   } | null;
-  letter: { salutation: string; body: string };
   urgency: "standard" | "elevated";
   rules: string[];
 };
@@ -125,17 +128,7 @@ export type ContactKit = {
   addressComplete: boolean;
   phone: string | null;
   phoneNote: string;
-  trigger: { label: string; description: string; eventDate: string | null } | null;
-  letter: { salutation: string; body: string };
   urgency: "standard" | "elevated";
-  rules: string[];
-};
-
-const TRIGGER_LABELS: Record<string, string> = {
-  OWNERSHIP: "New practice entity",
-  CAREER_ADVANCEMENT: "Career move",
-  NEW_LICENSE: "Newly licensed",
-  PRACTICE_ENTRY: "Entered practice",
 };
 
 function toContactKit(k: ApiContactKit): ContactKit {
@@ -149,28 +142,9 @@ function toContactKit(k: ApiContactKit): ContactKit {
     addressComplete: k.mail.complete,
     phone: k.phone.number,
     phoneNote: k.phone.note,
-    trigger: k.primary_trigger
-      ? {
-          label:
-            TRIGGER_LABELS[k.primary_trigger.signal_type] ??
-            k.primary_trigger.signal_type,
-          description: k.primary_trigger.description,
-          eventDate: k.primary_trigger.event_date,
-        }
-      : null,
-    letter: k.letter,
     urgency: k.urgency,
-    rules: k.rules,
   };
 }
-
-type ApiFeedback = {
-  id: string;
-  prospect_id: string;
-  verdict: FeedbackEntry["verdict"];
-  notes: string | null;
-  created_at: string;
-};
 
 /* ── Mapping helpers ─────────────────────────────────────── */
 
@@ -276,12 +250,13 @@ function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
     timingScore: p.timing_score,
     licenceHeld: tenure(detail?.license_issue_date ?? null),
     strength: strengthWord(p.qualification_score),
-    summary: p.reason_summary ?? "No signals recorded yet.",
+    summary: p.advisor_summary ?? p.reason_summary ?? "No signals recorded yet.",
     tags,
     categories: toCategories(
       detail ? detail.signals.map((s) => s.signal_type) : p.signal_types ?? [],
     ),
     scoreChange: p.score_change ?? null,
+    isNew: p.is_new ?? false,
   };
 }
 
@@ -454,7 +429,7 @@ export class ApiError extends Error {
 }
 
 // The API defaults to 50; ask for its maximum so the whole board shows.
-const RANKED_PATH = "/prospects/ranked?limit=500";
+const RANKED_PATH = "/prospects/ranked?limit=5000";
 
 /** How many prospects are on the board — for the nav bar on every page.
  *  Deliberately never triggers ingestion, and never breaks the header when
@@ -534,12 +509,57 @@ export async function fetchContactKit(id: string): Promise<ContactKit | undefine
   }
 }
 
-export async function fetchFeedbackHistory(id: string): Promise<FeedbackEntry[]> {
-  const rows = await api<ApiFeedback[]>(`/prospects/${id}/feedback`);
-  return rows.map((f) => ({
-    id: f.id,
-    verdict: f.verdict,
-    notes: f.notes,
-    createdAt: f.created_at,
-  }));
+type ApiOutreachEvent = {
+  id: string;
+  prospect_id: string;
+  event_type: OutreachEntry["eventType"];
+  channel: OutreachEntry["channel"];
+  notes: string | null;
+  occurred_at: string;
+  follow_up_on: string | null;
+};
+
+export type IngestStatus = {
+  lastRunAt: string | null;
+  prospectsCreated: number | null;
+  prospectsUpdated: number | null;
+  staleSummaries: number;
+};
+
+/** Latest ingest run + stale-summary count; null when the API is down. */
+export async function fetchIngestStatus(): Promise<IngestStatus | null> {
+  try {
+    const s = await api<{
+      last_run_at: string | null;
+      prospects_created: number | null;
+      prospects_updated: number | null;
+      stale_summaries: number;
+    }>("/ingest/status");
+    return {
+      lastRunAt: s.last_run_at,
+      prospectsCreated: s.prospects_created,
+      prospectsUpdated: s.prospects_updated,
+      staleSummaries: s.stale_summaries,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Newest-first outreach log — powers the inline capture next to the
+ *  contact kit. Missing prospect or a down API degrades to an empty log. */
+export async function fetchOutreachHistory(id: string): Promise<OutreachEntry[]> {
+  try {
+    const rows = await api<ApiOutreachEvent[]>(`/prospects/${id}/outreach`);
+    return rows.map((e) => ({
+      id: e.id,
+      eventType: e.event_type,
+      channel: e.channel,
+      notes: e.notes,
+      occurredAt: e.occurred_at,
+      followUpOn: e.follow_up_on,
+    }));
+  } catch {
+    return [];
+  }
 }

@@ -14,9 +14,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ProspectIQ — Candidate Scoreboard",
+  title: "ProspectIQ — Prospect Scoreboard",
   description:
-    "Rank, review, and plan outreach to physician candidates by fit score.",
+    "Rank, review, and plan outreach to physician prospects by fit score.",
 };
 
 export default function RootLayout({
