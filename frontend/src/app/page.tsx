@@ -1,10 +1,14 @@
+import { cookies } from "next/headers";
 import Link from "next/link";
 import Header from "@/components/Header";
 import ScoreRing from "@/components/ScoreRing";
 import Badge from "@/components/Badge";
 import CandidateCard from "@/components/CandidateCard";
 import CandidateDossier from "@/components/CandidateDossier";
+import LaunchOverlay from "@/components/LaunchOverlay";
 import { ChartIcon, InfoIcon } from "@/components/icons";
+import { locatedToday } from "@/lib/data";
+import { LAUNCH_COOKIE, LAUNCH_PARAM } from "@/lib/session";
 import { tierStyle } from "@/lib/tier";
 import { fetchCandidateDetail, fetchContactKit, fetchRankedCandidates } from "@/lib/api";
 
@@ -13,14 +17,20 @@ export const dynamic = "force-dynamic";
 export default async function ScoreboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ id?: string }>;
+  searchParams: Promise<{ id?: string; launch?: string }>;
 }) {
-  const { id } = await searchParams;
+  const { id, launch } = await searchParams;
+  // The opening screen is a session-level decision, not component state:
+  // it shows on the first visit, and after that only when the wordmark is
+  // used to ask for it. Every other route back here lands on the board.
+  const started = (await cookies()).has(LAUNCH_COOKIE);
+  const showLaunch = launch === "1" || !started;
   const ranked = await fetchRankedCandidates();
 
   if (ranked.length === 0) {
     return (
       <div className="min-h-screen">
+        {showLaunch ? <LaunchOverlay locatedToday={0} total={0} /> : null}
         <Header pill="Scoreboard" candidateCount={0} />
         <main className="mx-auto max-w-[720px] px-8 py-16 text-center">
           <h1 className="font-display text-[24px] font-bold text-ink">No prospects yet</h1>
@@ -48,6 +58,16 @@ export default async function ScoreboardPage({
 
   return (
     <div className="min-h-screen">
+      {/* Opening page — covers the scoreboard until the advisor starts.
+          Keyed so asking for it again by wordmark remounts it open. */}
+      {showLaunch ? (
+        <LaunchOverlay
+          key={launch === "1" ? LAUNCH_PARAM : "first-visit"}
+          locatedToday={locatedToday(ranked)}
+          total={ranked.length}
+        />
+      ) : null}
+
       <Header pill="Scoreboard" candidateCount={ranked.length} />
 
       <div className="mx-auto grid max-w-[1560px] grid-cols-1 items-start lg:grid-cols-[minmax(0,1fr)_420px]">

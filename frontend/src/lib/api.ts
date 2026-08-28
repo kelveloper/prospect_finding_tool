@@ -37,6 +37,7 @@ type ApiRanked = {
   reason_summary: string | null;
   signal_types: string[];
   score_change: number | null;
+  created_at: string;
 };
 
 type ApiSignal = {
@@ -275,6 +276,7 @@ function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
       detail ? detail.signals.map((s) => s.signal_type) : p.signal_types ?? [],
     ),
     scoreChange: p.score_change ?? null,
+    createdAt: p.created_at,
   };
 }
 

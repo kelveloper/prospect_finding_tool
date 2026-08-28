@@ -40,6 +40,8 @@ class RankedProspect(BaseModel):
     score_change: float | None = None
     # Distinct detected signal types — powers the scoreboard category chips
     signal_types: list[str] = []
+    # When ingestion first located this prospect — drives the "found today" tile
+    created_at: datetime
 
 
 class ScoreComponent(BaseModel):
