@@ -38,7 +38,7 @@ export default async function ScoreboardPage({
     return (
       <div className="min-h-screen">
         {showLaunch ? <LaunchOverlay locatedToday={0} total={0} /> : null}
-        <Header pill="Scoreboard" candidateCount={0} />
+        <Header candidateCount={0} />
         <main className="mx-auto max-w-[720px] px-8 py-16 text-center">
           <h1 className="font-display text-[24px] font-bold text-ink">No prospects yet</h1>
           <p className="mt-2 text-[14px] text-ink-muted">
@@ -88,7 +88,6 @@ export default async function ScoreboardPage({
       ) : null}
 
       <Header
-        pill="Scoreboard"
         candidateCount={ranked.length}
         viewToggle={<ViewToggle current={layout} candidateId={selectedId} />}
       />

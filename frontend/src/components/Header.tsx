@@ -11,9 +11,9 @@ export type Crumb = { label: string; href?: string };
 type Props = {
   /** Trailing crumbs after the ProspectIQ wordmark. */
   crumbs?: Crumb[];
-  /** Rounded tag beside the wordmark (scoreboard only). */
-  pill?: string;
-  /** Layout switch rendered after the pill (scoreboard only). */
+  /** Layout switch beside the wordmark (scoreboard only). It names the
+   *  current view the way the old static tag did, and is also how you
+   *  leave it. */
   viewToggle?: ReactNode;
   /** One-click return, rendered at the end of the breadcrumb trail. */
   back?: { label: string; href: string };
@@ -26,7 +26,6 @@ type Props = {
  *  (SID) and their avatar. Same on every page so the bar never shifts. */
 export default async function Header({
   crumbs = [],
-  pill,
   viewToggle,
   back,
   candidateCount,
@@ -58,12 +57,6 @@ export default async function Header({
               ProspectIQ
             </span>
           </a>
-
-          {pill ? (
-            <span className="shrink-0 rounded-full bg-surface-tint px-2 py-1 font-display text-[12px] font-semibold text-brand-dark">
-              {pill}
-            </span>
-          ) : null}
 
           {viewToggle}
 
