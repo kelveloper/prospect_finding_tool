@@ -1,6 +1,6 @@
 import Link from "next/link";
 import ScoreRing from "./ScoreRing";
-import { tierStyle } from "@/lib/tier";
+import { percentileOf, tierStyle } from "@/lib/tier";
 import type { Candidate } from "@/lib/data";
 
 type Props = {
@@ -10,17 +10,11 @@ type Props = {
   total: number;
 };
 
-/** Standing reads better than a raw score: "top 2%" is a decision, "61.6" is
- *  a number. Rounded up so rank 1 of 194 is "top 1%", never "top 0%". */
-function percentile(rank: number, total: number): number {
-  return Math.max(1, Math.ceil((rank / total) * 100));
-}
-
 /** A browse card, not a dossier — enough to decide whether to open it.
  *  The full picture lives on /candidate/[id]. */
 export default function CandidateCard({ candidate, rank, total }: Props) {
   const style = tierStyle(candidate.tier);
-  const pct = percentile(rank, total);
+  const pct = percentileOf(rank, total);
 
   return (
     <Link
@@ -54,7 +48,9 @@ export default function CandidateCard({ candidate, rank, total }: Props) {
         />
       </div>
 
-      <p className="mt-2.5 truncate text-[12px] text-ink-muted">{candidate.location}</p>
+      <p className="mt-2.5 truncate text-[12px] text-ink-muted">
+        {candidate.location}
+      </p>
 
       {/* mt-auto pins this to the bottom so every card in a row ends level. */}
       <div className="mt-auto flex items-center gap-2 pt-3">
@@ -71,10 +67,13 @@ export default function CandidateCard({ candidate, rank, total }: Props) {
             title={`Score moved ${candidate.scoreChange > 0 ? "up" : "down"} ${Math.abs(candidate.scoreChange)} points since the last ingest`}
             className={
               "font-display text-[11px] font-bold tabular-nums " +
-              (candidate.scoreChange > 0 ? "text-tier-strong-fg" : "text-tier-poor")
+              (candidate.scoreChange > 0
+                ? "text-tier-strong-fg"
+                : "text-tier-poor")
             }
           >
-            {candidate.scoreChange > 0 ? "▲" : "▼"} {Math.abs(candidate.scoreChange)}
+            {candidate.scoreChange > 0 ? "▲" : "▼"}{" "}
+            {Math.abs(candidate.scoreChange)}
           </span>
         )}
       </div>

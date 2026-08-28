@@ -1,12 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import CandidateDossier from "@/components/CandidateDossier";
+import ReachOutPanel from "@/components/ReachOutPanel";
 import Header from "@/components/Header";
 import ScoreRing from "@/components/ScoreRing";
 import Badge from "@/components/Badge";
 import { ChartIcon, InfoIcon, PinIcon } from "@/components/icons";
-import { tierStyle } from "@/lib/tier";
-import { fetchCandidateDetail, fetchContactKit } from "@/lib/api";
+import { percentileOf, tierStyle } from "@/lib/tier";
+import {
+  fetchCandidateDetail,
+  fetchContactKit,
+  fetchRankedCandidates,
+} from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -18,20 +23,25 @@ export default async function CandidateProfilePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [detail, contactKit] = await Promise.all([
+  const [detail, contactKit, ranked] = await Promise.all([
     fetchCandidateDetail(id),
     fetchContactKit(id),
+    fetchRankedCandidates(),
   ]);
   if (!detail) notFound();
 
   const { candidate, profile, fieldChanges, scoreHistory } = detail;
   const style = tierStyle(candidate.tier);
+  const rank = ranked.findIndex((c) => c.id === id) + 1;
+  const standing =
+    rank > 0 ? `Top ${percentileOf(rank, ranked.length)}%` : null;
 
   return (
     <div className="min-h-screen pb-12">
       <Header
         crumbs={[{ label: candidate.name }]}
         back={{ label: "Back to Book View", href: "/" }}
+        candidateCount={ranked.length}
       />
 
       <div className="mx-auto max-w-[1560px] px-8 py-8">
@@ -55,19 +65,28 @@ export default async function CandidateProfilePage({
                 />
                 {profile.status}
               </span>
-              <p className="font-display text-[16px] font-bold text-white">{candidate.name}</p>
-              <p className="text-[12px] text-white/75">{candidate.specialty}</p>
+              {standing ? (
+                <p className="font-display text-[18px] font-bold text-white">
+                  {standing} of your book
+                </p>
+              ) : null}
+              <p className="text-[12px] text-white/75">
+                Ranked {rank > 0 ? `#${rank}` : "—"} of {ranked.length}{" "}
+                prospects
+              </p>
             </div>
           </div>
 
           <div className="rounded-[16px] bg-white p-6 shadow-card">
             <div className="flex items-start justify-between gap-6">
               <div className="min-w-0">
-                <p className="eyebrow">{candidate.category}</p>
+                <p className="eyebrow">Prospect Profile</p>
                 <h1 className="mt-1 font-display text-[24px] font-bold tracking-[-0.6px] text-ink">
                   {candidate.name}
                 </h1>
-                <p className="mt-1 text-[14px] text-ink-muted">{candidate.practiceLine}</p>
+                <p className="mt-1 text-[14px] text-ink-muted">
+                  {candidate.practiceLine}
+                </p>
                 <p className="mt-2 flex items-center gap-1.5 text-[14px] text-ink-muted">
                   <PinIcon className="size-4 shrink-0 text-tier-poor" />
                   {profile.address}
@@ -105,17 +124,6 @@ export default async function CandidateProfilePage({
               </span>
             </p>
 
-            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
-              {profile.stats.map((stat) => (
-                <div key={stat.label} className="rounded-[12px] bg-canvas px-4 py-3">
-                  <p className="eyebrow">{stat.label}</p>
-                  <p className="mt-1 font-display text-[16px] font-semibold text-ink">
-                    {stat.value}
-                  </p>
-                </div>
-              ))}
-            </div>
-
             <div className="mt-5">
               <p className="eyebrow">Why This Score</p>
               <p className="mt-1 text-[14px] leading-[22px] text-ink-muted">
@@ -125,18 +133,27 @@ export default async function CandidateProfilePage({
 
             {candidate.tags.length > 0 ? (
               <div className="mt-4 flex flex-wrap gap-2">
-                {candidate.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-full bg-surface-soft px-3 py-1.5 text-[12px] text-brand-dark"
-                  >
-                    {tag}
-                  </span>
-                ))}
+                {candidate.tags
+                  .filter((tag) => tag !== "Identity Verified")
+                  .map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full bg-surface-soft px-3 py-1.5 text-[12px] text-brand-dark"
+                    >
+                      {tag}
+                    </span>
+                  ))}
               </div>
             ) : null}
           </div>
         </div>
+
+        {/* ── The next action, ahead of the background ───── */}
+        {contactKit ? (
+          <div className="mt-6">
+            <ReachOutPanel kit={contactKit} />
+          </div>
+        ) : null}
 
         {/* ── Dossier ────────────────────────────────────── */}
         <div className="mt-6">
@@ -145,7 +162,6 @@ export default async function CandidateProfilePage({
             profile={profile}
             fieldChanges={fieldChanges}
             scoreHistory={scoreHistory}
-            contactKit={contactKit}
           />
         </div>
 

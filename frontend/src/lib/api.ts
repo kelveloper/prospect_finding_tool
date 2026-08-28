@@ -287,7 +287,12 @@ function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
 
 function fmtDate(iso: string | null): string {
   if (!iso) return "Not on record";
-  return new Date(iso).toLocaleDateString("en-US", {
+  // new Date("2026-08-05") is parsed as UTC midnight, which renders as the 4th
+  // in any timezone behind UTC. Build it from the parts so the calendar date
+  // the backend recorded is the calendar date shown.
+  const [y, m, d] = iso.slice(0, 10).split("-").map(Number);
+  if (!y || !m || !d) return "Not on record";
+  return new Date(y, m - 1, d).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",

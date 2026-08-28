@@ -38,3 +38,9 @@ const STYLES: Record<Tier, TierStyle> = {
 export function tierStyle(tier: Tier) {
   return STYLES[tier];
 }
+
+/** Standing on the board. Rounded up so rank 1 of 194 is "top 1%", never
+ *  "top 0%". Reads as a decision where a raw score reads as a grade. */
+export function percentileOf(rank: number, total: number): number {
+  return Math.max(1, Math.ceil((rank / total) * 100));
+}
