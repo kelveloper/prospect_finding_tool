@@ -180,6 +180,8 @@ class FunnelBandOut(BaseModel):
 class IngestStatusOut(BaseModel):
     # All None until the first recorded run
     last_run_at: datetime | None
+    # When the weekly Refresh Data button unlocks again
+    next_sweep_at: datetime | None = None
     state: str | None
     prospects_created: int | None
     prospects_updated: int | None
@@ -189,6 +191,7 @@ class IngestStatusOut(BaseModel):
 
 class IngestResult(BaseModel):
     records_ingested: int
+    prospects_skipped: int = 0
     prospects_resolved: int
     prospects_created: int
     prospects_updated: int

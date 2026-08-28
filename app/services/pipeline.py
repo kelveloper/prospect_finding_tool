@@ -57,6 +57,8 @@ class PipelineResult:
     prospects_updated: int
     enrichment_records: int
     enrichment_matched: int
+    # Unknown physicians skipped by the fresh-entrant discovery filter
+    prospects_skipped: int = 0
 
 
 class IngestionPipeline:
@@ -81,10 +83,17 @@ class IngestionPipeline:
         db: Session,
         reference_date: date | None = None,
         records: list[RawProviderRecord | EnrichmentRecord] | None = None,
+        new_within_months: int | None = None,
     ) -> PipelineResult:
         """Ingest from `self.sources`, or from pre-fetched `records` when a
         source depends on another's output (e.g. IDFPR queried by the
-        license numbers NPPES returned)."""
+        license numbers NPPES returned).
+
+        `new_within_months` is the discovery filter: prospects already in
+        the book always update, but an *unknown* physician is only created
+        when they are a fresh entrant — NPI enumerated or state license
+        issued within the window. Long-established strangers are skipped,
+        so the book grows with genuinely new arrivals, not backlog."""
         reference_date = reference_date or date.today()
         repo = ProspectRepository(db)
 
@@ -98,13 +107,17 @@ class IngestionPipeline:
         resolved = self.resolver.resolve(provider_records)
         matched = self.matcher.attach(resolved, enrichment_records)
 
-        created = updated = 0
+        created = updated = skipped = 0
         for profile in resolved:
             existing = self._find_existing(repo, profile)
             if existing:
                 self._record_field_changes(existing, profile)
                 self._apply(existing, profile, reference_date)
                 updated += 1
+            elif new_within_months is not None and not self._is_fresh_entrant(
+                profile, reference_date, new_within_months
+            ):
+                skipped += 1
             else:
                 prospect = Prospect()
                 self._apply(prospect, profile, reference_date)
@@ -119,7 +132,20 @@ class IngestionPipeline:
             prospects_updated=updated,
             enrichment_records=len(enrichment_records),
             enrichment_matched=matched,
+            prospects_skipped=skipped,
         )
+
+    @staticmethod
+    def _is_fresh_entrant(
+        profile: ResolvedProspect, reference_date: date, months: int
+    ) -> bool:
+        """New to the profession (recent NPI) or new to the state (recent
+        license) — either one makes an unknown physician worth creating."""
+        cutoff_days = int(months * 30.44)
+        for event in (profile.enumeration_date, profile.license_issue_date):
+            if event and (reference_date - event).days <= cutoff_days:
+                return True
+        return False
 
     @staticmethod
     def _find_existing(

@@ -4,7 +4,7 @@ from datetime import date, timedelta
 
 import pytest
 
-import app.api.routes as routes
+import app.services.live_ingest as live_ingest
 from app.adapters.base import EnrichmentRecord, RawProviderRecord
 
 TODAY = date.today()
@@ -120,15 +120,17 @@ def live_stub(monkeypatch):
             calls["pecos"] = dict(npi_names)
             return list(feeds["pecos"]), 0
 
-    monkeypatch.setattr(routes, "NPPESDataSource", fake_nppes)
-    monkeypatch.setattr(routes, "IDFPRLiveDataSource", fake_idfpr)
-    monkeypatch.setattr(routes, "CookCountyLiveDataSource", fake_cook)
-    monkeypatch.setattr(routes, "PECOSService", FakePECOSService)
+    monkeypatch.setattr(live_ingest, "NPPESDataSource", fake_nppes)
+    monkeypatch.setattr(live_ingest, "IDFPRLiveDataSource", fake_idfpr)
+    monkeypatch.setattr(live_ingest, "CookCountyLiveDataSource", fake_cook)
+    monkeypatch.setattr(live_ingest, "PECOSService", FakePECOSService)
     return {"calls": calls, "feeds": feeds}
 
 
 def _ingest(client):
-    response = client.post("/ingest/run")
+    # force=true: tests exercise repeat ingests; the weekly gate is
+    # covered by its own test below
+    response = client.post("/ingest/run?force=true")
     assert response.status_code == 200, response.text
     return response.json()
 
@@ -160,6 +162,31 @@ def test_ingest_is_idempotent(client):
     second = _ingest(client)
     assert second["prospects_created"] == 0
     assert second["prospects_updated"] == 3
+
+
+def test_weekly_gate_blocks_early_reruns_but_not_the_test_sweep(client):
+    _ingest(client)
+    blocked = client.post("/ingest/run")
+    assert blocked.status_code == 429
+    assert "next unlock" in blocked.json()["detail"]
+    # The test sweep bypasses the gate explicitly
+    assert client.post("/ingest/run?force=true").status_code == 200
+
+
+def test_discovery_filter_creates_fresh_entrants_only(client):
+    # Smith/Gonzalez enumerated ~3-4 months ago → fresh; Brooks (2017,
+    # no license) is an established stranger → skipped, not created
+    result = client.post("/ingest/run?new_within_months=6&force=true").json()
+    assert result["prospects_created"] == 2
+    assert result["prospects_skipped"] == 1
+    names = {p["name"] for p in client.get("/prospects/ranked").json()}
+    assert "Michael Brooks" not in names
+
+    # Known prospects still update on a filtered re-run
+    second = client.post("/ingest/run?new_within_months=6&force=true").json()
+    assert second["prospects_created"] == 0
+    assert second["prospects_updated"] == 2
+    assert second["prospects_skipped"] == 1
 
 
 def test_ranked_endpoint_orders_by_score_desc(client):

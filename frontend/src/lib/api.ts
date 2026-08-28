@@ -521,6 +521,7 @@ type ApiOutreachEvent = {
 
 export type IngestStatus = {
   lastRunAt: string | null;
+  nextSweepAt: string | null;
   prospectsCreated: number | null;
   prospectsUpdated: number | null;
   staleSummaries: number;
@@ -531,12 +532,14 @@ export async function fetchIngestStatus(): Promise<IngestStatus | null> {
   try {
     const s = await api<{
       last_run_at: string | null;
+      next_sweep_at: string | null;
       prospects_created: number | null;
       prospects_updated: number | null;
       stale_summaries: number;
     }>("/ingest/status");
     return {
       lastRunAt: s.last_run_at,
+      nextSweepAt: s.next_sweep_at,
       prospectsCreated: s.prospects_created,
       prospectsUpdated: s.prospects_updated,
       staleSummaries: s.stale_summaries,

@@ -4,11 +4,6 @@ from sqlalchemy.orm import Session
 
 import httpx
 
-from app.adapters import (
-    CookCountyLiveDataSource,
-    IDFPRLiveDataSource,
-    NPPESDataSource,
-)
 from app.config import get_settings
 from app.database import get_db
 from app.outreach import ContactKitService, OutreachTrackingService
@@ -19,6 +14,11 @@ from app.schemas import (
     RankedProspect,
 )
 from app.models import IngestRun
+from app.services.live_ingest import (
+    next_sweep_due_at,
+    run_live_ingest,
+    sweep_is_due,
+)
 from app.schemas.api import (
     ContactKitOut,
     FunnelBandOut,
@@ -27,10 +27,9 @@ from app.schemas.api import (
     OutreachEventOut,
     ScoreComponent,
 )
-from app.summaries import apply as apply_summary, compose, is_stale
+from app.summaries import is_stale
 from app.scoring import ScoringEngine
-from app.services import IngestionPipeline, RankingService
-from app.services.pecos_sync import PECOSService
+from app.services import RankingService
 
 router = APIRouter()
 
@@ -39,49 +38,36 @@ router = APIRouter()
 def run_ingestion(
     state: str = Query(default="IL", min_length=2, max_length=2),
     limit: int = Query(default=25, ge=1, le=200, description="per specialty"),
+    new_within_months: int | None = Query(
+        default=None,
+        ge=1,
+        le=60,
+        description=(
+            "Discovery filter: only create unknown physicians whose NPI or "
+            "state license is at most this many months old; existing "
+            "prospects always update"
+        ),
+    ),
+    force: bool = Query(
+        default=False,
+        description="Bypass the weekly gate (the nav's test sweep uses this)",
+    ),
     db: Session = Depends(get_db),
 ):
+    # Weekly cadence gate — the data sources barely move faster than this,
+    # and it keeps a whole team from hammering four public APIs
+    if not force and not sweep_is_due(db):
+        due = next_sweep_due_at(db)
+        raise HTTPException(
+            status_code=429,
+            detail=f"Weekly sweep already ran; next unlock {due:%Y-%m-%d %H:%M} UTC",
+        )
     try:
-        # Phase 1: real physicians from NPPES. Phase 2: verify their
-        # licenses against real IDFPR data, queried by license number.
-        nppes = NPPESDataSource(state=state, limit_per_specialty=limit)
-        records = list(nppes.fetch())
-        if state.upper() == "IL":
-            licenses = [r.license_number for r in records if r.license_number]
-            records += list(IDFPRLiveDataSource(license_numbers=licenses).fetch())
-        # PECOS: career moves + ownership inference, keyed by NPI
-        npi_names = {
-            r.npi: (r.first_name, r.last_name) for r in records if r.npi
-        }
-        pecos_records, _ = PECOSService(db).sync(npi_names)
-        records += pecos_records
-        # Cook County deeds: property purchases by our physicians' names
-        if state.upper() == "IL":
-            records += list(
-                CookCountyLiveDataSource(buyer_names=npi_names.values()).fetch()
-            )
-        result = IngestionPipeline(sources=[]).run(db, records=records)
+        result = run_live_ingest(
+            db, state=state, limit=limit, new_within_months=new_within_months
+        )
     except httpx.HTTPError as exc:
         raise HTTPException(status_code=502, detail=f"External API error: {exc}")
-
-    # Book-level record of the run — powers "Data updated …" in the nav
-    db.add(
-        IngestRun(
-            state=state.upper(),
-            records_ingested=result.records_ingested,
-            prospects_created=result.prospects_created,
-            prospects_updated=result.prospects_updated,
-        )
-    )
-
-    # Newcomers get a composed narrative immediately so no prospect ever
-    # shows the raw pipeline text. Fill-empty-only: an existing (LLM)
-    # summary is never overwritten here — changed veterans stay flagged
-    # stale until the offline LLM refresh upgrades them.
-    for prospect in RankingService(db).ranked(limit=100_000):
-        if prospect.advisor_summary is None:
-            apply_summary(prospect, compose(prospect), source="composed")
-    db.commit()
     return IngestResult(**result.__dict__)
 
 
@@ -91,6 +77,7 @@ def ingest_status(db: Session = Depends(get_db)):
     last = db.query(IngestRun).order_by(IngestRun.ran_at.desc()).first()
     stale = sum(1 for p in RankingService(db).ranked(limit=100_000) if is_stale(p))
     return IngestStatusOut(
+        next_sweep_at=next_sweep_due_at(db),
         last_run_at=last.ran_at if last else None,
         state=last.state if last else None,
         prospects_created=last.prospects_created if last else None,

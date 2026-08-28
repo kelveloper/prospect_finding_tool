@@ -14,6 +14,7 @@ async function loadStatus(): Promise<IngestStatus | null> {
     const s = await res.json();
     return {
       lastRunAt: s.last_run_at,
+      nextSweepAt: s.next_sweep_at,
       prospectsCreated: s.prospects_created,
       prospectsUpdated: s.prospects_updated,
       staleSummaries: s.stale_summaries,
@@ -30,6 +31,10 @@ const SOURCE_CADENCE: { name: string; cadence: string }[] = [
   { name: "PECOS (Medicare)", cadence: "~monthly" },
   { name: "Cook County deeds", cadence: "continuous (lag)" },
 ];
+
+function daysUntil(iso: string): number {
+  return Math.ceil((new Date(iso + "Z").getTime() - Date.now()) / 86_400_000);
+}
 
 function ago(iso: string): string {
   const mins = Math.floor((Date.now() - new Date(iso + "Z").getTime()) / 60000);
@@ -67,15 +72,19 @@ export default function RefreshData({ status: initial }: { status: IngestStatus 
     return () => clearInterval(id);
   }, [initial, router]);
 
-  async function runIngest() {
+  // Deep sweep + discovery filter: existing prospects always update,
+  // but unknown physicians are only created when their NPI or state
+  // license is under 6 months old — fresh entrants, not backlog.
+  // force=true is the test sweep's explicit bypass of the weekly gate.
+  async function runIngest(force: boolean) {
     setRunning(true);
     setError(false);
     try {
-      // Deep sweep: 150 per specialty so genuinely new physicians can
-      // enter the book, not just the same first-page slice re-fetched
-      const res = await fetch(`${API_URL}/ingest/run?limit=150`, {
-        method: "POST",
-      });
+      const res = await fetch(
+        `${API_URL}/ingest/run?limit=200&new_within_months=6` +
+          (force ? "&force=true" : ""),
+        { method: "POST" },
+      );
       if (!res.ok) throw new Error(String(res.status));
       setStatus(await loadStatus());
       router.refresh();
@@ -85,6 +94,12 @@ export default function RefreshData({ status: initial }: { status: IngestStatus 
       setRunning(false);
     }
   }
+
+  // The weekly lock: unclickable until 7 days after the last run
+  const lockedDays =
+    status?.nextSweepAt && daysUntil(status.nextSweepAt) > 0
+      ? daysUntil(status.nextSweepAt)
+      : 0;
 
   return (
     <div className="group relative flex items-center gap-2.5">
@@ -103,9 +118,14 @@ export default function RefreshData({ status: initial }: { status: IngestStatus 
 
       <button
         type="button"
-        onClick={runIngest}
-        disabled={running}
-        className="flex items-center gap-2 rounded-[8px] border border-hairline bg-white px-3 py-1.5 font-display text-[12px] font-semibold text-brand transition-colors hover:bg-surface-soft disabled:opacity-70"
+        onClick={() => runIngest(false)}
+        disabled={running || lockedDays > 0}
+        title={
+          lockedDays > 0
+            ? `Weekly cadence — the sources barely move faster. Unlocks in ${lockedDays}d.`
+            : "Run the weekly sweep"
+        }
+        className="flex items-center gap-2 rounded-[8px] border border-hairline bg-white px-3 py-1.5 font-display text-[12px] font-semibold text-brand transition-colors hover:bg-surface-soft disabled:opacity-60"
       >
         {running ? (
           <>
@@ -115,9 +135,22 @@ export default function RefreshData({ status: initial }: { status: IngestStatus 
             />
             Refreshing…
           </>
+        ) : lockedDays > 0 ? (
+          `Refresh in ${lockedDays}d`
         ) : (
           "Refresh Data"
         )}
+      </button>
+
+      {/* Dev/test escape hatch: same sweep, bypasses the weekly lock */}
+      <button
+        type="button"
+        onClick={() => runIngest(true)}
+        disabled={running}
+        title="Test sweep — bypasses the weekly lock (dev only)"
+        className="rounded-[8px] border border-dashed border-hairline bg-white px-2.5 py-1.5 font-display text-[11px] font-semibold text-ink-faint transition-colors hover:bg-surface-soft hover:text-brand disabled:opacity-60"
+      >
+        Test
       </button>
 
       {/* Source-cadence tooltip — small, hover only */}
@@ -134,8 +167,8 @@ export default function RefreshData({ status: initial }: { status: IngestStatus 
           ))}
         </dl>
         <p className="mt-2 text-[10px] leading-[14px] text-ink-faint">
-          Weekly refresh recommended — re-runs update existing prospects in
-          place; no duplicates.
+          Weekly refresh recommended — existing prospects update in place
+          (no duplicates); only fresh entrants (&lt;6 mo NPI or licence) join.
         </p>
       </div>
     </div>
