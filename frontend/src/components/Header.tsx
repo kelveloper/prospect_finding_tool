@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Fragment } from "react";
+import { Fragment, type ReactNode } from "react";
 import { LogoMark, ChevronLeft } from "./icons";
 import { fetchCandidateCount } from "@/lib/api";
 import { VIEWER_INITIALS, VIEWER_SID } from "@/lib/data";
@@ -12,6 +12,8 @@ type Props = {
   crumbs?: Crumb[];
   /** Rounded tag beside the wordmark (scoreboard only). */
   pill?: string;
+  /** Layout switch rendered after the pill (scoreboard only). */
+  viewToggle?: ReactNode;
   /** One-click return, rendered at the end of the breadcrumb trail. */
   back?: { label: string; href: string };
   /** Board size. Omit and the header counts the board itself. */
@@ -24,6 +26,7 @@ type Props = {
 export default async function Header({
   crumbs = [],
   pill,
+  viewToggle,
   back,
   candidateCount,
 }: Props) {
@@ -55,6 +58,8 @@ export default async function Header({
               {pill}
             </span>
           ) : null}
+
+          {viewToggle}
 
           {crumbs.map((crumb) => (
             <Fragment key={crumb.label}>
