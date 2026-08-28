@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Sans, Inter } from "next/font/google";
+import { LAUNCH_GUARD_SCRIPT } from "@/lib/session";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -23,7 +24,12 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Hides the opening screen before the first paint in a tab that is
+            already mid-review — see LAUNCH_GUARD_SCRIPT. */}
+        <script dangerouslySetInnerHTML={{ __html: LAUNCH_GUARD_SCRIPT }} />
+      </head>
       {/* suppressHydrationWarning: browser extensions (e.g. Grammarly) inject
           body attributes before React hydrates; only this element's
           attribute diffs are ignored, children still validate */}

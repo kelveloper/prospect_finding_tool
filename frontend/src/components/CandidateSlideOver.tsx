@@ -86,19 +86,20 @@ export default function CandidateSlideOver({ label, rank, closeHref, children }:
         tabIndex={-1}
         aria-label="Close entry"
         className={
-          "absolute inset-0 bg-ink/25 transition-opacity duration-300 motion-reduce:duration-0 " +
+          "absolute inset-0 bg-ink/30 backdrop-blur-[6px] transition-opacity duration-300 " +
+          "motion-reduce:duration-0 " +
           (shown ? "opacity-100" : "opacity-0")
         }
       />
 
       <div
         className={
-          "absolute inset-y-0 right-0 flex w-full max-w-[640px] flex-col bg-white shadow-panel " +
+          "absolute inset-y-0 right-0 flex w-full max-w-[min(58rem,94vw)] flex-col bg-white shadow-panel " +
           "transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:duration-0 " +
           (shown ? "translate-x-0" : "translate-x-full")
         }
       >
-        <div className="flex shrink-0 items-center justify-between gap-4 border-b border-hairline/60 bg-white px-6 py-3">
+        <div className="flex shrink-0 items-center justify-between gap-4 border-b border-hairline/60 bg-white px-8 py-4">
           <div className="min-w-0">
             <p className="eyebrow">{rank ? `Entry ${rank}` : "Entry"}</p>
             <p className="truncate font-display text-[15px] font-bold text-ink">{label}</p>
@@ -114,7 +115,7 @@ export default function CandidateSlideOver({ label, rank, closeHref, children }:
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-8 py-8">{children}</div>
       </div>
     </div>
   );

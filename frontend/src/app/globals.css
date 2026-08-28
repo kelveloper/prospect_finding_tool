@@ -65,3 +65,9 @@ body {
   text-transform: uppercase;
   color: var(--color-ink-faint);
 }
+
+/* The opening screen is rendered for every visit; a tab that has already
+   begun its review hides it before it can paint. */
+html[data-launched] [data-launch-overlay] {
+  display: none;
+}

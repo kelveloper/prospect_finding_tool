@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import BookView from "@/components/BookView";
 import CandidateCard from "@/components/CandidateCard";
 import CandidateDetail from "@/components/CandidateDetail";
@@ -7,7 +6,7 @@ import Header from "@/components/Header";
 import LaunchOverlay from "@/components/LaunchOverlay";
 import ViewToggle from "@/components/ViewToggle";
 import { locatedToday } from "@/lib/data";
-import { LAUNCH_COOKIE, LAUNCH_PARAM } from "@/lib/session";
+import { LAUNCH_PARAM } from "@/lib/session";
 import { BOOK_VIEW, parseView, viewHref } from "@/lib/view";
 import {
   fetchCandidateDetail,
@@ -24,11 +23,10 @@ export default async function ScoreboardPage({
   searchParams: Promise<{ id?: string; launch?: string; view?: string }>;
 }) {
   const { id, launch, view } = await searchParams;
-  // The opening screen is a session-level decision, not component state:
-  // it shows on the first visit, and after that only when the wordmark is
-  // used to ask for it. Every other route back here lands on the board.
-  const started = (await cookies()).has(LAUNCH_COOKIE);
-  const showLaunch = launch === "1" || !started;
+  // The opening screen is the front door: it is rendered on every visit and
+  // the overlay itself decides whether to stay. A tab that has already begun
+  // its review closes it before it paints, so a refresh or a route back from
+  // a prospect page still lands on the board.
   // Board or book — the nav toggle writes it to the URL, so the layout
   // survives a refresh and travels with a shared link.
   const layout = parseView(view);
@@ -37,7 +35,7 @@ export default async function ScoreboardPage({
   if (ranked.length === 0) {
     return (
       <div className="min-h-screen">
-        {showLaunch ? <LaunchOverlay locatedToday={0} total={0} /> : null}
+        <LaunchOverlay locatedToday={0} total={0} />
         <Header candidateCount={0} />
         <main className="mx-auto max-w-[720px] px-8 py-16 text-center">
           <h1 className="font-display text-[24px] font-bold text-ink">No prospects yet</h1>
@@ -79,13 +77,11 @@ export default async function ScoreboardPage({
     <div className="min-h-screen">
       {/* Opening page — covers the scoreboard until the advisor starts.
           Keyed so asking for it again by wordmark remounts it open. */}
-      {showLaunch ? (
-        <LaunchOverlay
-          key={launch === "1" ? LAUNCH_PARAM : "first-visit"}
-          locatedToday={locatedToday(ranked)}
-          total={ranked.length}
-        />
-      ) : null}
+      <LaunchOverlay
+        key={launch === "1" ? LAUNCH_PARAM : "visit"}
+        locatedToday={locatedToday(ranked)}
+        total={ranked.length}
+      />
 
       <Header
         candidateCount={ranked.length}
@@ -111,7 +107,6 @@ export default async function ScoreboardPage({
                 outreach={outreach}
                 rank={rank}
                 total={ranked.length}
-                gutter={6}
                 headingLevel={2}
               />
             </CandidateSlideOver>
