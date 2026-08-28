@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Fragment } from "react";
+import { Fragment, type ReactNode } from "react";
 import { LogoMark, ChevronLeft } from "./icons";
 import { fetchCandidateCount } from "@/lib/api";
 import { VIEWER_INITIALS, VIEWER_SID } from "@/lib/data";
@@ -15,6 +15,9 @@ type Props = {
   back?: { label: string; href: string };
   /** Board size. Omit and the header counts the board itself. */
   candidateCount?: number;
+  /** The view switcher, on pages that have one. It sits in the header rather
+   *  than the page so it never moves between layouts. */
+  viewToggle?: ReactNode;
 };
 
 /** Left half is navigation — wordmark, breadcrumbs, back. Right half is the
@@ -25,6 +28,7 @@ export default async function Header({
   pill,
   back,
   candidateCount,
+  viewToggle,
 }: Props) {
   const count = candidateCount ?? (await fetchCandidateCount());
 
@@ -32,7 +36,10 @@ export default async function Header({
     <header className="sticky top-0 z-10 border-b border-hairline/60 bg-white">
       <div className="mx-auto flex h-16 max-w-[1560px] items-center justify-between gap-6 px-8">
         {/* ── Navigation ─────────────────────────────────── */}
-        <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-3">
+        <nav
+          aria-label="Breadcrumb"
+          className="flex min-w-0 items-center gap-3"
+        >
           <Link href="/" className="flex shrink-0 items-center gap-3">
             <span className="flex size-8 items-center justify-center rounded-[8px] bg-brand text-white">
               <LogoMark className="size-[18px]" />
@@ -76,6 +83,10 @@ export default async function Header({
             </Link>
           ) : null}
         </nav>
+
+        {viewToggle ? (
+          <div className="hidden shrink-0 md:block">{viewToggle}</div>
+        ) : null}
 
         {/* ── Board size · signed-in advisor ─────────────── */}
         <div className="flex shrink-0 items-center gap-3">

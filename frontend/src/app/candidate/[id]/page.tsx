@@ -40,7 +40,7 @@ export default async function CandidateProfilePage({
     <div className="min-h-screen pb-12">
       <Header
         crumbs={[{ label: candidate.name }]}
-        back={{ label: "Back to Book View", href: "/" }}
+        back={{ label: "Back to Scoreboard", href: "/" }}
         candidateCount={ranked.length}
       />
 

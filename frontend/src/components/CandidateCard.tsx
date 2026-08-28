@@ -8,19 +8,40 @@ type Props = {
   rank: number;
   /** Board size, so the card can say where this prospect stands on it. */
   total: number;
+  /** Defaults to the prospect's own page. The scoreboard overrides it to
+   *  select into its side panel instead of navigating away. */
+  href?: string;
+  /** Marks the card the scoreboard's detail panel is currently showing. */
+  active?: boolean;
 };
 
 /** A browse card, not a dossier — enough to decide whether to open it.
  *  The full picture lives on /candidate/[id]. */
-export default function CandidateCard({ candidate, rank, total }: Props) {
+export default function CandidateCard({
+  candidate,
+  rank,
+  total,
+  href,
+  active,
+}: Props) {
   const style = tierStyle(candidate.tier);
   const pct = percentileOf(rank, total);
 
   return (
     <Link
-      href={`/candidate/${candidate.id}`}
-      title={`Open ${candidate.name}'s profile`}
-      className="flex h-full flex-col rounded-[12px] bg-white p-5 shadow-raised transition-shadow hover:shadow-float"
+      href={href ?? `/candidate/${candidate.id}`}
+      // Selecting a card must not yank the list back to the top of the page.
+      scroll={!href}
+      aria-current={active ? "true" : undefined}
+      title={
+        active
+          ? `Showing ${candidate.name}`
+          : `Open ${candidate.name}'s profile`
+      }
+      className={
+        "flex h-full flex-col rounded-[12px] bg-white p-5 shadow-raised transition-shadow hover:shadow-float " +
+        (active ? "ring-2 ring-brand" : "")
+      }
     >
       <div className="flex items-start gap-3">
         <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-light font-display text-[12px] font-bold text-white">
