@@ -28,10 +28,10 @@ export default async function FollowUpPage({
     <div className="min-h-screen pb-12">
       <Header
         crumbs={[
-          { label: candidate.name, href: `/?id=${candidate.id}` },
+          { label: candidate.name, href: `/candidate/${candidate.id}` },
           { label: "Review & Feedback" },
         ]}
-        back={{ label: "Back to Profile", href: `/?id=${candidate.id}` }}
+        back={{ label: "Back to Profile", href: `/candidate/${candidate.id}` }}
       />
 
       <div className="mx-auto max-w-[860px] px-8 py-8">

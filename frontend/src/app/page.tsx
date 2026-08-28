@@ -1,21 +1,58 @@
 import Link from "next/link";
 import Header from "@/components/Header";
-import ScoreRing from "@/components/ScoreRing";
-import Badge from "@/components/Badge";
 import CandidateCard from "@/components/CandidateCard";
-import CandidateDossier from "@/components/CandidateDossier";
-import { ChartIcon, InfoIcon } from "@/components/icons";
-import { tierStyle } from "@/lib/tier";
-import { fetchCandidateDetail, fetchContactKit, fetchRankedCandidates } from "@/lib/api";
+import BookViewTable from "@/components/BookViewTable";
+import { fetchRankedCandidates } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
+
+/** How many prospects the cards view shows. It answers "who do I call today",
+ *  so it is a shortlist — the whole book lives in the table. */
+const TOP_N = 16;
+
+/** Table vs. cards. Lives in the URL so a view is linkable and survives a
+ *  refresh. Both show the same board — one dense, one visual. */
+function ViewToggle({ view }: { view: "cards" | "table" }) {
+  const tabs = [
+    { key: "table", label: "Book view", href: "/" },
+    { key: "cards", label: "Cards", href: "/?view=cards" },
+  ] as const;
+
+  return (
+    <div
+      role="tablist"
+      aria-label="Prospect list layout"
+      className="inline-flex gap-1 rounded-[10px] bg-surface-soft p-1"
+    >
+      {tabs.map((tab) => {
+        const active = tab.key === view;
+        return (
+          <Link
+            key={tab.key}
+            href={tab.href}
+            role="tab"
+            aria-selected={active}
+            className={
+              "rounded-[8px] px-3.5 py-1.5 font-display text-[13px] font-semibold transition-colors " +
+              (active
+                ? "bg-white text-brand shadow-raised"
+                : "text-ink-muted hover:text-brand")
+            }
+          >
+            {tab.label}
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
 
 export default async function ScoreboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ id?: string }>;
+  searchParams: Promise<{ view?: string }>;
 }) {
-  const { id } = await searchParams;
+  const { view } = await searchParams;
   const ranked = await fetchRankedCandidates();
 
   if (ranked.length === 0) {
@@ -33,187 +70,57 @@ export default async function ScoreboardPage({
     );
   }
 
-  const featuredId = id && ranked.some((c) => c.id === id) ? id : ranked[0].id;
-  // One click on a card shows the whole dossier here, so the featured panel
-  // needs everything the old standalone profile page fetched.
-  const [detail, contactKit] = await Promise.all([
-    fetchCandidateDetail(featuredId),
-    fetchContactKit(featuredId),
-  ]);
-  // Fall back to the ranked row for the selected id, never to whoever is first.
-  const featured =
-    detail?.candidate ?? ranked.find((c) => c.id === featuredId) ?? ranked[0];
-  const profile = detail?.profile;
-  const style = tierStyle(featured.tier);
+  // Book view is the default landing screen; cards are opt-in via ?view=cards.
+  // Neither needs per-candidate detail — that lives on /candidate/[id].
+  const cards = view === "cards";
 
   return (
     <div className="min-h-screen">
-      <Header pill="Scoreboard" candidateCount={ranked.length} />
+      <Header pill={cards ? "Cards" : "Book View"} candidateCount={ranked.length} />
 
-      <div className="mx-auto grid max-w-[1560px] grid-cols-1 items-start lg:grid-cols-[minmax(0,1fr)_420px]">
-        {/* ── Featured candidate ─────────────────────────── */}
-        <main className="min-h-[calc(100vh-4rem)] bg-white px-8 py-8">
-          <div className="flex items-start justify-between gap-8">
-            <div className="min-w-0">
-              <p className="eyebrow">{featured.category}</p>
-              <h1 className="mt-1 font-display text-[30px] font-bold tracking-[-0.75px] text-ink">
-                {featured.name}
-              </h1>
-              <p className="mt-1 text-[16px] text-ink-muted">{featured.practiceLine}</p>
-              <p className="mt-2 text-[14px] text-ink-muted">
-                📍 {profile?.address ?? featured.location}
-              </p>
-
-              {/* Trust line: how sure we are these records are the same person */}
-              {profile ? (
-                <p className="mt-3">
-                  <span
-                    className={
-                      "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-display text-[12px] font-semibold " +
-                      (profile.identityVerified
-                        ? "bg-tier-strong-bg text-tier-strong-fg"
-                        : "bg-tier-neutral-bg text-tier-neutral-fg")
-                    }
-                  >
-                    {profile.identityVerified ? "✓" : "◌"} {profile.identityLine}
-                  </span>
-                </p>
-              ) : null}
-            </div>
-            <ScoreRing
-              score={featured.score}
-              size={112}
-              stroke={8}
-              accent={style.accent}
-              caption="Score"
-              valueSize={24}
-            />
-          </div>
-
-          {/* Tier + fit bar */}
-          <div className="mt-6 flex items-center gap-6">
-            <Badge bg={style.badgeBg} fg={style.badgeFg} variant="plain">
-              {featured.tierLabel}
-            </Badge>
-            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-soft">
-              <div
-                className="h-full rounded-full"
-                style={{ width: `${featured.score}%`, backgroundColor: style.accent }}
-              />
-            </div>
-            <span className="shrink-0 font-display text-[14px] font-semibold text-ink-muted">
-              {featured.score}/100
-            </span>
-          </div>
-
-          <hr className="my-6 border-surface-soft" />
-
-          {/* Key stats */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {[
-              { label: "Licence Held", value: featured.licenceHeld },
-              { label: "Qualification", value: `${featured.qualificationScore}/100` },
-              { label: "Timing", value: `${featured.timingScore}/100` },
-            ].map((stat) => (
-              <div
-                key={stat.label}
-                className="rounded-[12px] bg-canvas px-4 py-4"
-              >
-                <p className="eyebrow">{stat.label}</p>
-                <p className="mt-1 font-display text-[16px] font-semibold text-ink">
-                  {stat.value}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          {/* Summary */}
-          <section className="mt-6">
-            <h2 className="eyebrow">Candidate Summary</h2>
-            <p className="mt-2 max-w-[620px] text-[14px] leading-[22px] text-ink-muted">
-              {featured.summary}
+      <main className="mx-auto max-w-[1560px] px-8 py-8">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="eyebrow">Your Book</p>
+            <h1 className="mt-1 font-display text-[24px] font-bold tracking-[-0.6px] text-ink">
+              {cards ? "Top Prospects" : "All Prospects"}
+            </h1>
+            <p className="mt-1 text-[14px] text-ink-muted">
+              {cards
+                ? `The ${TOP_N} strongest leads on your book right now. Click a card to open the full profile.`
+                : "Sort any column, filter by specialty or tier, then click a row to open the full profile."}
             </p>
-          </section>
+          </div>
+          <ViewToggle view={cards ? "cards" : "table"} />
+        </div>
 
-          {/* Tags */}
-          {featured.tags.length > 0 ? (
-            <section className="mt-6">
-              <h2 className="eyebrow">Tags</h2>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {featured.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-full bg-surface-soft px-3 py-1.5 text-[12px] text-brand-dark"
-                  >
-                    {tag}
-                  </span>
+        <div className="mt-6">
+          {cards ? (
+            <>
+              <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {ranked.slice(0, TOP_N).map((candidate, i) => (
+                  <li key={candidate.id}>
+                    <CandidateCard
+                      candidate={candidate}
+                      rank={i + 1}
+                      total={ranked.length}
+                    />
+                  </li>
                 ))}
-              </div>
-            </section>
-          ) : null}
+              </ul>
 
-          {/* ── Dossier ──────────────────────────────────── */}
-          {detail && profile ? (
-            <div className="-mx-8 mt-8 bg-canvas px-8 py-8">
-              <h2 className="eyebrow">Candidate Profile</h2>
-              <div className="mt-4">
-                <CandidateDossier
-                  candidate={featured}
-                  profile={profile}
-                  fieldChanges={detail.fieldChanges}
-                  scoreHistory={detail.scoreHistory}
-                  contactKit={contactKit}
-                />
-              </div>
-            </div>
+              <Link
+                href="/"
+                className="mt-6 inline-flex items-center gap-2 rounded-[8px] border border-hairline bg-white px-5 py-3 font-display text-[14px] font-semibold text-brand shadow-raised transition-colors hover:bg-surface-soft"
+              >
+                See all {ranked.length} prospects in book view →
+              </Link>
+            </>
           ) : (
-            <p className="mt-8 rounded-[12px] bg-canvas px-4 py-4 text-[13px] text-ink-muted">
-              The full dossier for this prospect could not be loaded — the ranked
-              summary above is all the API returned.
-            </p>
+            <BookViewTable candidates={ranked} />
           )}
-
-          {/* Actions — the two pages that go deeper than this dossier */}
-          <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Link
-              href={`/candidate/${featured.id}/follow-up`}
-              className="flex items-center justify-center gap-2 rounded-[8px] bg-brand px-6 py-3.5 font-display text-[14px] font-semibold text-white shadow-brand transition-colors hover:bg-brand-dark"
-            >
-              <InfoIcon className="size-4" />
-              Review &amp; Give Feedback
-            </Link>
-            <Link
-              href={`/candidate/${featured.id}/breakdown`}
-              className="flex items-center justify-center gap-2 rounded-[8px] border border-hairline bg-white px-6 py-3.5 font-display text-[14px] font-semibold text-brand transition-colors hover:bg-surface-soft"
-            >
-              <ChartIcon className="size-4" />
-              Full Score &amp; Match Breakdown
-            </Link>
-          </div>
-        </main>
-
-        {/* ── Ranked list ────────────────────────────────── */}
-        <aside className="border-l border-hairline/60 px-6 py-8 lg:sticky lg:top-16 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto">
-          <div className="flex items-center justify-between">
-            <h2 className="font-display text-[16px] font-bold text-ink">All Candidates</h2>
-            <span className="rounded-full bg-surface-tint px-2 py-1 font-display text-[11px] font-semibold text-brand-dark">
-              {ranked.length} total
-            </span>
-          </div>
-          <p className="eyebrow mt-3">Ranked by fit score</p>
-
-          <div className="mt-3 flex flex-col gap-3">
-            {ranked.map((candidate, i) => (
-              <CandidateCard
-                key={candidate.id}
-                candidate={candidate}
-                rank={i + 1}
-                active={candidate.id === featured.id}
-              />
-            ))}
-          </div>
-        </aside>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }
