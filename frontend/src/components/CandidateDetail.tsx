@@ -182,14 +182,10 @@ export default function CandidateDetail({
           "how do you know?", so they are cited, not offered as buttons. */}
       <div className="sources-note mt-8 border-t border-surface-soft pt-4">
         <p className="eyebrow">Sources</p>
-        <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:gap-8">
+        <div className="mt-2">
           <Citation
-            href={`/prospect/${candidate.id}/follow-up`}
-            label="The signals behind this prospect"
-          />
-          <Citation
-            href={`/prospect/${candidate.id}/breakdown`}
-            label="How this score was built — weights, rules and match evidence"
+            href={`/prospect/${candidate.id}/sources`}
+            label="How we know this — the facts, the matching and the scoring"
           />
         </div>
       </div>
