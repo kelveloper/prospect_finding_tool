@@ -19,10 +19,9 @@ traceable to a source record. See `docs/PROJECT_SPEC.md` for the original spec.
 4. [`docs/HOW_IT_WORKS.md`](docs/HOW_IT_WORKS.md) — pipeline mechanics + demo-day FAQ
 5. [`docs/PROGRESS.md`](docs/PROGRESS.md) — what's done, what's pending, the AI roadmap
 
-Reference (as needed):
-[`docs/RESEARCH_COMMERCIAL_SOURCES.md`](docs/RESEARCH_COMMERCIAL_SOURCES.md) — paid data vendors, buy order, "why we pay" ·
-[`docs/RESEARCH_CAREER_SIGNAL.md`](docs/RESEARCH_CAREER_SIGNAL.md) + [`docs/RESEARCH_PROPERTY_SIGNAL.md`](docs/RESEARCH_PROPERTY_SIGNAL.md) — how those sources were chosen ·
-[`docs/PROJECT_SPEC.md`](docs/PROJECT_SPEC.md) — the original spec (historical)
+Everything else is indexed in **[`docs/README.md`](docs/README.md)** — the
+presentation deck, the engineering handover, the data-source research, and
+the product notes.
 
 ```bash
 # Terminal 1 — backend

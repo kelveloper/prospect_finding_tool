@@ -1,40 +1,13 @@
 # User Journey & Quick Setup
 
-## Quick setup
+## Setup
 
-```bash
-# Terminal 1 — backend (FastAPI on :8000)
-cd prospect_finding_tool
-source .venv/bin/activate
-uvicorn app.main:app --port 8000
-
-# Terminal 2 — frontend (Next.js on :3000)
-cd prospect_finding_tool/frontend
-npm run dev
-```
-
-Open **http://localhost:3000**. On first load the scoreboard ingests
-**real data live** — ~200 Illinois physicians from NPPES, license-verified
-against IDFPR, enriched with PECOS billing groups and Cook County deeds.
-The first load takes a minute or two (four government APIs); after that
-it's instant.
-
-Useful extras:
-
-```bash
-# Re-ingest fresh live data (e.g. after CMS's monthly PECOS refresh)
-rm prospects.db   # then reload the scoreboard, or:
-curl -X POST "localhost:8000/ingest/run?state=IL&limit=25"
-
-# Bigger cohort (up to 200 per specialty)
-curl -X POST "localhost:8000/ingest/run?state=IL&limit=100"
-
-# Interactive API docs
-open http://localhost:8000/docs
-
-# Run the test suite (uses offline fixtures, never external APIs)
-.venv/bin/python -m pytest tests/ -q
-```
+Setup lives in one place: **[`../QUICKSTART.md`](../QUICKSTART.md)**. In short —
+backend on `:8000`, frontend on `:3000`, then open http://localhost:3000. On
+first load the scoreboard ingests **real data live** — ~200 Illinois physicians
+from NPPES, license-verified against IDFPR, enriched with PECOS billing groups
+and Cook County deeds. The first load takes a minute or two; after that it is
+instant.
 
 ## The user journey (demo script)
 
@@ -44,15 +17,16 @@ open http://localhost:8000/docs
    featured panel shows the #1 prospect: score ring, tier, qualification/
    timing stats, plain-English summary, signal tags.
 
-2. **Click "View More" → Candidate dossier (`/candidate/{id}`)** — the
+2. **Click "View More" → Candidate dossier (`/prospect/{id}`)** — the
    evidence: identity trust badge (which government datasets corroborated
    this person, at what confidence), then Career Signal, Ownership &
    Practice, Financial Activity, and the expandable Score Breakdown.
 
-3. **"Review & Give Feedback" (`/candidate/{id}/follow-up`)** — every
-   supporting signal with its source badge (NPI, IDFPR, PECOS,
-   COOK_COUNTY) and strength/confidence bars, then the advisor verdict:
-   **Good Fit / Revisit Later / Not a Fit** + notes.
+3. **"Sources" footnote → `/prospect/{id}/sources`** — one document
+   answering "how do you know?": every fact with its source and
+   confidence, how we knew each was his, and what each was worth. The
+   advisor verdict — **Good Fit / Revisit Later / Not a Fit** + notes —
+   is captured inline on the profile itself.
 
 4. **Verdict stored** — building the labeled dataset future scoring
    calibration will learn from.

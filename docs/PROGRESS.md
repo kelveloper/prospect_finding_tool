@@ -1,6 +1,6 @@
 # Progress
 
-Status as of 2026-08-23. Spec: `PROJECT_SPEC.md` · Mechanics:
+Status as of 2026-08-30. Spec: `PROJECT_SPEC.md` · Mechanics:
 `HOW_IT_WORKS.md` · Ranking: `RANKING.md` · Data-source research:
 `RESEARCH_COMMERCIAL_SOURCES.md` (+ career/property deep-dives)
 
@@ -25,7 +25,7 @@ Status as of 2026-08-23. Spec: `PROJECT_SPEC.md` · Mechanics:
 **Frontend (ProspectIQ, Next.js)**
 - [x] Ranked scoreboard with featured prospect, tiers, tags, auto-ingest
 - [x] Candidate dossier: Career Signal / Ownership / Financial Activity cards (with "None on record" states), Identity Resolution, Score Breakdown, Practice Location, Detected Signals
-- [x] Review & Feedback page: signal evidence with strength/confidence bars, live verdict buttons + history
+- [x] Sources document (`/prospect/{id}/sources`): the facts with source and confidence, the identity checks, and the scoring — one ledger each, plain English. Verdict buttons + history live inline on the profile
 
 ## 🚧 Not completed (next phases)
 
@@ -101,7 +101,7 @@ added around it, with guardrails:
    the deterministic match evidence.
 
 2. **Advisor-facing summary (UI)** — an LLM writes the natural-language
-   prospect narrative shown on the dossier/follow-up pages, generated
+   prospect narrative shown on the dossier and Sources pages, generated
    strictly from the stored signals and scores (grounded — the model is
    never asked to "know" anything). The deterministic template summary
    remains underneath as the auditable source of truth and fallback.

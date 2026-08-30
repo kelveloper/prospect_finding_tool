@@ -96,7 +96,7 @@ sites on the breakdown page.
 - [x] Deleted `frontend/src/components/ScoreCalculation.tsx` — 150 lines of
       dead code duplicating the live calculation card, imported by nothing.
       Its entry in `PRESENTATION.md`'s component list was stale too.
-- [ ] `frontend/src/components/BreakdownExplorer.tsx` — lines 152, 177, 271,
+- [x] `frontend/src/components/SourcesDocument.tsx` — was lines 152, 177, 271,
       288. Note 152 and 177 print the *same* products twice on one screen.
 
 > Judgement call: now that the page is framed as backend explainability rather
@@ -109,7 +109,8 @@ sites on the breakdown page.
 There is no middle step. The app goes profile → full breakdown, with nothing
 simplified in between.
 
-Current routes: `/`, `/prospect/[id]/breakdown`, `/prospect/[id]/follow-up`.
+Current routes: `/`, `/prospect/[id]/sources` (the old `/breakdown` and
+`/follow-up` routes redirect into its anchors).
 
 - [ ] Build the simplified category-scoring view
 - [ ] Order the demo: profile → simple categories → breakdown last, framed as
