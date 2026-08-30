@@ -53,7 +53,10 @@ export default function CandidateCard({ candidate, rank, active }: Props) {
               </span>
             )}
           </span>
-          <span className="block truncate text-[12px] text-ink-faint">
+          <span
+            title={`${candidate.specialty} · ${candidate.location}`}
+            className="block truncate text-[12px] text-ink-faint"
+          >
             {candidate.specialty}
           </span>
         </span>

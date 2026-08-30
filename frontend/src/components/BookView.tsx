@@ -791,7 +791,10 @@ function ColumnMenu({
                 <span aria-hidden className="w-3 shrink-0 text-brand">
                   {(value ?? "all") === opt ? "✓" : ""}
                 </span>
-                <span className="truncate">
+                <span
+                  className="truncate"
+                  title={opt === "all" ? undefined : opt}
+                >
                   {opt === "all"
                     ? "All"
                     : opt.charAt(0).toUpperCase() + opt.slice(1)}
@@ -906,10 +909,19 @@ function BookEntry({
       </span>
 
       <span className="min-w-0 flex-1">
-        <span className="block truncate font-display text-[14px] font-semibold text-ink">
+        {/* Titled because these truncate. The row's own title says "open
+            this entry", which is no help when the text you cannot read is
+            the specialty. */}
+        <span
+          title={candidate.name}
+          className="block truncate font-display text-[14px] font-semibold text-ink"
+        >
           {candidate.name}
         </span>
-        <span className="block truncate text-[12px] text-ink-faint">
+        <span
+          title={`${candidate.specialty} · ${candidate.location}`}
+          className="block truncate text-[12px] text-ink-faint"
+        >
           {candidate.specialty} · {candidate.location}
         </span>
       </span>
