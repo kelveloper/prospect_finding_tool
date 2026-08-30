@@ -483,7 +483,9 @@ export default function BookView({ ranked, selectedId }: Props) {
                 }
                 className="rounded-full border border-dashed border-hairline px-3 py-1.5 font-display text-[12px] font-semibold text-brand transition-colors hover:border-brand hover:bg-white disabled:cursor-not-allowed disabled:border-hairline/60 disabled:text-ink-faint disabled:hover:bg-transparent"
               >
-                + Save your own
+                {saveBlockedBecause === null
+                  ? "+ Save these filters"
+                  : "Filter below to save a view"}
               </button>
             )}
           </div>
