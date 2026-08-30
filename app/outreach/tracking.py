@@ -33,6 +33,12 @@ VALID_CHANNELS = ("mail", "phone", "email", "other")
 class ProspectNotFoundError(Exception):
     pass
 
+
+class NotTheLatestEventError(Exception):
+    """Only the most recent event can be revised. Anything older is
+    settled history, and history feeding the recalibration funnel is not
+    open to editing."""
+
 # Score bands the funnel aggregates over: [0-20) ... [80-100]
 BAND_WIDTH = 20.0
 
@@ -70,6 +76,38 @@ class OutreachTrackingService:
         if self.prospect_repo.get(prospect_id) is None:
             raise ProspectNotFoundError(prospect_id)
         return self.outreach_repo.for_prospect(prospect_id)
+
+    def revise(
+        self,
+        prospect_id: str,
+        event_id: str,
+        event_type: str,
+        notes: str | None = None,
+        follow_up_on: date | None = None,
+    ) -> OutreachEvent:
+        """Correct the most recently logged event in place.
+
+        A revision replaces rather than appends. Appending a correction
+        would leave both the wrong outcome and the right one in the
+        funnel, and a prospect counted in two stages at once skews the
+        recalibration these rows exist to feed. The attempt itself is
+        unchanged — occurred_at and channel stay as first logged; only
+        what came of it is rewritten.
+        """
+        if event_type not in VALID_EVENT_TYPES:
+            raise ValueError(f"unknown event type: {event_type}")
+        if self.prospect_repo.get(prospect_id) is None:
+            raise ProspectNotFoundError(prospect_id)
+        latest = self.outreach_repo.latest(prospect_id)
+        if latest is None or latest.id != event_id:
+            raise NotTheLatestEventError(event_id)
+        latest.event_type = event_type
+        latest.notes = notes
+        latest.follow_up_on = (
+            follow_up_on if event_type == "follow_up_later" else None
+        )
+        self.db.commit()
+        return latest
 
     def funnel(self) -> list[dict]:
         """Conversion funnel per score band, highest band first.

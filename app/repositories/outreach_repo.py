@@ -20,6 +20,9 @@ class OutreachRepository:
         )
         return list(self.db.scalars(stmt))
 
+    def latest(self, prospect_id: str) -> OutreachEvent | None:
+        return next(iter(self.for_prospect(prospect_id)), None)
+
     def events_with_scores(self) -> list[tuple[str, str, float]]:
         """(prospect_id, event_type, current total_score) for every event —
         the raw material the conversion funnel aggregates."""

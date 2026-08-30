@@ -7,7 +7,7 @@ import httpx
 from app.config import get_settings
 from app.database import get_db
 from app.outreach import ContactKitService, OutreachTrackingService
-from app.outreach.tracking import ProspectNotFoundError
+from app.outreach.tracking import NotTheLatestEventError, ProspectNotFoundError
 from app.schemas import (
     IngestResult,
     ProspectDetail,
@@ -147,6 +147,36 @@ def outreach_history(prospect_id: str, db: Session = Depends(get_db)):
         return OutreachTrackingService(db).history(prospect_id)
     except ProspectNotFoundError:
         raise HTTPException(status_code=404, detail="Prospect not found")
+
+
+@router.patch(
+    "/prospects/{prospect_id}/outreach/{event_id}",
+    response_model=OutreachEventOut,
+)
+def revise_outreach(
+    prospect_id: str,
+    event_id: str,
+    payload: OutreachEventIn,
+    db: Session = Depends(get_db),
+):
+    """Correct the most recently logged outreach event. Only event_type,
+    notes and follow_up_on are revisable — the attempt's date and channel
+    stay as first logged."""
+    try:
+        return OutreachTrackingService(db).revise(
+            prospect_id,
+            event_id,
+            payload.event_type,
+            payload.notes,
+            payload.follow_up_on,
+        )
+    except ProspectNotFoundError:
+        raise HTTPException(status_code=404, detail="Prospect not found")
+    except NotTheLatestEventError:
+        raise HTTPException(
+            status_code=409,
+            detail="Only the most recent outreach event can be revised",
+        )
 
 
 @router.get("/analytics/outreach-funnel", response_model=list[FunnelBandOut])

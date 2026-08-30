@@ -138,3 +138,65 @@ def test_funnel_groups_by_score_band(client, db_session):
     mid_band = funnel[1]
     assert mid_band["not_converted"] == 1
     assert mid_band["conversion_rate"] == 0.0
+
+
+def test_revise_replaces_the_latest_event_rather_than_appending(client, db_session):
+    p = _prospect(db_session, "Mis Logged", score=70.0)
+    client.post(f"/prospects/{p.id}/outreach", json={"event_type": "connected"})
+    wrong = client.post(
+        f"/prospects/{p.id}/outreach",
+        json={"event_type": "not_converted", "notes": "misclick"},
+    ).json()
+
+    fixed = client.patch(
+        f"/prospects/{p.id}/outreach/{wrong['id']}",
+        json={"event_type": "converted"},
+    )
+    assert fixed.status_code == 200
+    assert fixed.json()["event_type"] == "converted"
+    assert fixed.json()["id"] == wrong["id"]
+    assert fixed.json()["notes"] is None
+    # the attempt itself is untouched
+    assert fixed.json()["occurred_at"] == wrong["occurred_at"]
+
+    history = client.get(f"/prospects/{p.id}/outreach").json()
+    assert [e["event_type"] for e in history] == ["converted", "connected"]
+
+    # and the funnel sees one outcome, not both
+    band = next(b for b in client.get("/analytics/outreach-funnel").json()
+                if b["band"] == "60-80")
+    assert band["converted"] == 1
+    assert band["not_converted"] == 0
+
+
+def test_only_the_latest_event_can_be_revised(client, db_session):
+    p = _prospect(db_session, "Settled History", score=70.0)
+    first = client.post(
+        f"/prospects/{p.id}/outreach", json={"event_type": "connected"}
+    ).json()
+    client.post(f"/prospects/{p.id}/outreach", json={"event_type": "converted"})
+
+    stale = client.patch(
+        f"/prospects/{p.id}/outreach/{first['id']}",
+        json={"event_type": "not_connected"},
+    )
+    assert stale.status_code == 409
+
+
+def test_revise_drops_a_follow_up_date_that_no_longer_applies(client, db_session):
+    p = _prospect(db_session, "Changed Their Mind", score=70.0)
+    later = client.post(
+        f"/prospects/{p.id}/outreach",
+        json={
+            "event_type": "follow_up_later",
+            "notes": "after bonus season",
+            "follow_up_on": "2026-12-01",
+        },
+    ).json()
+    assert later["follow_up_on"] == "2026-12-01"
+
+    fixed = client.patch(
+        f"/prospects/{p.id}/outreach/{later['id']}",
+        json={"event_type": "converted"},
+    ).json()
+    assert fixed["follow_up_on"] is None
