@@ -26,12 +26,12 @@ export default async function ScoreBreakdownPage({
         back={{ label: "Back to Profile", href: `/?id=${candidate.id}` }}
       />
 
-      <div className="mx-auto max-w-[1124px] px-8 py-8">
+      <div className="mx-auto max-w-[1560px] px-8 py-8">
         <p className="eyebrow">{candidate.specialty}</p>
         <h1 className="mt-1 font-display text-[24px] font-bold tracking-[-0.6px] text-ink">
           {candidate.name} — {candidate.score} / 100
         </h1>
-        <p className="mt-1 text-[14px] text-ink-muted">
+        <p className="mt-1 max-w-[78ch] text-[14px] text-ink-muted">
           In pipeline order: the gates decide what exists on this dossier,
           then the scoreboard weighs it.
         </p>

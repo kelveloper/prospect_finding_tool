@@ -383,7 +383,7 @@ export default function BreakdownExplorer({
                 ✓ passed — this prospect exists
               </span>
             </div>
-            <p className="mt-2 text-[12px] leading-[18px] text-ink-muted">
+            <p className="mt-2 max-w-[92ch] text-[12px] leading-[18px] text-ink-muted">
               Applied inside each adapter during the pull: physician taxonomy
               only (codes starting 20) · licensed or practicing in IL ·
               individual &quot;Physician and Surgeon&quot; licenses only ·
