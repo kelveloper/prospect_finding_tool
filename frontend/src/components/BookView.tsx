@@ -170,13 +170,26 @@ export default function BookView({ ranked, selectedId }: Props) {
     viewStore.getServerSnapshot,
   );
 
-  const viewState: BookViewState = { specialty, tier, query, onlyNew };
+  const viewState: BookViewState = {
+    specialty,
+    tier,
+    query,
+    onlyNew,
+    sort,
+    fromBack,
+  };
 
   function applyState(next: BookViewState) {
     setSpecialty(next.specialty ?? "all");
     setTier(next.tier ?? "all");
     setQuery(next.query ?? "");
     setOnlyNew(!!next.onlyNew);
+    setSort(
+      ((next.sort as SortKey) ?? "rank") in SORTS
+        ? (next.sort as SortKey)
+        : "rank",
+    );
+    setFromBack(!!next.fromBack);
     setTurned({ spread: 0, forSelection: selectedId });
   }
 
@@ -267,17 +280,12 @@ export default function BookView({ ranked, selectedId }: Props) {
   /** Nothing to save when the filters are empty, already stored, or exactly
    *  one of the built-in chips. */
   const saveBlockedBecause = isEmpty(viewState)
-    ? "Filter the book first — pick a specialty, tier or search — then save those filters here as a view you can come back to."
+    ? "Nothing to save yet — filter or re-order the book first, then save that as a view you can come back to."
     : sameState(viewState, { ...EMPTY_STATE, onlyNew: true })
       ? "This is already the New arrivals view."
       : (views.find((v) => sameState(viewState, v.state))?.name ?? null);
 
-  const filtered =
-    onlyNew ||
-    specialty !== "all" ||
-    tier !== "all" ||
-    query.trim() !== "" ||
-    sort !== "rank";
+  const filtered = !isEmpty(viewState);
   const clear = () => {
     setSpecialty("all");
     setTier("all");

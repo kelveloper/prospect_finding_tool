@@ -20,6 +20,10 @@ export type BookViewState = {
   query: string;
   /** Built-ins narrow the board in ways the filter controls cannot. */
   onlyNew?: boolean;
+  /** Order is part of a view: "my weakest Chicago derms" is a sort as much
+   *  as a filter, and Reset already treated it as a change. */
+  sort?: string;
+  fromBack?: boolean;
 };
 
 export type SavedView = {
@@ -33,6 +37,8 @@ export const EMPTY_STATE: BookViewState = {
   tier: "all",
   query: "",
   onlyNew: false,
+  sort: "rank",
+  fromBack: false,
 };
 
 export function isEmpty(s: BookViewState): boolean {
@@ -40,7 +46,9 @@ export function isEmpty(s: BookViewState): boolean {
     s.specialty === "all" &&
     s.tier === "all" &&
     s.query.trim() === "" &&
-    !s.onlyNew
+    !s.onlyNew &&
+    (s.sort ?? "rank") === "rank" &&
+    !s.fromBack
   );
 }
 
@@ -49,9 +57,23 @@ export function sameState(a: BookViewState, b: BookViewState): boolean {
     a.specialty === b.specialty &&
     a.tier === b.tier &&
     a.query.trim() === b.query.trim() &&
-    !!a.onlyNew === !!b.onlyNew
+    !!a.onlyNew === !!b.onlyNew &&
+    (a.sort ?? "rank") === (b.sort ?? "rank") &&
+    !!a.fromBack === !!b.fromBack
   );
 }
+
+/** Column keys as an advisor would say them, for the suggested name. */
+const SORT_WORDS: Record<string, string> = {
+  rank: "rank",
+  evidence: "evidence",
+  tier: "tier",
+  movement: "movement",
+  name: "name",
+  specialty: "specialty",
+  location: "location",
+  trigger: "why now",
+};
 
 /** "Chicago derms" beats "View 3", so the default name describes the filters
  *  rather than counting them. The advisor can overwrite it. */
@@ -62,6 +84,11 @@ export function describe(s: BookViewState): string {
   if (s.tier !== "all")
     parts.push(s.tier.charAt(0).toUpperCase() + s.tier.slice(1));
   if (s.query.trim()) parts.push(`"${s.query.trim()}"`);
+  if ((s.sort ?? "rank") !== "rank" || s.fromBack) {
+    parts.push(
+      `by ${SORT_WORDS[s.sort ?? "rank"] ?? s.sort}${s.fromBack ? ", reversed" : ""}`,
+    );
+  }
   return parts.join(" · ") || "Saved view";
 }
 
