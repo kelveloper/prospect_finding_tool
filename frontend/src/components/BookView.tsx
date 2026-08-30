@@ -548,8 +548,8 @@ export default function BookView({ ranked, selectedId }: Props) {
                     <span className="min-w-0 flex-1">
                       <ColumnMenu
                         sortKey="name"
-                        heading="Specialty"
-                        hint="What they practise. Filter the book to one specialty."
+                        heading="Specialty · Location"
+                        hint="Where and in what they practise. Filter on either, or both together."
                         filters={[
                           {
                             label: "Show specialty",
