@@ -162,6 +162,18 @@ No deck in this repo, so these are tracked but unverified here.
 
 ---
 
+## Beyond the review
+
+A competitive UX pass against Catchlight, Aidentified and Apollo produced four
+further changes — see **[RESEARCH_COMPETITIVE_UX.md](RESEARCH_COMPETITIVE_UX.md)**.
+
+The one that bears on item 10: the market's standard is a per-signal
+contribution list next to the score, so hiding ours ran against the grain.
+Writing them as points (`+16 of 35`) rather than arithmetic
+(`0.45 × 35 = 15.8`) satisfies both the feedback and the convention.
+
+---
+
 ## Suggested order
 
 1. **16** — content task, unblocks the richer-summary half of 12
