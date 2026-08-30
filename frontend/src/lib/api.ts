@@ -203,6 +203,40 @@ const CATEGORY_SIGNALS: { label: string; types: string[] }[] = [
   { label: "Financial", types: ["PROPERTY_EVENT"] },
 ];
 
+/** Advisor-facing name for each signal, in the order the detector lists them.
+ *  Keep in step with SIGNAL_TYPES in app/scoring/detector.py. */
+const SIGNAL_LABELS: [string, string][] = [
+  ["PHYSICIAN", "Active licence"],
+  ["SPECIALTY", "Specialty tier"],
+  ["NEW_LICENSE", "Newly licensed"],
+  ["PRACTICE_ENTRY", "Entered practice"],
+  ["CAREER_ADVANCEMENT", "Career move"],
+  ["OWNERSHIP", "Practice ownership"],
+  ["PROPERTY_EVENT", "Property purchase"],
+];
+
+/** How much of the board's evidence this score actually rests on.
+ *
+ *  A 62 built on three signals is not the same claim as a 62 built on five,
+ *  and the score alone cannot say which. Bands follow the spread on the real
+ *  board, where most prospects sit at three or four of seven. */
+function toEvidence(signalTypes: string[]): Candidate["evidence"] {
+  const present = new Set(signalTypes);
+  const found = SIGNAL_LABELS.filter(([type]) => present.has(type));
+  const level: Candidate["evidence"]["level"] =
+    found.length >= 5 ? "strong" : found.length === 4 ? "partial" : "thin";
+
+  return {
+    level,
+    found: found.length,
+    total: SIGNAL_LABELS.length,
+    signals: SIGNAL_LABELS.map(([type, label]) => ({
+      label,
+      present: present.has(type),
+    })),
+  };
+}
+
 function toCategories(signalTypes: string[]): Candidate["categories"] {
   const present = new Set(signalTypes);
   return CATEGORY_SIGNALS.map(({ label, types }) => ({
@@ -276,6 +310,11 @@ function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
     summary:
       p.advisor_summary ?? p.reason_summary ?? "No signals recorded yet.",
     tags,
+    evidence: toEvidence(
+      detail
+        ? detail.signals.map((sig) => sig.signal_type)
+        : (p.signal_types ?? []),
+    ),
     categories: toCategories(
       detail
         ? detail.signals.map((s) => s.signal_type)

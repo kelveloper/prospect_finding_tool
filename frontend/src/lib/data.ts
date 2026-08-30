@@ -19,6 +19,13 @@ export type Candidate = {
   strength: string;
   summary: string;
   tags: string[];
+  /** How many of the seven signals were found, and which. */
+  evidence: {
+    level: "strong" | "partial" | "thin";
+    found: number;
+    total: number;
+    signals: { label: string; present: boolean }[];
+  };
   /** Signal coverage per category — the scoreboard quick overview. */
   categories: { label: string; captured: number; total: number }[];
   /** Points moved since the previous ingest; null until two snapshots exist. */
@@ -121,10 +128,14 @@ export const VIEWER_ROLE = "Financial Advisor";
 /** Prospects ingestion first located on the viewer's current calendar day.
  *  `createdAt` comes back as naive UTC, so it is pinned to UTC before being
  *  compared against the local day. */
-export function locatedToday(candidates: Pick<Candidate, "createdAt">[]): number {
+export function locatedToday(
+  candidates: Pick<Candidate, "createdAt">[],
+): number {
   const today = new Date().toDateString();
   return candidates.filter((c) => {
-    const iso = /[Zz]|[+-]\d{2}:?\d{2}$/.test(c.createdAt) ? c.createdAt : `${c.createdAt}Z`;
+    const iso = /[Zz]|[+-]\d{2}:?\d{2}$/.test(c.createdAt)
+      ? c.createdAt
+      : `${c.createdAt}Z`;
     const at = new Date(iso);
     return !Number.isNaN(at.getTime()) && at.toDateString() === today;
   }).length;

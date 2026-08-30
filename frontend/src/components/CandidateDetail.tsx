@@ -1,10 +1,9 @@
-import Badge from "./Badge";
 import CandidateDossier from "./CandidateDossier";
 import SectionCard from "./SectionCard";
 import ContactKitCard from "./ContactKitCard";
 import Citation from "./Citation";
+import EvidenceBadge from "./EvidenceBadge";
 import ScoreRing from "./ScoreRing";
-import ScoreTooltip from "./ScoreTooltip";
 import type { ContactKit } from "@/lib/api";
 import type {
   Candidate,
@@ -123,15 +122,11 @@ export default function CandidateDetail({
               caption="Score"
               valueSize={24}
             />
-            <span className="flex items-center gap-1.5">
-              <Badge bg={style.badgeBg} fg={style.badgeFg} variant="plain">
-                {candidate.tierLabel}
-              </Badge>
-              <ScoreTooltip
-                qualification={candidate.qualificationScore}
-                timing={candidate.timingScore}
-              />
-            </span>
+            <EvidenceBadge
+              evidence={candidate.evidence}
+              qualification={candidate.qualificationScore}
+              timing={candidate.timingScore}
+            />
             {percentile !== null ? (
               <p className="font-display text-[12px] font-semibold text-ink-muted">
                 #{rank} of {total} · Top {percentile}%
