@@ -1,126 +1,131 @@
+import type { ReactNode } from "react";
 import type { MatchEvidenceItem } from "@/lib/data";
 
 type TierKey = "license" | "name" | "initial" | "single" | "npi" | "deed-name";
 
+/** One rung of a matching ladder, written for a reader, not a maintainer. */
 type Tier = { key: TierKey; label: string; score: string; note: string };
 
-type Gate = {
-  /** Any tier ≥ the bar opens the same door — the gate is binary. */
-  open: { label: string; detail: string };
-  closed: { label: string; detail: string };
+type Outcome = {
+  /** The "What we found" cell — short enough to scan in a row. */
+  found: string;
+  /** The longer version, in the drawer. */
+  effect: string;
 };
 
-/** Tier ladders organized per connection — each join has its own rules. */
-const JOINS: {
-  title: string;
-  subtitle: string;
+type Join = {
+  key: string;
+  where: string;
+  whereSub: string;
   tiers: Tier[];
-  gate: Gate;
+  /** Any of these tiers opens the same door — the gate is binary. */
   openers: TierKey[];
-  /** Which scoring group the cross-link jumps to. */
-  scoringTarget: "qualification" | "timing";
+  matched: Outcome;
+  missed: Outcome;
+  /** How this source reads inside a sentence, not as a column label. */
+  inSentence: string;
   footnote?: string;
-}[] = [
+};
+
+const JOINS: Join[] = [
   {
-    title: "NPPES ↔ IDFPR",
-    subtitle: "Merging two records into one person",
+    key: "licence",
+    where: "State licence",
+    whereSub: "Illinois medical board",
     tiers: [
       {
         key: "license",
-        label: "License number match",
+        label: "Same licence number",
         score: "1.0",
-        note: "Shared government ID — certainty",
+        note: "Both records carry the same licence number, so it is the same person.",
       },
       {
         key: "name",
-        label: "Exact first + last name, same state",
+        label: "Same full name, same state",
         score: "0.95",
-        note: "+0.15 if specialty matches, capped at 1.0",
+        note: "Add 0.15 if the specialty matches too, up to a maximum of 1.0.",
       },
       {
         key: "initial",
-        label: "First initial + last name, same state",
+        label: "First initial and last name, same state",
         score: "0.85",
-        note: "0.70 alone — needs the specialty bonus to clear the bar",
+        note: "Only 0.70 on its own — it needs the specialty to match as well.",
       },
       {
         key: "single",
-        label: "No match found — single source",
+        label: "Nothing matched",
         score: "0.6",
-        note: "License number found no IDFPR row; NPPES stands alone",
+        note: "We could not find him in the state register, so we only have the national record.",
       },
     ],
-    gate: {
-      open: {
-        label: "Gate cleared — IDFPR data unlocked",
-        detail:
-          "License verified: Physician standing can reach 1.00 × 40, and License recency is active (up to 40 timing pts). Any tier ≥ 0.80 opens this same door.",
-      },
-      closed: {
-        label: "Gate not cleared — NPPES stands alone",
-        detail:
-          "License unverified: Physician standing capped at 0.70 × 40 = 28, and License recency locked at 0 / 40 timing pts.",
-      },
-    },
     openers: ["license", "name", "initial"],
-    scoringTarget: "timing",
+    matched: {
+      found: "Licence confirmed in the state register",
+      effect:
+        "Because we confirmed his licence, he can earn the full 40 points for being a licensed doctor, and his licence date counts toward timing — up to another 40.",
+    },
+    missed: {
+      found: "Not found in the state register",
+      effect:
+        "Without a confirmed licence he would top out at 28 points instead of 40, and his licence date would not count at all.",
+    },
+    inSentence: "the state licence register",
     footnote:
-      "Merge threshold is 0.80 — anything below becomes a separate prospect.",
+      "We only treat two records as the same person if the match scores 0.80 or better. Below that, they stay two separate people.",
   },
   {
-    title: "NPPES ↔ PECOS",
-    subtitle: "Attaching billing entities & career data",
+    key: "medicare",
+    where: "Medicare billing",
+    whereSub: "Medicare's provider records",
     tiers: [
       {
         key: "npi",
-        label: "NPI match",
+        label: "Same NPI number",
         score: "1.0",
-        note: "The only tier — PECOS is queried by NPI, so it's exact or nothing",
+        note: "The only way in. We look Medicare up by NPI, so it either matches exactly or not at all.",
       },
     ],
-    gate: {
-      open: {
-        label: "Gate cleared — billing data attached",
-        detail:
-          "Practice ownership can earn up to 20 qual pts (own PLLC × 0.8), and career-move tracking is armed (up to 15 timing pts from the next sync).",
-      },
-      closed: {
-        label: "Gate not cleared — no PECOS rows for this NPI",
-        detail:
-          "Practice ownership locked at 0 / 25 and Career advancement at 0 / 15. Common for physicians who don't bill Medicare under a group.",
-      },
-    },
     openers: ["npi"],
-    scoringTarget: "qualification",
-    footnote: "No name fallback by design: zero name-match risk on this join.",
+    matched: {
+      found: "Billing records attached",
+      effect:
+        "With his billing records we can tell whether he owns his practice — up to 20 points — and spot job changes from the next monthly update, up to another 15.",
+    },
+    missed: {
+      found: "No billing records for him",
+      effect:
+        "So he gets 0 out of 25 for owning a practice and 0 out of 15 for job changes. This is normal for doctors who do not bill Medicare through a group.",
+    },
+    inSentence: "Medicare billing",
+    footnote:
+      "We never fall back to matching by name here, which keeps this link free of name mix-ups.",
   },
   {
-    title: "NPPES ↔ Cook County",
-    subtitle: "Attaching property deeds",
+    key: "deed",
+    where: "Property deed",
+    whereSub: "Cook County records",
     tiers: [
       {
         key: "deed-name",
-        label: "Exact first + last name, same state",
+        label: "Same full name, same state",
         score: "0.9",
-        note: "The only tier — deeds carry no NPI; a near-miss is dropped, never guessed",
+        note: "Deeds do not list an NPI, so the name is all we have. If it is close but not exact, we drop it rather than guess.",
       },
     ],
-    gate: {
-      open: {
-        label: "Gate cleared — deed attached",
-        detail:
-          "Property purchase recency is active: up to 30 timing pts, decaying with the sale date.",
-      },
-      closed: {
-        label: "Gate not cleared — no deed matched",
-        detail:
-          "Property purchase recency locked at 0 / 30. A near-miss on the buyer name is dropped, never guessed.",
-      },
-    },
     openers: ["deed-name"],
-    scoringTarget: "timing",
+    matched: {
+      found: "A home purchase in his name",
+      effect:
+        "His purchase date counts toward timing — up to 30 points, worth less the older the sale gets.",
+    },
+    missed: {
+      found: "No purchase in his name",
+      effect:
+        "He gets 0 out of 30 for property. If a buyer name is close but not exact, we drop it rather than guess.",
+    },
+    inSentence: "Cook County property records",
     footnote:
-      "Weakest join in the system — mitigated by the $100k price floor and drop-don't-guess matching.",
+      "This is our least certain link. We only look at homes over $100k, and we drop anything we are not sure about.",
   },
 ];
 
@@ -133,34 +138,155 @@ function tierOf(m: MatchEvidenceItem): TierKey {
   return "single";
 }
 
+/* ── Shared pieces ──────────────────────────────────────────────── */
+
+/** A panel-weight disclosure. `Collapsible` is a full white card with its own
+ *  shadow — too heavy to nest inside a drawer — so this borrows the same
+ *  native <details> idea at the smaller scale. */
+export function Fold({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <details className="group rounded-[10px] border border-hairline bg-canvas">
+      <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2 font-display text-[12px] font-semibold text-brand transition-colors hover:bg-surface-soft [&::-webkit-details-marker]:hidden">
+        {label}
+        <span aria-hidden className="ml-auto transition-transform group-open:rotate-180">
+          ▾
+        </span>
+      </summary>
+      <div className="flex flex-col gap-1.5 border-t border-surface-soft px-2.5 pb-2.5 pt-2">
+        {children}
+      </div>
+    </details>
+  );
+}
+
+export type RowStatus = "found" | "none" | "pending" | "passed";
+
+const STATUS: Record<RowStatus, { label: string; className: string }> = {
+  found: { label: "✓ Found him", className: "bg-tier-strong-bg text-tier-strong-fg" },
+  none: { label: "✗ No match", className: "bg-tier-neutral-bg text-tier-neutral-fg" },
+  pending: { label: "— Can't check yet", className: "bg-surface-soft text-ink-muted" },
+  passed: { label: "✓ Passed", className: "bg-surface-soft text-ink-muted" },
+};
+
+/** The ledger's column template, shared by the header and every row so the
+ *  columns actually line up. */
+const COLS =
+  "md:grid-cols-[128px_minmax(140px,1.05fr)_minmax(170px,1.5fr)_minmax(160px,1.4fr)_54px_18px]";
+
+export type LedgerRowData = {
+  key: string;
+  status: RowStatus;
+  /** Where we looked, in the reader's words. */
+  where: string;
+  whereSub: string;
+  /** What came back. */
+  found: string;
+  /** What it is worth — the quieter half of the same cell. */
+  worth?: string;
+  /** How we checked. */
+  how: string;
+  /** Optional sentence-form name, for prose that lists rows. */
+  inSentence?: string;
+  score?: string;
+  drawer: ReactNode;
+};
+
+export function LedgerRow({ row }: { row: LedgerRowData }) {
+  const s = STATUS[row.status];
+  return (
+    <details className="group border-b border-surface-soft last:border-b-0">
+      <summary
+        className={
+          "grid cursor-pointer list-none grid-cols-1 items-center gap-2 rounded-[10px] px-3.5 py-3.5 transition-colors hover:bg-canvas md:gap-4 [&::-webkit-details-marker]:hidden " +
+          COLS
+        }
+      >
+        <span>
+          <span
+            className={
+              "inline-flex whitespace-nowrap rounded-full px-2.5 py-1 font-display text-[11.5px] font-bold " +
+              s.className
+            }
+          >
+            {s.label}
+          </span>
+        </span>
+
+        <span>
+          <span className="block font-display text-[14.5px] font-bold tracking-[-0.2px] text-ink">
+            {row.where}
+          </span>
+          <span className="block text-[11.5px] text-ink-muted">{row.whereSub}</span>
+        </span>
+
+        <span className="text-[13.5px] leading-[19px] text-ink">
+          {row.found}
+          {row.worth ? <span className="text-ink-muted"> · {row.worth}</span> : null}
+        </span>
+
+        <span className="text-[13px] leading-[19px] text-ink-muted">{row.how}</span>
+
+        <span className="font-display text-[14.5px] font-bold tabular-nums text-ink md:text-right">
+          {row.score ?? <span className="font-normal text-ink-muted">—</span>}
+        </span>
+
+        <span
+          aria-hidden
+          className="font-display text-[12px] text-brand transition-transform group-open:rotate-180 md:text-right"
+        >
+          ▾
+        </span>
+      </summary>
+
+      <div className="grid grid-cols-1 gap-3.5 px-3.5 pb-5 pt-1 lg:grid-cols-2">
+        {row.drawer}
+      </div>
+    </details>
+  );
+}
+
+/** One box inside a row's drawer. */
+export function Drawer({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div className="rounded-[10px] bg-canvas px-4 py-3.5">
+      <p className="eyebrow">{title}</p>
+      <div className="mt-2 flex flex-col gap-2">{children}</div>
+    </div>
+  );
+}
+
+export function DrawerNote({ children }: { children: ReactNode }) {
+  return <p className="text-[13px] leading-[20px] text-ink-muted">{children}</p>;
+}
+
 function TierRow({ tier, used }: { tier: Tier; used: boolean }) {
   return (
     <div
       className={
-        "flex items-center justify-between gap-4 rounded-[10px] px-3.5 py-2.5 " +
-        (used ? "bg-tier-strong-bg" : "bg-canvas opacity-60")
+        "flex items-start justify-between gap-4 rounded-[8px] px-3 py-2.5 " +
+        (used ? "bg-tier-strong-bg" : "bg-white")
       }
     >
       <div className="min-w-0">
         <p
           className={
             "font-display text-[13px] font-semibold " +
-            (used ? "text-tier-strong-fg" : "text-ink-muted")
+            (used ? "text-tier-strong-fg" : "text-ink")
           }
         >
           {tier.label}
           {used && (
-            <span className="ml-1.5 text-[10px] font-bold uppercase tracking-[0.5px]">
+            <span className="ml-1.5 text-[11px] font-bold uppercase tracking-[0.5px]">
               ✓ this one
             </span>
           )}
         </p>
-        <p className="text-[11px] leading-[16px] text-ink-faint">{tier.note}</p>
+        <p className="text-[12.5px] leading-[18px] text-ink-muted">{tier.note}</p>
       </div>
       <span
         className={
-          "shrink-0 rounded-full px-2 py-0.5 font-display text-[12px] font-bold " +
-          (used ? "bg-white text-tier-strong-fg" : "bg-surface-soft text-ink-faint")
+          "shrink-0 rounded-full px-2 py-0.5 font-display text-[12px] font-bold tabular-nums " +
+          (used ? "bg-white text-tier-strong-fg" : "bg-surface-soft text-ink-muted")
         }
       >
         {tier.score}
@@ -169,139 +295,155 @@ function TierRow({ tier, used }: { tier: Tier; used: boolean }) {
   );
 }
 
-function GateOutcome({
-  gate,
-  isOpen,
-  onSeeScoring,
-}: {
-  gate: Gate;
-  isOpen: boolean;
-  onSeeScoring?: () => void;
-}) {
-  const rows = [
-    { ...gate.open, active: isOpen, tone: "open" as const },
-    { ...gate.closed, active: !isOpen, tone: "closed" as const },
-  ];
+/* ── The identity rows of the ledger ─────────────────────────────── */
+
+/** The three outside sources we try to attach to a physician, one ledger row
+ *  each. Job changes are a separate row: a comparison over time rather than a
+ *  match, so it has no ladder. */
+export function identityRows(
+  matches: MatchEvidenceItem[],
+  scoringHref?: string,
+): LedgerRowData[] {
+  const used = new Set<TierKey>(matches.map(tierOf));
+  // No state-register evidence at all → the single-source default applied.
+  if (!used.has("license") && !used.has("name") && !used.has("initial")) {
+    used.add("single");
+  }
+
+  return JOINS.map((join) => {
+    const isOpen = join.openers.some((k) => used.has(k));
+    const landed = join.tiers.find((t) => used.has(t.key));
+    const others = join.tiers.filter((t) => t !== landed);
+    const outcome = isOpen ? join.matched : join.missed;
+    const hit = matches.find((m) => join.tiers.some((t) => t.key === tierOf(m)));
+
+    return {
+      key: join.key,
+      status: (isOpen ? "found" : "none") as RowStatus,
+      where: join.where,
+      whereSub: join.whereSub,
+      found: outcome.found,
+      how: landed ? landed.label : "Nothing matched",
+      inSentence: join.inSentence,
+      score: hit ? hit.score.toFixed(2) : undefined,
+      drawer: (
+        <>
+          <Drawer title={isOpen ? "How we checked" : "What would have matched"}>
+            {landed ? <TierRow tier={landed} used /> : null}
+            {others.length > 0 ? (
+              <Fold
+                label={
+                  landed
+                    ? `Other ways this could have matched (${others.length})`
+                    : `What we looked for (${others.length})`
+                }
+              >
+                {others.map((t) => (
+                  <TierRow key={t.key} tier={t} used={false} />
+                ))}
+              </Fold>
+            ) : null}
+            {join.footnote ? <DrawerNote>{join.footnote}</DrawerNote> : null}
+          </Drawer>
+
+          <Drawer title={isOpen ? "What this is worth" : "What we lost"}>
+            <DrawerNote>{outcome.effect}</DrawerNote>
+            <Fold label={isOpen ? "If it had not matched" : "If it had matched"}>
+              <DrawerNote>{(isOpen ? join.missed : join.matched).effect}</DrawerNote>
+            </Fold>
+            {scoringHref ? (
+              <a
+                href={scoringHref}
+                className="self-start font-display text-[12px] font-semibold text-brand hover:underline"
+              >
+                See how it scored →
+              </a>
+            ) : null}
+          </Drawer>
+        </>
+      ),
+    };
+  });
+}
+
+/** Not a match at all — a month-to-month comparison. */
+export const careerRow: LedgerRowData = {
+  key: "career",
+  status: "pending",
+  where: "Job changes",
+  whereSub: "Medicare records, month to month",
+  found: "Needs a second look",
+  how: "Not a match — a comparison",
+  drawer: (
+    <>
+      <Drawer title="How it works">
+        <DrawerNote>
+          Every month we check his Medicare record against last month&apos;s.
+          Anything new — a different practice, a new hospital — counts as a job
+          change.
+        </DrawerNote>
+      </Drawer>
+      <Drawer title="Why it is empty">
+        <DrawerNote>
+          The first pull only saves a starting point, so there is nothing to
+          compare against yet. And with no billing records attached, there is
+          nothing to compare at all.
+        </DrawerNote>
+      </Drawer>
+    </>
+  ),
+};
+
+/* ── The ledger shell ────────────────────────────────────────────── */
+
+export function Ledger({ rows }: { rows: LedgerRowData[] }) {
   return (
-    <div className="mt-2 flex flex-col gap-1.5">
+    <div>
+      <div
+        className={
+          "hidden gap-4 border-b border-surface-soft px-3.5 pb-2 text-[10.5px] font-semibold uppercase tracking-[0.09em] text-ink-muted md:grid " +
+          COLS
+        }
+      >
+        <span>Status</span>
+        <span>Where we looked</span>
+        <span>What we found</span>
+        <span>How we checked</span>
+        <span className="text-right">Score</span>
+        <span />
+      </div>
       {rows.map((row) => (
-        <div
-          key={row.label}
-          className={
-            "rounded-[10px] border px-3.5 py-2.5 " +
-            (row.active
-              ? row.tone === "open"
-                ? "border-tier-strong/40 bg-tier-strong-bg"
-                : "border-tier-neutral-fg/30 bg-tier-neutral-bg"
-              : "border-transparent bg-canvas opacity-50")
-          }
-        >
-          <p
-            className={
-              "font-display text-[12px] font-semibold " +
-              (row.active
-                ? row.tone === "open"
-                  ? "text-tier-strong-fg"
-                  : "text-tier-neutral-fg"
-                : "text-ink-muted")
-            }
-          >
-            {row.tone === "open" ? "🔓" : "🔒"} {row.label}
-            {row.active && (
-              <span className="ml-1.5 text-[10px] font-bold uppercase tracking-[0.5px]">
-                ← this prospect
-              </span>
-            )}
-          </p>
-          <p className="mt-0.5 text-[11px] leading-[17px] text-ink-muted">{row.detail}</p>
-          {row.active && onSeeScoring && (
-            <button
-              type="button"
-              onClick={onSeeScoring}
-              className="mt-1.5 font-display text-[11px] font-semibold text-brand"
-            >
-              See it in scoring →
-            </button>
-          )}
-        </div>
+        <LedgerRow key={row.key} row={row} />
       ))}
     </div>
   );
 }
 
-/** Gate 2 — Identity: per-connection tier ladders side by side, the gate
- *  outcomes, and the raw audit rows from identity_matches. */
-export default function MatchEvidencePanel({
+/** The raw decision log — the audit record, kept verbatim. */
+export function AuditTrail({
   matches,
   identityConfidence,
-  onSeeScoring,
 }: {
   matches: MatchEvidenceItem[];
   identityConfidence: number;
-  onSeeScoring?: (group: "qualification" | "timing") => void;
 }) {
-  const used = new Set<TierKey>(matches.map(tierOf));
-  // No IDFPR merge evidence → the single-source default applied
-  if (!used.has("license") && !used.has("name") && !used.has("initial")) {
-    used.add("single");
-  }
-
   return (
-    <div className="flex flex-col gap-5">
-      <div className="grid grid-cols-1 items-start md:grid-cols-2 lg:grid-cols-4 lg:divide-x lg:divide-surface-soft">
-        {JOINS.map((join) => (
-          <div key={join.title} className="py-2 lg:px-5 lg:py-0 lg:first:pl-0 lg:last:pr-0">
-            <p className="eyebrow">{join.title}</p>
-            <p className="text-[11px] text-ink-faint">{join.subtitle}</p>
-            <div className="mt-2 flex flex-col gap-1.5">
-              {join.tiers.map((t) => (
-                <TierRow key={t.key} tier={t} used={used.has(t.key)} />
-              ))}
-            </div>
-            <GateOutcome
-              gate={join.gate}
-              isOpen={join.openers.some((k) => used.has(k))}
-              onSeeScoring={
-                onSeeScoring ? () => onSeeScoring(join.scoringTarget) : undefined
-              }
-            />
-            {join.footnote && (
-              <p className="mt-1.5 text-[11px] leading-[16px] text-ink-faint">
-                {join.footnote}
-              </p>
-            )}
-          </div>
-        ))}
+    <div className="mt-5 border-t border-surface-soft pt-4">
+      <p className="text-[13px] text-ink-muted">
+        How sure we are this is all one person:{" "}
+        <span className="font-semibold text-ink">
+          {Math.round(identityConfidence * 100)}%
+        </span>{" "}
+        — that is the weakest of the links above.
+      </p>
 
-        {/* 4th column: the unscored join */}
-        <div className="py-2 lg:px-5 lg:py-0 lg:last:pr-0">
-          <p className="eyebrow">PECOS ↔ itself over time</p>
-          <p className="text-[11px] text-ink-faint">Career move detection</p>
-          <p className="mt-2 rounded-[10px] bg-canvas px-3.5 py-2.5 text-[12px] leading-[19px] text-ink-muted">
-            Not a scored match — an exact NPI-keyed diff. Each sync compares
-            today&apos;s billing groups and facilities against the stored
-            baseline; anything new becomes a career event. That&apos;s why the
-            career signal can never fire on a first ingest.
-          </p>
-        </div>
-      </div>
-
-      <div className="border-t border-surface-soft pt-4">
-        <p className="text-[12px] text-ink-faint">
-          Identity confidence:{" "}
-          <span className="font-semibold text-ink-muted">
-            {Math.round(identityConfidence * 100)}%
-          </span>{" "}
-          — the weakest link among this prospect&apos;s merges.
-        </p>
-
-        {matches.length > 0 && (
-          <div className="mt-3">
-            <p className="eyebrow">Audit trail — every recorded decision</p>
-            <div className="mt-2 overflow-x-auto">
-              <table className="w-full text-[13px]">
+      {matches.length > 0 ? (
+        <div className="mt-3">
+          <Fold label={`Every decision we recorded (${matches.length})`}>
+            <div className="overflow-x-auto">
+              <table className="w-full text-[14px]">
                 <thead>
-                  <tr className="text-left text-[11px] uppercase tracking-[0.5px] text-ink-faint">
+                  <tr className="text-left text-[12px] uppercase tracking-[0.5px] text-ink-muted">
                     <th className="py-2 pr-4 font-semibold">Sources</th>
                     <th className="py-2 pr-4 font-semibold">Reason</th>
                     <th className="py-2 text-right font-semibold">Score</th>
@@ -322,9 +464,9 @@ export default function MatchEvidencePanel({
                 </tbody>
               </table>
             </div>
-          </div>
-        )}
-      </div>
+          </Fold>
+        </div>
+      ) : null}
     </div>
   );
 }
