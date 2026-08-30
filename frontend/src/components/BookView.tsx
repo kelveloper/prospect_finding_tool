@@ -716,11 +716,18 @@ export default function BookView({ ranked, selectedId }: Props) {
 
         {/* ── Page turn ────────────────────────────────── */}
         <footer className="flex items-center justify-between gap-4 border-t border-hairline/60 bg-canvas px-6 py-3">
-          <PageTurn
-            direction="back"
-            disabled={current === 0}
-            onClick={() => turnTo(current - 1)}
-          />
+          <div className="flex shrink-0 items-center gap-1.5">
+            <PageEnd
+              direction="first"
+              disabled={current === 0}
+              onClick={() => turnTo(0)}
+            />
+            <PageTurn
+              direction="back"
+              disabled={current === 0}
+              onClick={() => turnTo(current - 1)}
+            />
+          </div>
           <p className="text-center text-[12px] text-ink-muted">
             <span className="font-display font-semibold text-ink">
               Spread {current + 1} of {spreadCount}
@@ -733,11 +740,18 @@ export default function BookView({ ranked, selectedId }: Props) {
               </span>
             ) : null}
           </p>
-          <PageTurn
-            direction="forward"
-            disabled={current >= spreadCount - 1}
-            onClick={() => turnTo(current + 1)}
-          />
+          <div className="flex shrink-0 items-center gap-1.5">
+            <PageTurn
+              direction="forward"
+              disabled={current >= spreadCount - 1}
+              onClick={() => turnTo(current + 1)}
+            />
+            <PageEnd
+              direction="last"
+              disabled={current >= spreadCount - 1}
+              onClick={() => turnTo(spreadCount - 1)}
+            />
+          </div>
         </footer>
       </div>
     </main>
@@ -1080,6 +1094,35 @@ function BookEntry({
         </span>
       </span>
     </Link>
+  );
+}
+
+/** Jump to either end of the book. Icon only — the label beside it already
+ *  says which way you are going, and the title names the destination. */
+function PageEnd({
+  direction,
+  disabled,
+  onClick,
+}: {
+  direction: "first" | "last";
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  const first = direction === "first";
+  const Icon = first ? ChevronLeft : ChevronRight;
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      title={first ? "Jump to the first spread" : "Jump to the last spread"}
+      aria-label={first ? "First spread" : "Last spread"}
+      className="flex shrink-0 items-center rounded-[8px] border border-hairline bg-white px-2 py-2 text-brand shadow-raised transition-colors hover:bg-surface-soft disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white"
+    >
+      <Icon className="-mr-2 size-4" />
+      <Icon className="size-4" />
+    </button>
   );
 }
 
