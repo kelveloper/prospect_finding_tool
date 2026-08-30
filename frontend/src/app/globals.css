@@ -15,22 +15,28 @@
   --color-surface-tint: #d0eaf7;
   --color-hairline: #b8ddef;
 
-  /* ── Tier accents ────────────────────────────── */
+  /* ── Tier accents ──────────────────────────────
+     A good→bad ramp. "Neutral" is a slate rather than an olive: the olive
+     sat in the same warm family as weak and poor, which put three of five
+     tiers in one narrow hue band — neutral and weak were indistinguishable
+     to a red-green colour-blind reader, and that is the boundary between
+     "worth a call" and "not". Weak and poor stay close, which costs less:
+     both mean the same thing to an advisor. */
   --color-tier-strong: #10b981;
   --color-tier-strong-bg: #d6f4e8;
   --color-tier-strong-fg: #0b7a4b;
   --color-tier-promising: #3b9fd4;
   --color-tier-promising-bg: #d0eaf7;
   --color-tier-promising-fg: #0d5fa3;
-  --color-tier-neutral: #f59e0b;
-  --color-tier-neutral-bg: #fef3c7;
-  --color-tier-neutral-fg: #7a6b0d;
-  --color-tier-weak: #f97316;
-  --color-tier-weak-bg: #fee8d1;
-  --color-tier-weak-fg: #a35a0d;
-  --color-tier-poor: #ef4444;
-  --color-tier-poor-bg: #fee2e2;
-  --color-tier-poor-fg: #9b1c1c;
+  --color-tier-neutral: #5a6472;
+  --color-tier-neutral-bg: #e7eaee;
+  --color-tier-neutral-fg: #4a5563;
+  --color-tier-weak: #b8760f;
+  --color-tier-weak-bg: #fdf3e3;
+  --color-tier-weak-fg: #9e6109;
+  --color-tier-poor: #e01a52;
+  --color-tier-poor-bg: #fce4ea;
+  --color-tier-poor-fg: #c9154f;
 
   /* ── Type ────────────────────────────────────── */
   --font-display: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
@@ -102,24 +108,27 @@ html[data-launched] [data-launch-overlay] {
 
 html[data-style]:not([data-style="advisor"]) {
   /* ── Tier accents ────────────────────────────────
-     A good→bad ramp of green, olive, gold, burnt orange and brick.
-     "Promising" leaves blue behind so it cannot collide with the gold
-     neutral beside it. Each *-fg clears 5.4:1 on its own *-bg. */
+     A good→bad ramp in the bronze world. The original ran green, olive,
+     gold, burnt orange and brick — elegant, but four of the five sat in
+     one warm hue band, and neutral and weak were two units apart to a
+     red-green colour-blind reader. Neutral steps out to a taupe and
+     promising to a teal-green; weak and poor separate by lightness,
+     since amber and red converge whatever their hue. */
   --color-tier-strong: #2f7d4f;
   --color-tier-strong-bg: #dcefe0;
   --color-tier-strong-fg: #1d5c37;
-  --color-tier-promising: #6e8b3d;
-  --color-tier-promising-bg: #e7edd4;
-  --color-tier-promising-fg: #4a5f26;
-  --color-tier-neutral: #b98523;
-  --color-tier-neutral-bg: #f6e9cc;
-  --color-tier-neutral-fg: #7a5710;
-  --color-tier-weak: #c2632a;
-  --color-tier-weak-bg: #f7e2d3;
-  --color-tier-weak-fg: #8c4416;
-  --color-tier-poor: #a93226;
-  --color-tier-poor-bg: #f7dcd9;
-  --color-tier-poor-fg: #8a241a;
+  --color-tier-promising: #3f8f7c;
+  --color-tier-promising-bg: #dbeeea;
+  --color-tier-promising-fg: #2f6d5e;
+  --color-tier-neutral: #7c7973;
+  --color-tier-neutral-bg: #e8e6e2;
+  --color-tier-neutral-fg: #5c5a55;
+  --color-tier-weak: #c48417;
+  --color-tier-weak-bg: #fefbf6;
+  --color-tier-weak-fg: #a06612;
+  --color-tier-poor: #c9184a;
+  --color-tier-poor-bg: #f9dee6;
+  --color-tier-poor-fg: #b01342;
 
   /* Elevation: wider blur at lower opacity than advisor's, which is most of
      what reads as modern. --shadow-ink is the per-style shadow colour. */
