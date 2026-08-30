@@ -78,9 +78,10 @@ is a reasonable fallback.
 - **Keep the tier accents legible.** Strong/promising/neutral/weak/poor must
   stay distinguishable from one another after re-mapping, and ideally still
   read as good→bad.
-- Client view already hides two things via `.sources-note` and `.viewer-sid`
-  at the bottom of `globals.css`. Keep those rules; extend if you find more
-  that a client should not see.
+- **Client view is colour only — it must not hide anything.** Both views show
+  identical content; only the palette differs. An earlier draft of this brief
+  said otherwise and shipped two `display: none` rules (`.sources-note`,
+  `.viewer-sid`) at the bottom of `globals.css`. Delete them.
 - Do not rename tokens or change the `@theme` block's advisor values —
   advisor view must look exactly as it does today.
 

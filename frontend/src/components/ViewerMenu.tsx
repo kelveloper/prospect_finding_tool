@@ -66,7 +66,7 @@ export default function ViewerMenu() {
         aria-expanded={open}
         title={`${VIEWER_NAME} — change how this screen is shown`}
         className={
-          "flex size-8 items-center justify-center rounded-full bg-brand font-display text-[12px] font-bold text-white transition-shadow hover:shadow-float " +
+          "viewer-avatar flex size-8 items-center justify-center rounded-full bg-brand font-display text-[12px] font-bold text-white transition-shadow hover:shadow-float " +
           (open ? "ring-2 ring-brand ring-offset-2" : "")
         }
       >

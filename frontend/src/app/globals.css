@@ -81,12 +81,205 @@ html[data-launched] [data-launch-overlay] {
    and internal identifiers. Add rules here as the design firms up; add new
    styles to STYLES in src/lib/style.ts and they appear in the menu. */
 
-/* The "Sources" block: citations into the scoring model and signal evidence. */
-[data-style="client"] .sources-note {
-  display: none;
+/* ── Client view: the palette ───────────────────────────────
+   Colours are taken from J.P. Morgan's own design system, Salt — the brown
+   and citrine ramps in packages/theme/css/next/foundations/color.css, with
+   Salt gray for secondary text. Salt step names are noted per token so the
+   next person can look them up rather than guess.
+
+   The light end of every fill is pinned at 4.5:1 against white text, which
+   is what stops the browns going lighter than they do here.
+
+   Components consume the tokens declared in @theme above, so overriding them
+   here restyles the whole app without touching a single component. Every
+   foreground/background pair clears WCAG AA (4.5:1). Advisor view keeps the
+   @theme values untouched. */
+
+[data-style="client"] {
+  /* ── Brand / ink ─────────────────────────────── */
+  --color-ink: #422407;         /* Salt brown-800 — 14.1:1 on white */
+  --color-ink-muted: #4c5157;   /* Salt gray-700, their body-secondary — 8.0:1 */
+  --color-ink-faint: #5f646a;   /* Salt gray-600 — 6.0:1 on white, 4.8:1 on tint */
+  --color-brand: #7d532f;       /* Salt brown-600. Text/border/ring only — the
+                                   fills below run lighter. 5.8:1 even on the
+                                   surface-soft its buttons hover onto. */
+  --color-brand-dark: #673f1b;  /* Salt brown-700 — 9.1:1 on white */
+  --color-brand-light: #996c48; /* Salt brown-500 — 4.6:1, the lightest step that
+                                   still carries white text. Avatars, bars. */
+
+  /* The gold. Decorative only: it is 2.4:1 against white, so it may rule a
+     line or edge a ring but must never sit behind text. Not a @theme token —
+     nothing outside this block knows it exists. */
+  --client-gold: #b29c42;        /* Salt citrine-400 */
+
+  /* ── Surfaces ────────────────────────────────── */
+  --color-canvas: #faf7f3;
+  --color-surface-soft: #f3eee8; /* Salt brown-100 */
+  --color-surface-tint: #ede5d8; /* Salt brown-200 */
+  --color-hairline: #d7ba9d;     /* Salt brown-300 */
+
+  /* ── Tier accents ────────────────────────────────
+     Still a good→bad ramp — green, olive, gold, burnt orange, brick — but
+     warmed into the palette. "Promising" leaves blue behind: a bronze
+     promising would be indistinguishable from the gold neutral.
+     Each *-fg clears 5.4:1 on its own *-bg. */
+  --color-tier-strong: #2f7d4f;
+  --color-tier-strong-bg: #dcefe0;
+  --color-tier-strong-fg: #1d5c37;
+  --color-tier-promising: #6e8b3d;
+  --color-tier-promising-bg: #e7edd4;
+  --color-tier-promising-fg: #4a5f26;
+  --color-tier-neutral: #b98523;
+  --color-tier-neutral-bg: #f6e9cc;
+  --color-tier-neutral-fg: #7a5710;
+  --color-tier-weak: #c2632a;
+  --color-tier-weak-bg: #f7e2d3;
+  --color-tier-weak-fg: #8c4416;
+  --color-tier-poor: #a93226;
+  --color-tier-poor-bg: #f7dcd9;
+  --color-tier-poor-fg: #8a241a;
+
+  /* ── Elevation ───────────────────────────────────
+     Warm-tinted and softer than advisor's: wider blur at lower opacity is
+     what reads as modern. A blue haze reads as dirt on a warm page. */
+  --shadow-card: 0 1px 2px rgba(66, 36, 7, 0.05), 0 1px 3px rgba(66, 36, 7, 0.04);
+  --shadow-raised: 0 1px 2px rgba(66, 36, 7, 0.06);
+  --shadow-float: 0 4px 14px rgba(66, 36, 7, 0.1);
+  --shadow-brand: 0 4px 12px rgba(125, 83, 47, 0.3);
+  --shadow-panel: 0 8px 30px rgba(66, 36, 7, 0.12);
 }
 
-/* The advisor's internal SID. */
-[data-style="client"] .viewer-sid {
-  display: none;
+/* ── Client view: gradients ─────────────────────────────────
+   Tailwind emits flat `background-color` for bg-* utilities into @layer
+   utilities. These rules are unlayered, so they win the cascade regardless
+   of specificity and can lay a gradient over the flat fill.
+
+   Each rule targets the bare utility class only — `.bg-ink` never matches
+   `bg-ink/30`, which Tailwind emits as its own class, so the modal scrims
+   keep their alpha. */
+
+/* The page itself: a warm wash that deepens down the fold. Fixed, so it
+   spans the viewport once instead of tiling down a long scoreboard. */
+[data-style="client"] body {
+  background: linear-gradient(180deg, #faf7f3 0%, #f0e9e0 100%) fixed;
+}
+
+/* Primary fills — buttons, the logo tile, the launch screen's Begin panel.
+   Runs brown-500 to brown-600. brown-500 is 4.57:1 against white text — the
+   lightest step in Salt's ramp a white label can legally sit on, so this is
+   as light as a primary button gets. */
+[data-style="client"] .bg-brand {
+  background-image: linear-gradient(135deg, #996c48 0%, #7d532f 100%);
+}
+
+/* BeginTile swaps to bg-brand-dark on hover; without this the gradient above
+   would paint straight over the new colour and nothing would happen. */
+[data-style="client"] .hover\:bg-brand-dark:hover,
+[data-style="client"] .bg-brand-dark {
+  background-image: linear-gradient(135deg, #7d532f 0%, #673f1b 100%);
+}
+
+/* Avatar circles and the found-today progress bar. */
+[data-style="client"] .bg-brand-light {
+  background-image: linear-gradient(135deg, #996c48 0%, #7d532f 100%);
+}
+
+/* Soft panels get the faintest lift so they read as raised paper rather than
+   a flat grey box. */
+[data-style="client"] .bg-surface-soft {
+  background-image: linear-gradient(180deg, #f6f2ec 0%, #efe8df 100%);
+}
+
+/* The nav bar's gold rule — the one unmistakably private-bank gesture. It
+   replaces the hairline border and fades out at both ends so it reads as a
+   ruled line, not a stripe. */
+[data-style="client"] header.sticky {
+  border-bottom-color: transparent;
+  background-image: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(178, 156, 66, 0.55) 12%,
+    rgba(178, 156, 66, 0.55) 88%,
+    transparent 100%
+  );
+  background-size: 100% 2px;
+  background-position: bottom;
+  background-repeat: no-repeat;
+}
+
+/* The signed-in avatar wears the gold as a hairline ring — small, and the
+   only place the accent touches a person. */
+[data-style="client"] .viewer-avatar {
+  box-shadow: 0 0 0 1.5px var(--client-gold);
+}
+
+/* ── Client view: dimension ─────────────────────────────────
+   A shallow bevel on the two things you press or read at a glance — the
+   tier pills and the primary buttons. Enough to lift them off the page,
+   not enough to look like a 2008 gel button.
+
+   The bevel is drawn on an ::after overlay rather than on the element's own
+   box-shadow. That matters: `shadow-brand` and `focus-visible:ring-4` are
+   both box-shadows, and writing one here would silently erase the focus
+   ring. The overlay is pointer-events:none and inherits the radius, so it
+   never intercepts a click or squares off a corner. */
+
+/* Pills: tier badges, chips, filter toggles — everything in the rounded-full
+   family. Avatars are font-bold, so they are excluded and keep their gold
+   ring. On a pale fill the light comes from a white top edge; the bottom
+   shade stays under 8% or the pill starts to look bruised. */
+[data-style="client"] .rounded-full.font-display.font-semibold {
+  position: relative;
+  box-shadow: 0 1px 1.5px rgba(66, 36, 7, 0.07);
+}
+
+[data-style="client"] .rounded-full.font-display.font-semibold::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    inset 0 -1px 0 rgba(66, 36, 7, 0.07);
+}
+
+/* Primary buttons. Not the header's logo tile: that is a <span> inside the
+   wordmark link, so the element selectors below leave it flat. */
+[data-style="client"] button.bg-brand,
+[data-style="client"] a.bg-brand,
+[data-style="client"] button.bg-brand-dark,
+[data-style="client"] a.bg-brand-dark {
+  position: relative;
+}
+
+[data-style="client"] button.bg-brand::after,
+[data-style="client"] a.bg-brand::after,
+[data-style="client"] button.bg-brand-dark::after,
+[data-style="client"] a.bg-brand-dark::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1.5px 0 rgba(0, 0, 0, 0.22);
+  transition: box-shadow 120ms ease;
+}
+
+/* Pressed: the top highlight goes out and the shade moves overhead, which is
+   what actually reads as "down" — then a 1px nudge to match. */
+[data-style="client"] button.bg-brand:active::after,
+[data-style="client"] a.bg-brand:active::after,
+[data-style="client"] button.bg-brand-dark:active::after,
+[data-style="client"] a.bg-brand-dark:active::after {
+  box-shadow:
+    inset 0 2px 3px rgba(0, 0, 0, 0.28),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+}
+
+[data-style="client"] button.bg-brand:active:not(:disabled),
+[data-style="client"] a.bg-brand:active {
+  transform: translateY(1px);
 }

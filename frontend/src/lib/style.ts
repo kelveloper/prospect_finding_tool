@@ -5,7 +5,7 @@
  * localStorage and on a `data-style` attribute on <html>. Any CSS can then key
  * off it:
  *
- *     [data-style="client"] .something { display: none }
+ *     [data-style="client"] .something { color: … }
  *
  * To add a style: add it to STYLES, give it a label, and write the rules in
  * globals.css. Nothing else needs to change — the menu builds itself from
@@ -18,11 +18,11 @@ export const STYLE_KEY = "prospectiq_style";
 export const STYLES = {
   advisor: {
     label: "Advisor view",
-    hint: "Everything — scores, sources and internal detail",
+    hint: "The working palette",
   },
   client: {
     label: "Client view",
-    hint: "Hides model internals and internal IDs",
+    hint: "Same information, client-facing colours",
   },
 } as const;
 
