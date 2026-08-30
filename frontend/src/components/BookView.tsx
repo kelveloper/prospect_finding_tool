@@ -377,8 +377,18 @@ export default function BookView({ ranked, selectedId }: Props) {
         <div className="border-b border-hairline/60 bg-canvas px-6 py-4 sm:px-8">
           {/* Saved views — preset filters, sitting with the filters they
               replace. "New arrivals" is the one that turns the board from a
-              database into a morning routine. */}
-          <div className="flex flex-wrap items-center gap-2 pb-3">
+              database into a morning routine.
+
+              Labelled, because a bare row of chips says nothing about what
+              clicking one does. The controls below all carry a label; this
+              was the only thing in the strip without one. */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 pb-3">
+            <span
+              className="eyebrow"
+              title="Preset filters. Click one to jump to it, or set your own filters below and save them here."
+            >
+              Views
+            </span>
             <ViewChip
               label="Whole book"
               count={entries.length}
@@ -424,9 +434,61 @@ export default function BookView({ ranked, selectedId }: Props) {
                 title={`Saved view — ${describe(view.state)}`}
               />
             ))}
+
+            {/* The dashed chip is the shape of what you get, sitting where it
+                will appear — a Save button parked among the controls said
+                nothing about the result. */}
+            {naming !== null ? (
+              <span className="flex items-center gap-1.5">
+                <input
+                  autoFocus
+                  value={draftName}
+                  onChange={(e) => setDraftName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") commitName();
+                    if (e.key === "Escape") setNaming(null);
+                  }}
+                  aria-label="Name for this view"
+                  placeholder="Name this view"
+                  maxLength={40}
+                  className="w-[168px] rounded-full border border-brand bg-white px-3 py-1.5 text-[12px] text-ink placeholder:text-ink-faint focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={commitName}
+                  className="rounded-full bg-brand px-3 py-1.5 font-display text-[12px] font-semibold text-white transition-colors hover:bg-brand-dark"
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setNaming(null)}
+                  className="px-1 font-display text-[12px] font-semibold text-ink-muted transition-colors hover:text-ink"
+                >
+                  Cancel
+                </button>
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => startNaming("")}
+                disabled={saveBlockedBecause !== null}
+                title={
+                  saveBlockedBecause === null
+                    ? "Name these filters and keep them here"
+                    : saveBlockedBecause.startsWith("Nothing to save") ||
+                        saveBlockedBecause.startsWith("This is already")
+                      ? saveBlockedBecause
+                      : `These filters are already saved as "${saveBlockedBecause}".`
+                }
+                className="rounded-full border border-dashed border-hairline px-3 py-1.5 font-display text-[12px] font-semibold text-brand transition-colors hover:border-brand hover:bg-white disabled:cursor-not-allowed disabled:border-hairline/60 disabled:text-ink-faint disabled:hover:bg-transparent"
+              >
+                + Save your own
+              </button>
+            )}
           </div>
 
-          <div className="flex flex-wrap items-end gap-3 border-t border-hairline/60 pt-3">
+          <div className="flex flex-wrap items-center gap-3 border-t border-hairline/60 pt-3">
             <label className="flex flex-col gap-1">
               <span className="eyebrow">Look up</span>
               <input
@@ -443,55 +505,6 @@ export default function BookView({ ranked, selectedId }: Props) {
                 right edge, so it stays put when Save comes and goes rather
                 than sliding across as the row reflows. */}
             <div className="ml-auto flex items-center gap-2">
-              {naming !== null ? (
-                <span className="flex items-center gap-1.5">
-                  <input
-                    autoFocus
-                    value={draftName}
-                    onChange={(e) => setDraftName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") commitName();
-                      if (e.key === "Escape") setNaming(null);
-                    }}
-                    aria-label="Name for this view"
-                    placeholder="Name this view"
-                    maxLength={40}
-                    className="w-[168px] rounded-[8px] border border-brand bg-white px-2.5 py-1.5 text-[12px] text-ink placeholder:text-ink-faint focus:outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={commitName}
-                    className="rounded-[8px] bg-brand px-3 py-1.5 font-display text-[12px] font-semibold text-white transition-colors hover:bg-brand-dark"
-                  >
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setNaming(null)}
-                    className="rounded-[8px] px-2 py-1.5 font-display text-[12px] font-semibold text-ink-muted transition-colors hover:text-ink"
-                  >
-                    Cancel
-                  </button>
-                </span>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => startNaming("")}
-                  disabled={saveBlockedBecause !== null}
-                  title={
-                    saveBlockedBecause === null
-                      ? "Save these filters under a name of your choosing"
-                      : saveBlockedBecause.startsWith("Filter the book") ||
-                          saveBlockedBecause.startsWith("This is already")
-                        ? saveBlockedBecause
-                        : `These filters are already saved as "${saveBlockedBecause}".`
-                  }
-                  className="rounded-[8px] border border-dashed border-hairline bg-white px-3 py-1.5 font-display text-[12px] font-semibold text-brand transition-colors hover:bg-surface-soft disabled:cursor-not-allowed disabled:border-hairline/50 disabled:text-ink-faint disabled:hover:bg-white"
-                >
-                  + Save this view
-                </button>
-              )}
-
               {/* Kept mounted and dimmed rather than removed: a button that
                   vanishes takes its width with it, and everything beside it
                   moves. */}
