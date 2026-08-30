@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import Badge from "./Badge";
 import { EvidenceChip, MovementChip, TriggerChip } from "./RowChips";
 import { ChevronLeft, ChevronRight } from "./icons";
@@ -120,6 +120,47 @@ export default function BookView({ ranked, selectedId }: Props) {
   const [sort, setSort] = useState<SortKey>("rank");
   const [fromBack, setFromBack] = useState(false);
   const [onlyNew, setOnlyNew] = useState(false);
+  // A native <details> only closes from its own summary, so an open column
+  // menu followed the advisor around the page. Close on any click outside one,
+  // and on Escape. Done against the DOM rather than React state because the
+  // open flag belongs to the element — mirroring it would be a second source
+  // of truth to keep in step.
+  useEffect(() => {
+    const menus = () =>
+      document.querySelectorAll<HTMLDetailsElement>(
+        'details[name="book-column-menu"][open]',
+      );
+
+    const onPointerDown = (event: MouseEvent) => {
+      const target = event.target;
+      if (
+        target instanceof Element &&
+        target.closest('details[name="book-column-menu"]')
+      ) {
+        return;
+      }
+      menus().forEach((menu) => (menu.open = false));
+    };
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      const open = menus();
+      if (open.length === 0) return;
+      // Put focus back where it came from, so Escape does not strand it.
+      open.forEach((menu) => {
+        menu.open = false;
+        menu.querySelector("summary")?.focus();
+      });
+    };
+
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, []);
+
   /** null = not naming; "" = naming a new view; an id = renaming that one. */
   const [naming, setNaming] = useState<string | null>(null);
   const [draftName, setDraftName] = useState("");
