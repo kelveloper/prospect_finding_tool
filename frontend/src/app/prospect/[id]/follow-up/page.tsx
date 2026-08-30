@@ -7,5 +7,5 @@ export default async function FollowUpPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  redirect(`/prospect/${id}/sources#what-we-found`);
+  redirect(`/prospect/${id}/how-we-know#what-we-found`);
 }

@@ -180,7 +180,7 @@ export default function CandidateDetail({
         <p className="eyebrow">How we know</p>
         <div className="mt-2">
           <Citation
-            href={`/prospect/${candidate.id}/sources`}
+            href={`/prospect/${candidate.id}/how-we-know`}
             label="The facts, how we matched them, and what each was worth"
           />
         </div>

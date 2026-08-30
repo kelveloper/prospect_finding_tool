@@ -7,5 +7,5 @@ export default async function BreakdownPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  redirect(`/prospect/${id}/sources#how-it-scored`);
+  redirect(`/prospect/${id}/how-we-know#how-it-scored`);
 }
