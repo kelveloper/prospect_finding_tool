@@ -237,6 +237,46 @@ function toEvidence(signalTypes: string[]): Candidate["evidence"] {
   };
 }
 
+/** The event worth calling about, rarest first.
+ *
+ *  Order matters: 132 of 219 prospects carry NEW_LICENSE, so leading with it
+ *  would print the same chip on most of the board. Ownership (6) and property
+ *  (9) are the ones that actually separate a row from its neighbours, so they
+ *  win when a prospect has several. */
+const TRIGGERS: { type: string; label: string; hint: string; hot?: boolean }[] =
+  [
+    {
+      type: "OWNERSHIP",
+      label: "New practice",
+      hint: "Bills Medicare under their own entity — they went independent.",
+      hot: true,
+    },
+    {
+      type: "PROPERTY_EVENT",
+      label: "Bought a home",
+      hint: "A recent property purchase on the county deed record. Money is moving.",
+      hot: true,
+    },
+    {
+      type: "CAREER_ADVANCEMENT",
+      label: "Career move",
+      hint: "Changed billing group or facility since the last sync.",
+    },
+    {
+      type: "NEW_LICENSE",
+      label: "New licence",
+      hint: "Recently licensed in Illinois — the first attending years.",
+    },
+  ];
+
+function toTrigger(signalTypes: string[]): Candidate["trigger"] {
+  const present = new Set(signalTypes);
+  const hit = TRIGGERS.find((t) => present.has(t.type));
+  return hit
+    ? { label: hit.label, hint: hit.hint, hot: hit.hot ?? false }
+    : null;
+}
+
 function toCategories(signalTypes: string[]): Candidate["categories"] {
   const present = new Set(signalTypes);
   return CATEGORY_SIGNALS.map(({ label, types }) => ({
@@ -310,6 +350,11 @@ function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
     summary:
       p.advisor_summary ?? p.reason_summary ?? "No signals recorded yet.",
     tags,
+    trigger: toTrigger(
+      detail
+        ? detail.signals.map((sig) => sig.signal_type)
+        : (p.signal_types ?? []),
+    ),
     evidence: toEvidence(
       detail
         ? detail.signals.map((sig) => sig.signal_type)

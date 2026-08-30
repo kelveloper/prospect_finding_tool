@@ -19,6 +19,8 @@ export type Candidate = {
   strength: string;
   summary: string;
   tags: string[];
+  /** The event worth calling about, if anything recent happened. */
+  trigger: { label: string; hint: string; hot: boolean } | null;
   /** How many of the seven signals were found, and which. */
   evidence: {
     level: "strong" | "partial" | "thin";

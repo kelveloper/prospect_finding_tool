@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ScoreRing from "./ScoreRing";
+import { EvidenceChip, MovementChip, TriggerChip } from "./RowChips";
 import Badge from "./Badge";
 import { tierStyle } from "@/lib/tier";
 import type { Candidate } from "@/lib/data";
@@ -65,76 +66,26 @@ export default function CandidateCard({ candidate, rank, active }: Props) {
         />
       </div>
 
-      <div className="pt-[10px]">
-        <div className="flex items-center justify-between">
-          <span className="flex items-center gap-1.5">
-            <Badge bg={style.badgeBg} fg={style.badgeFg}>
-              {candidate.tier}
-            </Badge>
-            {/* Movement since the last ingest */}
-            {candidate.scoreChange !== null && candidate.scoreChange !== 0 && (
-              <span
-                title={`Score moved ${candidate.scoreChange > 0 ? "up" : "down"} ${Math.abs(candidate.scoreChange)} points since the last ingest`}
-                className={
-                  "font-display text-[11px] font-bold tabular-nums " +
-                  (candidate.scoreChange > 0 ? "text-tier-strong-fg" : "text-tier-poor")
-                }
-              >
-                {candidate.scoreChange > 0 ? "▲" : "▼"} {Math.abs(candidate.scoreChange)}
-              </span>
-            )}
-          </span>
-          <span className="text-[11px] text-ink-faint">
-            {active ? "Showing profile →" : "Fit score"}
-          </span>
-        </div>
-        <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-surface-soft">
-          <div
-            className="h-full rounded-full"
-            style={{ width: `${candidate.score}%`, backgroundColor: style.accent }}
-          />
-        </div>
+      {/* One row, three different facts: how good, how sure, why now. The
+          fit bar and the "Fit score" caption said what the ring already
+          said, and the three coverage chips are the evidence chip's job at
+          a size you could actually read. */}
+      <div className="mt-3 flex items-center gap-1.5 border-t border-surface-soft pt-2.5">
+        <span
+          title={`Tier — ${candidate.tierLabel}, from the fit score.`}
+          className="cursor-help"
+        >
+          <Badge bg={style.badgeBg} fg={style.badgeFg}>
+            {candidate.tier}
+          </Badge>
+        </span>
 
-        {/* Quick overview: signal coverage per category */}
-        <div className="mt-2 flex gap-1.5">
-          {candidate.categories.map(({ label, captured, total }) => {
-            const full = captured === total;
-            const none = captured === 0;
-            return (
-              <span
-                key={label}
-                title={
-                  none
-                    ? `No ${label.toLowerCase()} signals found yet`
-                    : `${captured} of ${total} ${label.toLowerCase()} signal types captured`
-                }
-                className={
-                  "inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-display text-[10px] font-semibold " +
-                  (none
-                    ? "bg-surface-soft text-ink-faint"
-                    : full
-                      ? "bg-tier-strong-bg text-tier-strong-fg"
-                      : "bg-surface-tint text-brand-dark")
-                }
-              >
-                <span
-                  className={
-                    "size-1.5 rounded-full " +
-                    (none
-                      ? "bg-ink-faint/40"
-                      : full
-                        ? "bg-tier-strong"
-                        : "bg-brand")
-                  }
-                />
-                {label}
-                <span className={none ? "font-normal" : "font-bold"}>
-                  {captured}/{total}
-                </span>
-              </span>
-            );
-          })}
-        </div>
+        <EvidenceChip evidence={candidate.evidence} />
+        <TriggerChip trigger={candidate.trigger} />
+
+        <span className="ml-auto">
+          <MovementChip change={candidate.scoreChange} />
+        </span>
       </div>
     </Link>
   );

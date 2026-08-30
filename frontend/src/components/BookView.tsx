@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import Badge from "./Badge";
+import { EvidenceChip, MovementChip, TriggerChip } from "./RowChips";
 import { ChevronLeft, ChevronRight } from "./icons";
 import type { Candidate } from "@/lib/data";
 import { tierStyle } from "@/lib/tier";
@@ -58,6 +59,16 @@ const SORTS = {
     back: "Z–A",
     cmp: (a: Entry, b: Entry) =>
       a.specialty.localeCompare(b.specialty) || a.rank - b.rank,
+  },
+  trigger: {
+    label: "Why now",
+    front: "Most recent events first",
+    back: "Quiet prospects first",
+    // Rank keeps the order stable inside each group.
+    cmp: (a: Entry, b: Entry) =>
+      Number(!!b.trigger) - Number(!!a.trigger) ||
+      (a.trigger?.label ?? "").localeCompare(b.trigger?.label ?? "") ||
+      a.rank - b.rank,
   },
   location: {
     label: "Location",
@@ -265,10 +276,19 @@ export default function BookView({ ranked, selectedId }: Props) {
                         onSort={setOrder}
                       />
                     </span>
-                    <span className="hidden shrink-0 sm:block">
+                    <span className="hidden w-[104px] shrink-0 lg:block">
                       <ColumnMenu
-                        sortKey="movement"
-                        heading="Move"
+                        sortKey="trigger"
+                        heading="Why now"
+                        activeSort={sort}
+                        fromBack={fromBack}
+                        onSort={setOrder}
+                      />
+                    </span>
+                    <span className="hidden shrink-0 md:block">
+                      <ColumnMenu
+                        sortKey="rank"
+                        heading="Evidence"
                         activeSort={sort}
                         fromBack={fromBack}
                         onSort={setOrder}
@@ -286,12 +306,16 @@ export default function BookView({ ranked, selectedId }: Props) {
                         onSort={setOrder}
                       />
                     </span>
-                    {/* Spacer over the fit bar — the score's own heading sits
-                        to its right, so this column stays unlabelled. */}
-                    <span
-                      aria-hidden
-                      className="hidden w-16 shrink-0 md:block"
-                    />
+                    <span className="hidden w-[78px] shrink-0 text-right md:block">
+                      <ColumnMenu
+                        sortKey="movement"
+                        heading="Move"
+                        align="right"
+                        activeSort={sort}
+                        fromBack={fromBack}
+                        onSort={setOrder}
+                      />
+                    </span>
                     <span className="w-11 shrink-0">
                       <ColumnMenu
                         sortKey="rank"
@@ -557,36 +581,36 @@ function BookEntry({
         </span>
       </span>
 
-      {/* Movement since the last ingest */}
-      {candidate.scoreChange !== null && candidate.scoreChange !== 0 ? (
-        <span
-          title={`Score moved ${candidate.scoreChange > 0 ? "up" : "down"} ${Math.abs(candidate.scoreChange)} points since the last ingest`}
-          className={
-            "hidden shrink-0 font-display text-[11px] font-bold tabular-nums sm:inline " +
-            (candidate.scoreChange > 0
-              ? "text-tier-strong-fg"
-              : "text-tier-poor")
-          }
-        >
-          {candidate.scoreChange > 0 ? "▲" : "▼"}{" "}
-          {Math.abs(candidate.scoreChange)}
-        </span>
-      ) : null}
-
-      <span className="hidden shrink-0 sm:block">
-        <Badge bg={style.badgeBg} fg={style.badgeFg}>
-          {candidate.tier}
-        </Badge>
+      <span className="hidden w-[104px] shrink-0 lg:block">
+        {candidate.trigger ? (
+          <TriggerChip trigger={candidate.trigger} />
+        ) : (
+          <span
+            title="Nothing recent on record for this prospect."
+            className="cursor-help text-[11px] text-ink-faint"
+          >
+            —
+          </span>
+        )}
       </span>
 
-      <span className="hidden w-16 shrink-0 overflow-hidden rounded-full bg-surface-soft md:block">
+      <span className="hidden shrink-0 md:block">
+        <EvidenceChip evidence={candidate.evidence} />
+      </span>
+
+      <span className="hidden shrink-0 sm:block">
         <span
-          className="block h-1 rounded-full"
-          style={{
-            width: `${candidate.score}%`,
-            backgroundColor: style.accent,
-          }}
-        />
+          title={`Tier — ${candidate.tierLabel}, from the fit score.`}
+          className="cursor-help"
+        >
+          <Badge bg={style.badgeBg} fg={style.badgeFg}>
+            {candidate.tier}
+          </Badge>
+        </span>
+      </span>
+
+      <span className="hidden w-[78px] shrink-0 text-right md:block">
+        <MovementChip change={candidate.scoreChange} />
       </span>
 
       <span
