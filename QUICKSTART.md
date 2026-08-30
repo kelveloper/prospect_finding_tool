@@ -2,7 +2,7 @@
 
 Get the Emerging Affluent Prospecting Platform running in ~3 minutes.
 
-> **Deeper context:** [HANDOVER.md](HANDOVER.md) — what it does, how it works, known gaps.
+> **Deeper context:** [docs/HANDOVER.md](docs/HANDOVER.md) — what it does, how it works, known gaps.
 
 ---
 

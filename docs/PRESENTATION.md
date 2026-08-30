@@ -255,7 +255,7 @@ why the honest ceiling on day one is 91, not 100 (see §4.5).
 ## 4. The ranking formula
 
 > The single source of truth for scoring detail is
-> [`docs/RANKING.md`](docs/RANKING.md). This section is the
+> [`docs/RANKING.md`](RANKING.md). This section is the
 > presentation-ready version of it.
 
 ### 4.1 Two questions, one number
@@ -587,7 +587,7 @@ prospect is missing.
 
 *The advisor's takeaway:* "Here are my next five calls, in order."
 
-**Screen 2 — The Candidate Dossier (`/candidate/{id}`)**
+**Screen 2 — The Candidate Dossier (`/prospect/{id}`)**
 
 One card per dimension of evidence:
 
@@ -610,7 +610,7 @@ the list of what would raise it.
 *The advisor's takeaway:* "I know why this person is on my list, and I have a
 conversation opener."
 
-**Screen 3 — Score & Match Breakdown (`/candidate/{id}/breakdown`)**
+**Screen 3 — Sources (`/prospect/{id}/sources`)**
 
 The explainability screen, laid out **in pipeline order** with two tabs:
 
@@ -634,7 +634,7 @@ The explainability screen, laid out **in pipeline order** with two tabs:
 *The advisor's takeaway:* "Nothing here is a black box — I can see what was
 admitted, what was refused, and what each fact was worth."
 
-**Screen 4 — Review & Feedback (`/candidate/{id}/follow-up`)**
+**Screen 4 — Review & Feedback (inline on the profile)**
 
 Every supporting signal with strength and confidence bars, the "Why This
 Prospect Ranked Here" stat strip, then the verdict: **Good Fit / Revisit
@@ -894,7 +894,7 @@ which is a very different posture from a black-box lead list.
 ### 14.1 Buy the data (the highest-value work, and it's cheap)
 
 The pipeline is ahead of its inputs. Priorities and real prices, from
-[`docs/RESEARCH_COMMERCIAL_SOURCES.md`](docs/RESEARCH_COMMERCIAL_SOURCES.md):
+[`docs/RESEARCH_COMMERCIAL_SOURCES.md`](RESEARCH_COMMERCIAL_SOURCES.md):
 
 | # | Buy | Why first | Rough cost |
 |---|---|---|---|
@@ -980,8 +980,8 @@ app/
 └── config.py        weights and thresholds (environment-overridable)
 
 frontend/            ProspectIQ UI (Next.js 16 · React 19 · Tailwind v4)
-├── src/app/                 scoreboard · dossier · breakdown · follow-up
-├── src/components/          BreakdownExplorer, MatchEvidencePanel,
+├── src/app/                 scoreboard · dossier · sources
+├── src/components/          SourcesDocument, MatchEvidencePanel,
 │                            OutreachActions, ContactKitCard, ScoreRing, …
 └── src/lib/api.ts           the API client and backend→UI mapping
 
@@ -1002,7 +1002,7 @@ tests/               60 tests across identity, scoring, reasons, all four
 | Which specialties get swept | `app/adapters/npi/live.py` (`DEFAULT_SPECIALTIES`) |
 | Property price floor and lookback | `app/adapters/cook_county/live.py` |
 | Tier labels shown in the UI | `frontend/src/lib/api.ts` (`tierFromScore`) |
-| The rulebook shown on the Scoring tab | `frontend/src/components/BreakdownExplorer.tsx` (`RULEBOOK`) |
+| The rulebook shown in the scoring section | `frontend/src/components/SourcesDocument.tsx` (`RULEBOOK`) |
 
 **To retune and see it move:** edit a tier or weight → `pytest tests/ -q` →
 re-run ingestion → reload the board. The ranking reorders in front of you.
@@ -1014,14 +1014,14 @@ re-run ingestion → reload the board. The ranking reorders in front of you.
 | Document | What it's for |
 |---|---|
 | [`README.md`](README.md) | Setup, API reference, architecture overview |
-| [`QUICKSTART.md`](QUICKSTART.md) | Running it in ~3 minutes (note the Python 3.13 requirement) |
-| [`docs/RANKING.md`](docs/RANKING.md) | The single source of truth for scoring math |
-| [`docs/HOW_IT_WORKS.md`](docs/HOW_IT_WORKS.md) | Pipeline mechanics and the demo-day FAQ |
-| [`docs/PRESENTING_SIGNALS.md`](docs/PRESENTING_SIGNALS.md) | How to talk about signals without tangling the three layers |
-| [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md) | Every source, its fields, and the join map |
-| [`docs/USER_JOURNEY.md`](docs/USER_JOURNEY.md) | Demo script and quick setup |
-| [`docs/PROGRESS.md`](docs/PROGRESS.md) | Done / not done / the AI roadmap |
-| [`docs/RESEARCH_COMMERCIAL_SOURCES.md`](docs/RESEARCH_COMMERCIAL_SOURCES.md) | Paid vendors, buy order, "why we pay" |
-| [`docs/RESEARCH_CAREER_SIGNAL.md`](docs/RESEARCH_CAREER_SIGNAL.md) · [`docs/RESEARCH_PROPERTY_SIGNAL.md`](docs/RESEARCH_PROPERTY_SIGNAL.md) · [`docs/RESEARCH_CONTACT_OUTREACH.md`](docs/RESEARCH_CONTACT_OUTREACH.md) | How those sources and channels were chosen |
-| [`docs/PROJECT_SPEC.md`](docs/PROJECT_SPEC.md) | The original build specification |
+| [`QUICKSTART.md`](../QUICKSTART.md) | Running it in ~3 minutes (note the Python 3.13 requirement) |
+| [`docs/RANKING.md`](RANKING.md) | The single source of truth for scoring math |
+| [`docs/HOW_IT_WORKS.md`](HOW_IT_WORKS.md) | Pipeline mechanics and the demo-day FAQ |
+| [`docs/PRESENTING_SIGNALS.md`](PRESENTING_SIGNALS.md) | How to talk about signals without tangling the three layers |
+| [`docs/DATA_SOURCES.md`](DATA_SOURCES.md) | Every source, its fields, and the join map |
+| [`docs/USER_JOURNEY.md`](USER_JOURNEY.md) | Demo script and quick setup |
+| [`docs/PROGRESS.md`](PROGRESS.md) | Done / not done / the AI roadmap |
+| [`docs/RESEARCH_COMMERCIAL_SOURCES.md`](RESEARCH_COMMERCIAL_SOURCES.md) | Paid vendors, buy order, "why we pay" |
+| [`docs/RESEARCH_CAREER_SIGNAL.md`](RESEARCH_CAREER_SIGNAL.md) · [`docs/RESEARCH_PROPERTY_SIGNAL.md`](RESEARCH_PROPERTY_SIGNAL.md) · [`docs/RESEARCH_CONTACT_OUTREACH.md`](RESEARCH_CONTACT_OUTREACH.md) | How those sources and channels were chosen |
+| [`docs/PROJECT_SPEC.md`](PROJECT_SPEC.md) | The original build specification |
 | [`HANDOVER.md`](HANDOVER.md) | Engineering handover / code analysis |

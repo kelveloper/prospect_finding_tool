@@ -324,8 +324,8 @@ NPI-only (Desai, Brooks), 1 IDFPR-only (Raman).
 | Route | Content | Calls |
 |---|---|---|
 | `/` | Scoreboard — featured candidate + ranked sidebar | `GET /prospects/ranked`, then `GET /prospects/{id}` for the featured panel |
-| `/candidate/[id]` | Dossier — 4 panels: Career Signal, Identity Resolution, Score Breakdown, Detected Signals | `GET /prospects/{id}` |
-| `/candidate/[id]/follow-up` | Assessment + supporting-signal evidence + feedback form | `GET /prospects/{id}`, `GET .../feedback`, `POST /feedback` |
+| `/prospect/[id]` | Dossier — 4 panels: Career Signal, Identity Resolution, Score Breakdown, Detected Signals | `GET /prospects/{id}` |
+| `/prospect/[id]/sources` | The facts, the identity matching and the scoring, in one document | `GET /prospects/{id}`, `GET .../feedback`, `POST /feedback` |
 
 All three are `export const dynamic = "force-dynamic"` — always fresh, never
 cached.
@@ -421,7 +421,7 @@ produces all six signal types and a materially better-separated board:
 11 enrichment records, 9 attach — the Palumbo LLC and the Smithfield deed are
 correctly rejected. Smith clears 80 and finally earns "Top Prospect".
 
-**The one-line change** in [app/api/routes.py:22](app/api/routes.py#L22):
+**The one-line change** in [app/api/routes.py:22](../app/api/routes.py#L22):
 
 ```python
 from app.adapters import (
