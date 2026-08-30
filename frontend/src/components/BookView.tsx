@@ -225,10 +225,11 @@ export default function BookView({ ranked, selectedId }: Props) {
 
   /** Nothing to save when the filters are empty, already stored, or exactly
    *  one of the built-in chips. */
-  const canSave =
-    !isEmpty(viewState) &&
-    !views.some((v) => sameState(viewState, v.state)) &&
-    !sameState(viewState, { ...EMPTY_STATE, onlyNew: true });
+  const saveBlockedBecause = isEmpty(viewState)
+    ? "Filter the book first — pick a specialty, tier or search — then save those filters here as a view you can come back to."
+    : sameState(viewState, { ...EMPTY_STATE, onlyNew: true })
+      ? "This is already the New arrivals view."
+      : (views.find((v) => sameState(viewState, v.state))?.name ?? null);
 
   const filtered =
     onlyNew ||
@@ -387,16 +388,24 @@ export default function BookView({ ranked, selectedId }: Props) {
                     Cancel
                   </button>
                 </span>
-              ) : canSave ? (
+              ) : (
                 <button
                   type="button"
                   onClick={() => startNaming("")}
-                  title="Save these filters under a name of your choosing"
-                  className="rounded-[8px] border border-dashed border-hairline bg-white px-3 py-1.5 font-display text-[12px] font-semibold text-brand transition-colors hover:bg-surface-soft"
+                  disabled={saveBlockedBecause !== null}
+                  title={
+                    saveBlockedBecause === null
+                      ? "Save these filters under a name of your choosing"
+                      : saveBlockedBecause.startsWith("Filter the book") ||
+                          saveBlockedBecause.startsWith("This is already")
+                        ? saveBlockedBecause
+                        : `These filters are already saved as "${saveBlockedBecause}".`
+                  }
+                  className="rounded-[8px] border border-dashed border-hairline bg-white px-3 py-1.5 font-display text-[12px] font-semibold text-brand transition-colors hover:bg-surface-soft disabled:cursor-not-allowed disabled:border-hairline/50 disabled:text-ink-faint disabled:hover:bg-white"
                 >
                   + Save this view
                 </button>
-              ) : null}
+              )}
 
               {/* Kept mounted and dimmed rather than removed: a button that
                   vanishes takes its width with it, and everything beside it
