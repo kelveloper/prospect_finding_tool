@@ -9,6 +9,11 @@ import type { OutreachEntry } from "@/lib/data";
  *  them, and logs what happened without leaving the profile. Tiles match
  *  the key-stat row above; the Hot pill only appears when urgency is
  *  elevated, so its presence always means something. */
+/** Strips everything a tel: href can't carry, so "815-395-9350" dials. */
+function telHref(phone: string): string {
+  return `tel:${phone.replace(/[^\d+]/g, "")}`;
+}
+
 export default function ContactKitCard({
   kit,
   prospectId,
@@ -25,7 +30,9 @@ export default function ContactKitCard({
         kit.addressLines.length > 0 ? (
           <>
             {kit.addressLines.map((line) => (
-              <span key={line} className="block">{line}</span>
+              <span key={line} className="block">
+                {line}
+              </span>
             ))}
             {!kit.addressComplete && (
               <span className="mt-1 block text-[12px] font-normal text-tier-poor">
@@ -37,7 +44,27 @@ export default function ContactKitCard({
           "Not on record"
         ),
     },
-    { label: "Practice Line", value: kit.phone ?? "Not on record" },
+    {
+      label: "Practice Line",
+      value: kit.phone ? (
+        <>
+          <a
+            href={telHref(kit.phone)}
+            title={`Call ${kit.name} on ${kit.phone}`}
+            className="text-brand hover:underline"
+          >
+            {kit.phone}
+          </a>
+          {kit.phoneNote ? (
+            <span className="mt-1 block text-[12px] font-normal text-ink-muted">
+              {kit.phoneNote}
+            </span>
+          ) : null}
+        </>
+      ) : (
+        "Not on record"
+      ),
+    },
   ];
 
   return (

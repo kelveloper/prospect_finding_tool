@@ -158,7 +158,10 @@ export function tierFromScore(score: number): { tier: Tier; label: string } {
 }
 
 function initialsOf(name: string): string {
-  const parts = name.replace(/^Dr\.\s*/, "").trim().split(/\s+/);
+  const parts = name
+    .replace(/^Dr\.\s*/, "")
+    .trim()
+    .split(/\s+/);
   const first = parts[0]?.[0] ?? "?";
   const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
   return `${first}${last}`.toUpperCase();
@@ -170,7 +173,9 @@ function tenure(from: string | null): string {
   if (!from) return "—";
   const months = Math.max(
     0,
-    Math.floor((Date.now() - new Date(from).getTime()) / (1000 * 60 * 60 * 24 * 30.44)),
+    Math.floor(
+      (Date.now() - new Date(from).getTime()) / (1000 * 60 * 60 * 24 * 30.44),
+    ),
   );
   if (months < 1) return "New";
   if (months < 12) return `${months} Month${months === 1 ? "" : "s"}`;
@@ -218,16 +223,33 @@ function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
 
   const tags: string[] = [];
   if (detail) {
-    if ((detail.license_status ?? "").toUpperCase() === "ACTIVE") tags.push("Active Licence");
-    if (detail.signals.some((s) => s.signal_type === "NEW_LICENSE" && s.strength >= 0.85))
+    if ((detail.license_status ?? "").toUpperCase() === "ACTIVE")
+      tags.push("Active Licence");
+    if (
+      detail.signals.some(
+        (s) => s.signal_type === "NEW_LICENSE" && s.strength >= 0.85,
+      )
+    )
       tags.push("Recently Licensed");
-    if (detail.signals.some((s) => s.signal_type === "SPECIALTY" && s.strength >= 0.75))
+    if (
+      detail.signals.some(
+        (s) => s.signal_type === "SPECIALTY" && s.strength >= 0.75,
+      )
+    )
       tags.push("High-Earning Specialty");
     if (detail.signals.some((s) => s.signal_type === "OWNERSHIP"))
       tags.push("Practice Owner");
-    if (detail.signals.some((s) => s.signal_type === "PROPERTY_EVENT" && s.strength >= 0.6))
+    if (
+      detail.signals.some(
+        (s) => s.signal_type === "PROPERTY_EVENT" && s.strength >= 0.6,
+      )
+    )
       tags.push("Recent Property Purchase");
-    if (detail.signals.some((s) => s.signal_type === "CAREER_ADVANCEMENT" && s.strength >= 0.5))
+    if (
+      detail.signals.some(
+        (s) => s.signal_type === "CAREER_ADVANCEMENT" && s.strength >= 0.5,
+      )
+    )
       tags.push("Career Advancement");
     if (detail.identity_confidence >= 0.9) tags.push("Identity Verified");
     if (detail.npi && !detail.license_number) tags.push("Licence Unverified");
@@ -251,10 +273,13 @@ function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
     timingScore: p.timing_score,
     licenceHeld: tenure(detail?.license_issue_date ?? null),
     strength: strengthWord(p.qualification_score),
-    summary: p.advisor_summary ?? p.reason_summary ?? "No signals recorded yet.",
+    summary:
+      p.advisor_summary ?? p.reason_summary ?? "No signals recorded yet.",
     tags,
     categories: toCategories(
-      detail ? detail.signals.map((s) => s.signal_type) : p.signal_types ?? [],
+      detail
+        ? detail.signals.map((s) => s.signal_type)
+        : (p.signal_types ?? []),
     ),
     scoreChange: p.score_change ?? null,
     isNew: p.is_new ?? false,
@@ -264,7 +289,12 @@ function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
 
 function fmtDate(iso: string | null): string {
   if (!iso) return "Not on record";
-  return new Date(iso).toLocaleDateString("en-US", {
+  // new Date("2026-08-05") parses as UTC midnight, which renders as the 4th in
+  // any timezone behind UTC. Build from the parts so the calendar date the
+  // backend recorded is the calendar date shown.
+  const [y, m, d] = iso.slice(0, 10).split("-").map(Number);
+  if (!y || !m || !d) return "Not on record";
+  return new Date(y, m - 1, d).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -300,7 +330,9 @@ function toProfile(d: ApiDetail): CandidateProfile {
       rows: [
         {
           label: "Active Medical Licence",
-          value: active ? "Yes — Verified" : (d.license_status ?? "Not on record"),
+          value: active
+            ? "Yes — Verified"
+            : (d.license_status ?? "Not on record"),
           pill: active ? "positive" : "neutral",
         },
         { label: "Licence Issued", value: fmtDate(d.license_issue_date) },
@@ -322,7 +354,11 @@ function toProfile(d: ApiDetail): CandidateProfile {
       rows: [
         ...(ownership
           ? [
-              { label: "Practice Entity", value: "Detected", pill: "positive" as const },
+              {
+                label: "Practice Entity",
+                value: "Detected",
+                pill: "positive" as const,
+              },
               { label: "Detail", value: ownership.description },
               { label: "Entity Formed", value: fmtDate(ownership.event_date) },
               {
@@ -343,7 +379,9 @@ function toProfile(d: ApiDetail): CandidateProfile {
         },
         {
           label: "City",
-          value: d.city ? `${d.city}, ${d.address_state ?? d.state ?? ""}` : "—",
+          value: d.city
+            ? `${d.city}, ${d.address_state ?? d.state ?? ""}`
+            : "—",
         },
         { label: "Phone", value: d.phone ?? "Not on record" },
       ],
@@ -363,7 +401,11 @@ function toProfile(d: ApiDetail): CandidateProfile {
             },
           ]
         : [
-            { label: "Property Purchase", value: "None on record", pill: "neutral" },
+            {
+              label: "Property Purchase",
+              value: "None on record",
+              pill: "neutral",
+            },
             {
               label: "What this means",
               value: "No recent deed transfer found for this person",
@@ -420,12 +462,19 @@ function toSignalItems(d: ApiDetail): SignalItem[] {
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, { cache: "no-store", ...init });
-  if (!res.ok) throw new ApiError(res.status, `${init?.method ?? "GET"} ${path} → ${res.status}`);
+  if (!res.ok)
+    throw new ApiError(
+      res.status,
+      `${init?.method ?? "GET"} ${path} → ${res.status}`,
+    );
   return res.json() as Promise<T>;
 }
 
 export class ApiError extends Error {
-  constructor(public status: number, message: string) {
+  constructor(
+    public status: number,
+    message: string,
+  ) {
     super(message);
   }
 }
@@ -457,16 +506,17 @@ export async function fetchRankedCandidates(): Promise<Candidate[]> {
 }
 
 export async function fetchCandidateDetail(id: string): Promise<
-  {
-    candidate: Candidate;
-    profile: CandidateProfile;
-    signals: SignalItem[];
-    scoreComponents: ScoreComponentItem[];
-    matches: MatchEvidenceItem[];
-    identityConfidence: number;
-    fieldChanges: FieldChangeItem[];
-    scoreHistory: ScoreSnapshotItem[];
-  } | undefined
+  | {
+      candidate: Candidate;
+      profile: CandidateProfile;
+      signals: SignalItem[];
+      scoreComponents: ScoreComponentItem[];
+      matches: MatchEvidenceItem[];
+      identityConfidence: number;
+      fieldChanges: FieldChangeItem[];
+      scoreHistory: ScoreSnapshotItem[];
+    }
+  | undefined
 > {
   try {
     const detail = await api<ApiDetail>(`/prospects/${id}`);
@@ -502,9 +552,13 @@ export async function fetchCandidateDetail(id: string): Promise<
   }
 }
 
-export async function fetchContactKit(id: string): Promise<ContactKit | undefined> {
+export async function fetchContactKit(
+  id: string,
+): Promise<ContactKit | undefined> {
   try {
-    return toContactKit(await api<ApiContactKit>(`/prospects/${id}/contact-kit`));
+    return toContactKit(
+      await api<ApiContactKit>(`/prospects/${id}/contact-kit`),
+    );
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) return undefined;
     throw err;
@@ -553,7 +607,9 @@ export async function fetchIngestStatus(): Promise<IngestStatus | null> {
 
 /** Newest-first outreach log — powers the inline capture next to the
  *  contact kit. Missing prospect or a down API degrades to an empty log. */
-export async function fetchOutreachHistory(id: string): Promise<OutreachEntry[]> {
+export async function fetchOutreachHistory(
+  id: string,
+): Promise<OutreachEntry[]> {
   try {
     const rows = await api<ApiOutreachEvent[]>(`/prospects/${id}/outreach`);
     return rows.map((e) => ({

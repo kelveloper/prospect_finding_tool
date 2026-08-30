@@ -1,9 +1,9 @@
-import Link from "next/link";
 import Badge from "./Badge";
 import CandidateDossier from "./CandidateDossier";
 import ContactKitCard from "./ContactKitCard";
+import Citation from "./Citation";
 import ScoreRing from "./ScoreRing";
-import { ChartIcon, InfoIcon } from "./icons";
+import ScoreTooltip from "./ScoreTooltip";
 import type { ContactKit } from "@/lib/api";
 import type {
   Candidate,
@@ -18,7 +18,10 @@ type Props = {
   candidate: Candidate;
   profile?: CandidateProfile;
   /** History cards; omitted when the detail call failed. */
-  dossier?: { fieldChanges: FieldChangeItem[]; scoreHistory: ScoreSnapshotItem[] };
+  dossier?: {
+    fieldChanges: FieldChangeItem[];
+    scoreHistory: ScoreSnapshotItem[];
+  };
   contactKit?: ContactKit;
   /** Logged outcomes, shown under the outreach buttons. */
   outreach?: OutreachEntry[];
@@ -66,7 +69,9 @@ export default function CandidateDetail({
           <Heading className="mt-1 font-display text-[30px] font-bold tracking-[-0.75px] text-ink">
             {candidate.name}
           </Heading>
-          <p className="mt-1 text-[16px] text-ink-muted">{candidate.location}</p>
+          <p className="mt-1 text-[16px] text-ink-muted">
+            {candidate.location}
+          </p>
 
           {/* Trust line: how sure we are these records are the same person */}
           {profile ? (
@@ -86,14 +91,19 @@ export default function CandidateDetail({
         </div>
 
         <div className="flex shrink-0 flex-col items-center gap-2.5">
-          <ScoreRing
-            score={candidate.score}
-            size={112}
-            stroke={8}
-            accent={style.accent}
-            caption="Score"
-            valueSize={24}
-          />
+          <ScoreTooltip
+            qualification={candidate.qualificationScore}
+            timing={candidate.timingScore}
+          >
+            <ScoreRing
+              score={candidate.score}
+              size={112}
+              stroke={8}
+              accent={style.accent}
+              caption="Score"
+              valueSize={24}
+            />
+          </ScoreTooltip>
           <Badge bg={style.badgeBg} fg={style.badgeFg} variant="plain">
             {candidate.tierLabel}
           </Badge>
@@ -144,22 +154,21 @@ export default function CandidateDetail({
         </p>
       )}
 
-      {/* Actions — the two pages that go deeper than this dossier */}
-      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Link
-          href={`/prospect/${candidate.id}/follow-up`}
-          className="flex items-center justify-center gap-2 rounded-[8px] bg-brand px-6 py-3.5 font-display text-[14px] font-semibold text-white shadow-brand transition-colors hover:bg-brand-dark"
-        >
-          <InfoIcon className="size-4" />
-          Supporting Signal Evidence
-        </Link>
-        <Link
-          href={`/prospect/${candidate.id}/breakdown`}
-          className="flex items-center justify-center gap-2 rounded-[8px] border border-hairline bg-white px-6 py-3.5 font-display text-[14px] font-semibold text-brand transition-colors hover:bg-surface-soft"
-        >
-          <ChartIcon className="size-4" />
-          Full Score &amp; Match Breakdown
-        </Link>
+      {/* Sources. The advisor's actual next step — call, write, log the
+          outcome — lives in the Reach Out block above; these two only answer
+          "how do you know?", so they are cited, not offered as buttons. */}
+      <div className="sources-note mt-8 border-t border-surface-soft pt-4">
+        <p className="eyebrow">Sources</p>
+        <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:gap-8">
+          <Citation
+            href={`/prospect/${candidate.id}/follow-up`}
+            label="The signals behind this prospect"
+          />
+          <Citation
+            href={`/prospect/${candidate.id}/breakdown`}
+            label="How this score was built — weights, rules and match evidence"
+          />
+        </div>
       </div>
     </>
   );

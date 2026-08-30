@@ -38,10 +38,12 @@ export default async function ScoreboardPage({
         <LaunchOverlay locatedToday={0} total={0} />
         <Header candidateCount={0} />
         <main className="mx-auto max-w-[720px] px-8 py-16 text-center">
-          <h1 className="font-display text-[24px] font-bold text-ink">No prospects yet</h1>
+          <h1 className="font-display text-[24px] font-bold text-ink">
+            No prospects yet
+          </h1>
           <p className="mt-2 text-[14px] text-ink-muted">
-            The backend returned no prospects and ingestion produced nothing. Check that the
-            API is running, then POST /ingest/run.
+            The backend returned no prospects and ingestion produced nothing.
+            Check that the API is running, then POST /ingest/run.
           </p>
         </main>
       </div>
@@ -63,7 +65,9 @@ export default async function ScoreboardPage({
     : [undefined, undefined, undefined];
   // Fall back to the ranked row for the selected id, never to whoever is first.
   const featured = featuredId
-    ? (detail?.candidate ?? ranked.find((c) => c.id === featuredId) ?? ranked[0])
+    ? (detail?.candidate ??
+      ranked.find((c) => c.id === featuredId) ??
+      ranked[0])
     : undefined;
   const dossier = detail
     ? { fieldChanges: detail.fieldChanges, scoreHistory: detail.scoreHistory }
@@ -131,20 +135,17 @@ export default async function ScoreboardPage({
 
           {/* ── Ranked list ──────────────────────────────── */}
           <aside className="border-l border-hairline/60 px-6 py-8 lg:sticky lg:top-16 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto">
-            <div className="flex items-center justify-between">
-              <h2 className="font-display text-[16px] font-bold text-ink">All Prospects</h2>
-              <span className="rounded-full bg-surface-tint px-2 py-1 font-display text-[11px] font-semibold text-brand-dark">
-                {ranked.length} total
-              </span>
-            </div>
+            <h2 className="font-display text-[16px] font-bold text-ink">
+              All Prospects
+            </h2>
             <p className="eyebrow mt-3">Ranked by fit score</p>
 
             {/* New-arrivals alert — only rendered when there is something new */}
             {newCount > 0 ? (
               <div className="mt-3 flex items-center gap-2 rounded-[12px] bg-tier-strong-bg px-4 py-3">
                 <span className="font-display text-[13px] font-semibold text-tier-strong-fg">
-                  ✨ {newCount} new prospect{newCount === 1 ? "" : "s"} since the
-                  last ingest — look for the NEW badge below.
+                  ✨ {newCount} new prospect{newCount === 1 ? "" : "s"} since
+                  the last ingest — look for the NEW badge below.
                 </span>
               </div>
             ) : null}

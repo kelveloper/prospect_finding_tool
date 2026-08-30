@@ -982,7 +982,7 @@ app/
 frontend/            ProspectIQ UI (Next.js 16 · React 19 · Tailwind v4)
 ├── src/app/                 scoreboard · dossier · breakdown · follow-up
 ├── src/components/          BreakdownExplorer, MatchEvidencePanel,
-│                            ScoreCalculation, ContactKitCard, ScoreRing, …
+│                            OutreachActions, ContactKitCard, ScoreRing, …
 └── src/lib/api.ts           the API client and backend→UI mapping
 
 tests/               60 tests across identity, scoring, reasons, all four

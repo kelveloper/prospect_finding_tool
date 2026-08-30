@@ -71,3 +71,22 @@ body {
 html[data-launched] [data-launch-overlay] {
   display: none;
 }
+
+/* ── Presentation styles ────────────────────────────────────
+   Set by the viewer menu (the avatar in the nav bar) and applied to <html>
+   before paint — see src/lib/style.ts.
+
+   "Client view" is a starting point, not a finished design: it hides the two
+   things you would not put in front of a client — the model's own reasoning,
+   and internal identifiers. Add rules here as the design firms up; add new
+   styles to STYLES in src/lib/style.ts and they appear in the menu. */
+
+/* The "Sources" block: citations into the scoring model and signal evidence. */
+[data-style="client"] .sources-note {
+  display: none;
+}
+
+/* The advisor's internal SID. */
+[data-style="client"] .viewer-sid {
+  display: none;
+}

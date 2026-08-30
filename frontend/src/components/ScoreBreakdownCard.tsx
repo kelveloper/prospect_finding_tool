@@ -1,29 +1,24 @@
-import Link from "next/link";
 import ScoreSparkline from "./ScoreSparkline";
 import type { ScoreSnapshotItem } from "@/lib/data";
 
 type Props = {
-  prospectId: string;
   qualificationScore: number;
   timingScore: number;
   totalScore: number;
   history: ScoreSnapshotItem[];
 };
 
-/** Summary panel — clicking it opens the full breakdown page (calculation,
- *  scoring rules per tier, and how the identity was matched). */
+/** Summary panel: the two halves of the score and how it has moved. The
+ *  derivation is cited at the foot rather than swallowing the whole card —
+ *  an advisor reads this, only a curious one follows the link. */
 export default function ScoreBreakdownCard({
-  prospectId,
   qualificationScore,
   timingScore,
   totalScore,
   history,
 }: Props) {
   return (
-    <Link
-      href={`/prospect/${prospectId}/breakdown`}
-      className="block rounded-[16px] bg-white shadow-card transition-shadow hover:shadow-float"
-    >
+    <section className="rounded-[16px] bg-white shadow-card">
       <div className="flex items-center gap-2 px-6 pt-6 pb-4">
         <span
           className="h-4 w-[3px] shrink-0 rounded-full"
@@ -34,7 +29,10 @@ export default function ScoreBreakdownCard({
 
       <dl className="px-6">
         {[
-          { label: "Qualification (60%)", value: `${qualificationScore} / 100` },
+          {
+            label: "Qualification (60%)",
+            value: `${qualificationScore} / 100`,
+          },
           { label: "Timing (40%)", value: `${timingScore} / 100` },
         ].map((row) => (
           <div
@@ -64,9 +62,7 @@ export default function ScoreBreakdownCard({
         </div>
       </div>
 
-      <p className="px-6 pb-6 pt-2 text-center font-display text-[13px] font-semibold text-brand">
-        Full calculation, scoring rules &amp; match evidence →
-      </p>
-    </Link>
+      <div className="pb-6" />
+    </section>
   );
 }
