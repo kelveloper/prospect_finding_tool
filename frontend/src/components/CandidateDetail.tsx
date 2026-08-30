@@ -115,22 +115,23 @@ export default function CandidateDetail({
           </div>
 
           <div className="flex shrink-0 flex-col items-center gap-2.5">
-            <ScoreTooltip
-              qualification={candidate.qualificationScore}
-              timing={candidate.timingScore}
-            >
-              <ScoreRing
-                score={candidate.score}
-                size={112}
-                stroke={8}
-                accent={style.accent}
-                caption="Score"
-                valueSize={24}
+            <ScoreRing
+              score={candidate.score}
+              size={112}
+              stroke={8}
+              accent={style.accent}
+              caption="Score"
+              valueSize={24}
+            />
+            <span className="flex items-center gap-1.5">
+              <Badge bg={style.badgeBg} fg={style.badgeFg} variant="plain">
+                {candidate.tierLabel}
+              </Badge>
+              <ScoreTooltip
+                qualification={candidate.qualificationScore}
+                timing={candidate.timingScore}
               />
-            </ScoreTooltip>
-            <Badge bg={style.badgeBg} fg={style.badgeFg} variant="plain">
-              {candidate.tierLabel}
-            </Badge>
+            </span>
             {percentile !== null ? (
               <p className="font-display text-[12px] font-semibold text-ink-muted">
                 #{rank} of {total} · Top {percentile}%
