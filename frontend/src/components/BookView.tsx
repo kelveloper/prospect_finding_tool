@@ -256,92 +256,97 @@ export default function BookView({ ranked, selectedId }: Props) {
         </div>
       </div>
 
-      {/* ── Saved views ────────────────────────────────
-           A named filter set you can come back to. "New arrivals" ships as
-           a built-in because it is the one that turns the board from a
-           database into a morning routine. */}
-      <div className="mt-5 flex flex-wrap items-center gap-2">
-        <ViewChip
-          label="Whole book"
-          count={entries.length}
-          active={isEmpty(viewState)}
-          onClick={() => applyState(EMPTY_STATE)}
-          title="Every prospect on the board, no filters"
-        />
-
-        <ViewChip
-          label="New arrivals"
-          count={entries.filter((e) => e.isNew).length}
-          active={
-            onlyNew && specialty === "all" && tier === "all" && !query.trim()
-          }
-          onClick={() => applyState({ ...EMPTY_STATE, onlyNew: true })}
-          title="Prospects ingestion first found in the last 48 hours"
-        />
-
-        {views.map((view) => (
-          <ViewChip
-            key={view.id}
-            label={view.name}
-            count={
-              entries.filter(
-                (e) =>
-                  (!view.state.onlyNew || e.isNew) &&
-                  (view.state.specialty === "all" ||
-                    e.specialty === view.state.specialty) &&
-                  (view.state.tier === "all" || e.tier === view.state.tier) &&
-                  (view.state.query.trim() === "" ||
-                    e.name
-                      .toLowerCase()
-                      .includes(view.state.query.trim().toLowerCase())),
-              ).length
-            }
-            active={sameState(viewState, view.state)}
-            onClick={() => applyState(view.state)}
-            onRemove={() => removeView(view.id)}
-            title={`Saved view — ${describe(view.state)}`}
-          />
-        ))}
-      </div>
-
       {/* ── The open book ──────────────────────────────── */}
       <div className="relative mt-6 overflow-hidden rounded-[16px] bg-white shadow-panel ring-1 ring-hairline/60">
         {/* ── Front matter: how the book is indexed ──── */}
-        <div className="flex flex-wrap items-end gap-3 border-b border-hairline/60 bg-canvas px-6 py-4 sm:px-8">
-          <label className="flex flex-col gap-1">
-            <span className="eyebrow">Look up</span>
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Name, specialty or city"
-              className="w-[200px] rounded-[8px] border border-hairline bg-white px-3 py-1.5 text-[13px] text-ink placeholder:text-ink-faint focus:border-brand focus:outline-none"
+        <div className="border-b border-hairline/60 bg-canvas px-6 py-4 sm:px-8">
+          {/* Saved views — preset filters, sitting with the filters they
+              replace. "New arrivals" is the one that turns the board from a
+              database into a morning routine. */}
+          <div className="flex flex-wrap items-center gap-2 pb-3">
+            <ViewChip
+              label="Whole book"
+              count={entries.length}
+              active={isEmpty(viewState)}
+              onClick={() => applyState(EMPTY_STATE)}
+              title="Every prospect on the board, no filters"
             />
-          </label>
 
-          {/* Saving acts on the filters, so it lives with them. The chips
+            <ViewChip
+              label="New arrivals"
+              count={entries.filter((e) => e.isNew).length}
+              active={
+                onlyNew &&
+                specialty === "all" &&
+                tier === "all" &&
+                !query.trim()
+              }
+              onClick={() => applyState({ ...EMPTY_STATE, onlyNew: true })}
+              title="Prospects ingestion first found in the last 48 hours"
+            />
+
+            {views.map((view) => (
+              <ViewChip
+                key={view.id}
+                label={view.name}
+                count={
+                  entries.filter(
+                    (e) =>
+                      (!view.state.onlyNew || e.isNew) &&
+                      (view.state.specialty === "all" ||
+                        e.specialty === view.state.specialty) &&
+                      (view.state.tier === "all" ||
+                        e.tier === view.state.tier) &&
+                      (view.state.query.trim() === "" ||
+                        e.name
+                          .toLowerCase()
+                          .includes(view.state.query.trim().toLowerCase())),
+                  ).length
+                }
+                active={sameState(viewState, view.state)}
+                onClick={() => applyState(view.state)}
+                onRemove={() => removeView(view.id)}
+                title={`Saved view — ${describe(view.state)}`}
+              />
+            ))}
+          </div>
+
+          <div className="flex flex-wrap items-end gap-3 border-t border-hairline/60 pt-3">
+            <label className="flex flex-col gap-1">
+              <span className="eyebrow">Look up</span>
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Name, specialty or city"
+                className="w-[200px] rounded-[8px] border border-hairline bg-white px-3 py-1.5 text-[13px] text-ink placeholder:text-ink-faint focus:border-brand focus:outline-none"
+              />
+            </label>
+
+            {/* Saving acts on the filters, so it lives with them. The chips
               above are navigation — which view you are in — and stay there. */}
-          {!isEmpty(viewState) &&
-          !views.some((v) => sameState(viewState, v.state)) ? (
-            <button
-              type="button"
-              onClick={saveCurrent}
-              title={`Save these filters as "${describe(viewState)}" so you can come back to them`}
-              className="ml-auto rounded-[8px] border border-dashed border-hairline bg-white px-3 py-1.5 font-display text-[12px] font-semibold text-brand transition-colors hover:bg-surface-soft"
-            >
-              + Save this view
-            </button>
-          ) : null}
+            {!isEmpty(viewState) &&
+            !views.some((v) => sameState(viewState, v.state)) ? (
+              <button
+                type="button"
+                onClick={saveCurrent}
+                title={`Save these filters as "${describe(viewState)}" so you can come back to them`}
+                className="ml-auto rounded-[8px] border border-dashed border-hairline bg-white px-3 py-1.5 font-display text-[12px] font-semibold text-brand transition-colors hover:bg-surface-soft"
+              >
+                + Save this view
+              </button>
+            ) : null}
 
-          {filtered ? (
-            <button
-              type="button"
-              onClick={clear}
-              className="rounded-[8px] border border-hairline bg-white px-3 py-1.5 font-display text-[12px] font-semibold text-brand transition-colors hover:bg-surface-soft"
-            >
-              Reset the book
-            </button>
-          ) : null}
+            {filtered ? (
+              <button
+                type="button"
+                onClick={clear}
+                className="rounded-[8px] border border-hairline bg-white px-3 py-1.5 font-display text-[12px] font-semibold text-brand transition-colors hover:bg-surface-soft"
+              >
+                Reset the book
+              </button>
+            ) : null}
+          </div>
         </div>
 
         {/* Gutter shading — the fold where the two pages meet */}
@@ -587,25 +592,28 @@ function ColumnMenu({
         >
           {filtered ? value : heading}
         </span>
-        {active ? (
-          <span
-            aria-hidden
-            title={fromBack ? "Sorted from the back" : "Sorted from the front"}
-            className="text-[10px] leading-none text-brand"
-          >
-            {fromBack ? "▼" : "▲"}
-          </span>
-        ) : (
-          <span
-            aria-hidden
-            className={
-              "text-[10px] leading-none transition-transform group-open/menu:rotate-180 " +
-              (filtered ? "text-brand" : "text-ink-faint")
-            }
-          >
-            ▾
-          </span>
-        )}
+        <svg
+          aria-hidden
+          viewBox="0 0 12 12"
+          className={
+            "size-3 shrink-0 transition-transform " +
+            (active
+              ? fromBack
+                ? "text-brand"
+                : "rotate-180 text-brand"
+              : "group-open/menu:rotate-180 " +
+                (filtered ? "text-brand" : "text-ink-faint"))
+          }
+        >
+          <path
+            d="M3 4.5 6 8l3-3.5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
       </summary>
 
       <div
