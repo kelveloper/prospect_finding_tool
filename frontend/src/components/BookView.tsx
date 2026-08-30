@@ -120,6 +120,9 @@ export default function BookView({ ranked, selectedId }: Props) {
   const [sort, setSort] = useState<SortKey>("rank");
   const [fromBack, setFromBack] = useState(false);
   const [onlyNew, setOnlyNew] = useState(false);
+  /** null = not naming; "" = naming a new view; an id = renaming that one. */
+  const [naming, setNaming] = useState<string | null>(null);
+  const [draftName, setDraftName] = useState("");
   const views = useSyncExternalStore(
     viewStore.subscribe,
     viewStore.getSnapshot,
@@ -136,17 +139,36 @@ export default function BookView({ ranked, selectedId }: Props) {
     setTurned({ spread: 0, forSelection: selectedId });
   }
 
-  function saveCurrent() {
-    const name = describe(viewState);
-    const view: SavedView = {
-      // The state is the id: saving is only offered when no stored view
-      // already matches it, so this is unique by construction — and unlike a
-      // timestamp it is pure, and stable across reloads.
-      id: JSON.stringify(viewState),
-      name,
-      state: viewState,
-    };
-    commitViews([...views, view]);
+  /** Opens the name field, seeded with a description of the filters. The
+   *  advisor almost always wants "My Chicago derms", not the machine's
+   *  "Dermatology · Promising". */
+  function startNaming(target: string) {
+    setNaming(target);
+    setDraftName(
+      target === ""
+        ? describe(viewState)
+        : (views.find((v) => v.id === target)?.name ?? ""),
+    );
+  }
+
+  function commitName() {
+    const name = draftName.trim() || describe(viewState);
+
+    if (naming === "") {
+      const view: SavedView = {
+        // The state is the id: saving is only offered when no stored view
+        // already matches it, so this is unique by construction — and unlike
+        // a timestamp it is pure, and stable across reloads.
+        id: JSON.stringify(viewState),
+        name,
+        state: viewState,
+      };
+      commitViews([...views, view]);
+    } else if (naming) {
+      commitViews(views.map((v) => (v.id === naming ? { ...v, name } : v)));
+    }
+
+    setNaming(null);
   }
 
   function removeView(id: string) {
@@ -200,6 +222,13 @@ export default function BookView({ ranked, selectedId }: Props) {
     setSort(key);
     setFromBack(back);
   };
+
+  /** Nothing to save when the filters are empty, already stored, or exactly
+   *  one of the built-in chips. */
+  const canSave =
+    !isEmpty(viewState) &&
+    !views.some((v) => sameState(viewState, v.state)) &&
+    !sameState(viewState, { ...EMPTY_STATE, onlyNew: true });
 
   const filtered =
     onlyNew ||
@@ -328,12 +357,41 @@ export default function BookView({ ranked, selectedId }: Props) {
                 right edge, so it stays put when Save comes and goes rather
                 than sliding across as the row reflows. */}
             <div className="ml-auto flex items-center gap-2">
-              {!isEmpty(viewState) &&
-              !views.some((v) => sameState(viewState, v.state)) ? (
+              {naming !== null ? (
+                <span className="flex items-center gap-1.5">
+                  <input
+                    autoFocus
+                    value={draftName}
+                    onChange={(e) => setDraftName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") commitName();
+                      if (e.key === "Escape") setNaming(null);
+                    }}
+                    aria-label="Name for this view"
+                    placeholder="Name this view"
+                    maxLength={40}
+                    className="w-[168px] rounded-[8px] border border-brand bg-white px-2.5 py-1.5 text-[12px] text-ink placeholder:text-ink-faint focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={commitName}
+                    className="rounded-[8px] bg-brand px-3 py-1.5 font-display text-[12px] font-semibold text-white transition-colors hover:bg-brand-dark"
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNaming(null)}
+                    className="rounded-[8px] px-2 py-1.5 font-display text-[12px] font-semibold text-ink-muted transition-colors hover:text-ink"
+                  >
+                    Cancel
+                  </button>
+                </span>
+              ) : canSave ? (
                 <button
                   type="button"
-                  onClick={saveCurrent}
-                  title={`Save these filters as "${describe(viewState)}" so you can come back to them`}
+                  onClick={() => startNaming("")}
+                  title="Save these filters under a name of your choosing"
                   className="rounded-[8px] border border-dashed border-hairline bg-white px-3 py-1.5 font-display text-[12px] font-semibold text-brand transition-colors hover:bg-surface-soft"
                 >
                   + Save this view
@@ -586,7 +644,13 @@ function ColumnMenu({
       className="group/menu relative"
     >
       <summary
-        title={hint ? `${heading} — ${hint}` : `Sort or filter by ${heading}`}
+        title={
+          (hint ? `${heading} — ${hint}` : `Sort or filter by ${heading}`) +
+          (filtered ? `\n\nShowing only: ${value}` : "") +
+          (active
+            ? `\n\nSorting by this, ${fromBack ? SORTS[sortKey].back : SORTS[sortKey].front}.`
+            : "")
+        }
         className={
           "flex cursor-pointer list-none items-center gap-1 [&::-webkit-details-marker]:hidden " +
           (align === "right" ? "justify-end" : "")
@@ -596,7 +660,6 @@ function ColumnMenu({
           className={"eyebrow " + (filtered ? "truncate" : "")}
           // A filtered column prints the value it is filtered to, so the
           // heading answers "what is hiding rows?" without being opened.
-          title={filtered ? `${heading}: ${value}` : heading}
           style={
             active || filtered ? { color: "var(--color-brand)" } : undefined
           }
@@ -692,6 +755,7 @@ function ViewChip({
   active,
   onClick,
   onRemove,
+  onRename,
   title,
 }: {
   label: string;
@@ -699,6 +763,8 @@ function ViewChip({
   active: boolean;
   onClick: () => void;
   onRemove?: () => void;
+  /** Saved views can be renamed; the built-ins cannot. */
+  onRename?: () => void;
   title: string;
 }) {
   return (
@@ -713,6 +779,7 @@ function ViewChip({
       <button
         type="button"
         onClick={onClick}
+        onDoubleClick={onRename}
         title={title}
         aria-pressed={active}
         className="max-w-[210px] truncate rounded-full py-1.5 pl-3 pr-2 font-display text-[12px] font-semibold"
