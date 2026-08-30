@@ -808,7 +808,7 @@ function ColumnMenu({
 
       <div
         className={
-          "absolute z-20 mt-1 max-h-[280px] w-[210px] overflow-y-auto rounded-[10px] border border-hairline bg-white p-1.5 shadow-panel " +
+          "absolute z-20 mt-1 w-[248px] rounded-[10px] border border-hairline bg-white p-1.5 shadow-panel " +
           (align === "right" ? "right-0" : "left-0")
         }
       >
@@ -838,31 +838,36 @@ function ColumnMenu({
             <hr className="my-1.5 border-surface-soft" />
             <p className="px-2 pb-1 text-[10px] uppercase tracking-[0.6px] text-ink-faint">
               {filter.label}
+              {filter.value !== "all" ? (
+                <span className="ml-1 text-brand">· 1 on</span>
+              ) : null}
             </p>
-            {filter.options.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => filter.onValue(opt.value)}
-                className="flex w-full items-center gap-2 rounded-[6px] px-2 py-1.5 text-left text-[12px] text-ink hover:bg-canvas"
-              >
-                <span aria-hidden className="w-3 shrink-0 text-brand">
-                  {filter.value === opt.value ? "✓" : ""}
-                </span>
-                <span
-                  className="truncate"
-                  title={opt.value === "all" ? undefined : opt.value}
+            <div className="max-h-[132px] overflow-y-auto">
+              {filter.options.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => filter.onValue(opt.value)}
+                  className="flex w-full items-center gap-2 rounded-[6px] px-2 py-1.5 text-left text-[12px] text-ink hover:bg-canvas"
                 >
-                  {opt.value === "all"
-                    ? "All"
-                    : opt.value.charAt(0).toUpperCase() + opt.value.slice(1)}
-                </span>
-                {/* The count says what the filter will leave you with. */}
-                <span className="ml-auto shrink-0 font-display text-[11px] tabular-nums text-ink-faint">
-                  {opt.count}
-                </span>
-              </button>
-            ))}
+                  <span aria-hidden className="w-3 shrink-0 text-brand">
+                    {filter.value === opt.value ? "✓" : ""}
+                  </span>
+                  <span
+                    className="truncate"
+                    title={opt.value === "all" ? undefined : opt.value}
+                  >
+                    {opt.value === "all"
+                      ? "All"
+                      : opt.value.charAt(0).toUpperCase() + opt.value.slice(1)}
+                  </span>
+                  {/* The count says what the filter will leave you with. */}
+                  <span className="ml-auto shrink-0 font-display text-[11px] tabular-nums text-ink-faint">
+                    {opt.count}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
         ))}
       </div>
@@ -891,9 +896,13 @@ function ViewChip({
   title: string;
 }) {
   return (
+    // One rounded shape, not two. The button used to carry its own
+    // rounded-full inside the wrapper's, and nested radii at slightly
+    // different sizes read as a double edge. overflow-hidden lets the
+    // children square off and be clipped by the wrapper instead.
     <span
       className={
-        "inline-flex items-center rounded-full border transition-colors " +
+        "inline-flex items-center overflow-hidden rounded-full border transition-colors " +
         (active
           ? "border-brand bg-brand text-white"
           : "border-hairline bg-white text-ink-muted hover:bg-surface-soft")
@@ -905,7 +914,12 @@ function ViewChip({
         onDoubleClick={onRename}
         title={title}
         aria-pressed={active}
-        className="max-w-[210px] truncate rounded-full py-1.5 pl-3 pr-2 font-display text-[12px] font-semibold"
+        className={
+          "max-w-[210px] truncate py-1.5 font-display text-[12px] font-semibold " +
+          // Symmetric unless a remove button follows, which supplies the
+          // right-hand padding itself.
+          (onRemove ? "pl-3 pr-1.5" : "px-3")
+        }
       >
         {label}{" "}
         <span className={active ? "text-white/70" : "text-ink-faint"}>
@@ -928,9 +942,7 @@ function ViewChip({
         >
           ×
         </button>
-      ) : (
-        <span className="pr-2" />
-      )}
+      ) : null}
     </span>
   );
 }
