@@ -173,15 +173,15 @@ export default function CandidateDetail({
         </p>
       )}
 
-      {/* Sources. The advisor's actual next step — call, write, log the
-          outcome — lives in the Reach Out block above; these two only answer
-          "how do you know?", so they are cited, not offered as buttons. */}
+      {/* The advisor's actual next step — call, write, log the outcome —
+          lives in the Reach Out block above. This only answers "how do you
+          know?", so it is cited, not offered as a button. */}
       <div className="sources-note mt-8 border-t border-surface-soft pt-4">
-        <p className="eyebrow">Sources</p>
+        <p className="eyebrow">How we know</p>
         <div className="mt-2">
           <Citation
             href={`/prospect/${candidate.id}/sources`}
-            label="How we know this — the facts, the matching and the scoring"
+            label="The facts, how we matched them, and what each was worth"
           />
         </div>
       </div>

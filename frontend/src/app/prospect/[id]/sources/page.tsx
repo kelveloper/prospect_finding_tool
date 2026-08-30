@@ -17,8 +17,14 @@ export default async function SourcesPage({
   const { id } = await params;
   const detail = await fetchCandidateDetail(id);
   if (!detail) notFound();
-  const { candidate, profile, scoreComponents, matches, identityConfidence, signals } =
-    detail;
+  const {
+    candidate,
+    profile,
+    scoreComponents,
+    matches,
+    identityConfidence,
+    signals,
+  } = detail;
   const signalTypesCount = new Set(signals.map((s) => s.type)).size;
 
   const ringAccent =
@@ -39,13 +45,12 @@ export default async function SourcesPage({
       <Header
         crumbs={[
           { label: candidate.name, href: `/?id=${candidate.id}` },
-          { label: "Sources" },
+          { label: "How we know" },
         ]}
         back={{ label: "Back to Profile", href: `/?id=${candidate.id}` }}
       />
 
       <div className="mx-auto max-w-[1560px] px-8 py-8">
-        <p className="eyebrow">Sources</p>
         <h1 className="mt-1 font-display text-[24px] font-bold tracking-[-0.6px] text-ink">
           How we know this about {candidate.name}
         </h1>
@@ -70,14 +75,22 @@ export default async function SourcesPage({
                 <span className="rounded-full bg-tier-strong-bg px-2.5 py-1 font-display text-[11px] font-semibold text-tier-strong-fg">
                   {candidate.tierLabel}
                 </span>
-                <p className="mt-2 text-[13px] text-ink-muted">{profile.practice}</p>
+                <p className="mt-2 text-[13px] text-ink-muted">
+                  {profile.practice}
+                </p>
               </div>
             </div>
 
             <div className="mt-5 flex flex-col gap-2">
               {[
-                { label: "Worth approaching", value: `${candidate.qualificationScore}/100` },
-                { label: "Right time now", value: `${candidate.timingScore}/100` },
+                {
+                  label: "Worth approaching",
+                  value: `${candidate.qualificationScore}/100`,
+                },
+                {
+                  label: "Right time now",
+                  value: `${candidate.timingScore}/100`,
+                },
                 { label: "Licence held", value: candidate.licenceHeld },
               ].map((stat) => (
                 <div
@@ -92,7 +105,10 @@ export default async function SourcesPage({
               ))}
             </div>
 
-            <nav aria-label="On this page" className="mt-5 border-t border-surface-soft pt-4">
+            <nav
+              aria-label="On this page"
+              className="mt-5 border-t border-surface-soft pt-4"
+            >
               <p className="eyebrow">On this page</p>
               <ol className="mt-2 flex flex-col gap-1.5">
                 {contents.map((c, i) => (
