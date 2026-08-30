@@ -323,29 +323,40 @@ export default function BookView({ ranked, selectedId }: Props) {
               />
             </label>
 
-            {/* Saving acts on the filters, so it lives with them. The chips
-              above are navigation — which view you are in — and stay there. */}
-            {!isEmpty(viewState) &&
-            !views.some((v) => sameState(viewState, v.state)) ? (
-              <button
-                type="button"
-                onClick={saveCurrent}
-                title={`Save these filters as "${describe(viewState)}" so you can come back to them`}
-                className="ml-auto rounded-[8px] border border-dashed border-hairline bg-white px-3 py-1.5 font-display text-[12px] font-semibold text-brand transition-colors hover:bg-surface-soft"
-              >
-                + Save this view
-              </button>
-            ) : null}
+            {/* Both act on the current filters, so they live with them. The
+                group is what carries the auto margin — pinning Reset to the
+                right edge, so it stays put when Save comes and goes rather
+                than sliding across as the row reflows. */}
+            <div className="ml-auto flex items-center gap-2">
+              {!isEmpty(viewState) &&
+              !views.some((v) => sameState(viewState, v.state)) ? (
+                <button
+                  type="button"
+                  onClick={saveCurrent}
+                  title={`Save these filters as "${describe(viewState)}" so you can come back to them`}
+                  className="rounded-[8px] border border-dashed border-hairline bg-white px-3 py-1.5 font-display text-[12px] font-semibold text-brand transition-colors hover:bg-surface-soft"
+                >
+                  + Save this view
+                </button>
+              ) : null}
 
-            {filtered ? (
+              {/* Kept mounted and dimmed rather than removed: a button that
+                  vanishes takes its width with it, and everything beside it
+                  moves. */}
               <button
                 type="button"
                 onClick={clear}
-                className="rounded-[8px] border border-hairline bg-white px-3 py-1.5 font-display text-[12px] font-semibold text-brand transition-colors hover:bg-surface-soft"
+                disabled={!filtered}
+                title={
+                  filtered
+                    ? "Clear every filter and go back to the whole book"
+                    : "Nothing to reset — the whole book is showing"
+                }
+                className="rounded-[8px] border border-hairline bg-white px-3 py-1.5 font-display text-[12px] font-semibold text-brand transition-colors hover:bg-surface-soft disabled:cursor-not-allowed disabled:border-hairline/50 disabled:text-ink-faint disabled:hover:bg-white"
               >
                 Reset the book
               </button>
-            ) : null}
+            </div>
           </div>
         </div>
 
