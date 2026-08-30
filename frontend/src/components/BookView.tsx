@@ -1,13 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import Badge from "./Badge";
 import { EvidenceChip, MovementChip, TriggerChip } from "./RowChips";
 import { ChevronLeft, ChevronRight } from "./icons";
 import type { Candidate } from "@/lib/data";
 import { tierStyle } from "@/lib/tier";
 import { BOOK_VIEW, viewHref } from "@/lib/view";
+import {
+  commitViews,
+  describe,
+  EMPTY_STATE,
+  isEmpty,
+  sameState,
+  viewStore,
+  type BookViewState,
+  type SavedView,
+} from "@/lib/bookViews";
 
 /** Entries per page; a spread shows two of them side by side. */
 const PER_PAGE = 6;
@@ -31,6 +41,13 @@ const SORTS = {
     front: "Best first",
     back: "Lowest first",
     cmp: (a: Entry, b: Entry) => a.rank - b.rank,
+  },
+  evidence: {
+    label: "Evidence",
+    front: "Best evidenced first",
+    back: "Thinnest first",
+    cmp: (a: Entry, b: Entry) =>
+      b.evidence.found - a.evidence.found || a.rank - b.rank,
   },
   tier: {
     label: "Tier",
@@ -102,6 +119,39 @@ export default function BookView({ ranked, selectedId }: Props) {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("rank");
   const [fromBack, setFromBack] = useState(false);
+  const [onlyNew, setOnlyNew] = useState(false);
+  const views = useSyncExternalStore(
+    viewStore.subscribe,
+    viewStore.getSnapshot,
+    viewStore.getServerSnapshot,
+  );
+
+  const viewState: BookViewState = { specialty, tier, query, onlyNew };
+
+  function applyState(next: BookViewState) {
+    setSpecialty(next.specialty ?? "all");
+    setTier(next.tier ?? "all");
+    setQuery(next.query ?? "");
+    setOnlyNew(!!next.onlyNew);
+    setTurned({ spread: 0, forSelection: selectedId });
+  }
+
+  function saveCurrent() {
+    const name = describe(viewState);
+    const view: SavedView = {
+      // The state is the id: saving is only offered when no stored view
+      // already matches it, so this is unique by construction — and unlike a
+      // timestamp it is pure, and stable across reloads.
+      id: JSON.stringify(viewState),
+      name,
+      state: viewState,
+    };
+    commitViews([...views, view]);
+  }
+
+  function removeView(id: string) {
+    commitViews(views.filter((v) => v.id !== id));
+  }
 
   // Stamped before filtering so a filtered page still prints true board ranks.
   const entries: Entry[] = useMemo(
@@ -123,6 +173,7 @@ export default function BookView({ ranked, selectedId }: Props) {
     return entries
       .filter(
         (e) =>
+          (!onlyNew || e.isNew) &&
           (specialty === "all" || e.specialty === specialty) &&
           (tier === "all" || e.tier === tier) &&
           (q === "" ||
@@ -141,7 +192,7 @@ export default function BookView({ ranked, selectedId }: Props) {
         }
         return SORTS[sort].cmp(a, b) * (fromBack ? -1 : 1);
       });
-  }, [entries, specialty, tier, query, sort, fromBack]);
+  }, [entries, specialty, tier, query, sort, fromBack, onlyNew]);
 
   /** Clicking a menu entry both picks the column and sets which end to read
    *  from, so one call covers what were two controls. */
@@ -151,6 +202,7 @@ export default function BookView({ ranked, selectedId }: Props) {
   };
 
   const filtered =
+    onlyNew ||
     specialty !== "all" ||
     tier !== "all" ||
     query.trim() !== "" ||
@@ -159,6 +211,7 @@ export default function BookView({ ranked, selectedId }: Props) {
     setSpecialty("all");
     setTier("all");
     setQuery("");
+    setOnlyNew(false);
     setSort("rank");
     setFromBack(false);
   };
@@ -203,6 +256,54 @@ export default function BookView({ ranked, selectedId }: Props) {
         </div>
       </div>
 
+      {/* ── Saved views ────────────────────────────────
+           A named filter set you can come back to. "New arrivals" ships as
+           a built-in because it is the one that turns the board from a
+           database into a morning routine. */}
+      <div className="mt-5 flex flex-wrap items-center gap-2">
+        <ViewChip
+          label="Whole book"
+          count={entries.length}
+          active={isEmpty(viewState)}
+          onClick={() => applyState(EMPTY_STATE)}
+          title="Every prospect on the board, no filters"
+        />
+
+        <ViewChip
+          label="New arrivals"
+          count={entries.filter((e) => e.isNew).length}
+          active={
+            onlyNew && specialty === "all" && tier === "all" && !query.trim()
+          }
+          onClick={() => applyState({ ...EMPTY_STATE, onlyNew: true })}
+          title="Prospects ingestion first found in the last 48 hours"
+        />
+
+        {views.map((view) => (
+          <ViewChip
+            key={view.id}
+            label={view.name}
+            count={
+              entries.filter(
+                (e) =>
+                  (!view.state.onlyNew || e.isNew) &&
+                  (view.state.specialty === "all" ||
+                    e.specialty === view.state.specialty) &&
+                  (view.state.tier === "all" || e.tier === view.state.tier) &&
+                  (view.state.query.trim() === "" ||
+                    e.name
+                      .toLowerCase()
+                      .includes(view.state.query.trim().toLowerCase())),
+              ).length
+            }
+            active={sameState(viewState, view.state)}
+            onClick={() => applyState(view.state)}
+            onRemove={() => removeView(view.id)}
+            title={`Saved view — ${describe(view.state)}`}
+          />
+        ))}
+      </div>
+
       {/* ── The open book ──────────────────────────────── */}
       <div className="relative mt-6 overflow-hidden rounded-[16px] bg-white shadow-panel ring-1 ring-hairline/60">
         {/* ── Front matter: how the book is indexed ──── */}
@@ -218,11 +319,25 @@ export default function BookView({ ranked, selectedId }: Props) {
             />
           </label>
 
+          {/* Saving acts on the filters, so it lives with them. The chips
+              above are navigation — which view you are in — and stay there. */}
+          {!isEmpty(viewState) &&
+          !views.some((v) => sameState(viewState, v.state)) ? (
+            <button
+              type="button"
+              onClick={saveCurrent}
+              title={`Save these filters as "${describe(viewState)}" so you can come back to them`}
+              className="ml-auto rounded-[8px] border border-dashed border-hairline bg-white px-3 py-1.5 font-display text-[12px] font-semibold text-brand transition-colors hover:bg-surface-soft"
+            >
+              + Save this view
+            </button>
+          ) : null}
+
           {filtered ? (
             <button
               type="button"
               onClick={clear}
-              className="ml-auto rounded-[8px] border border-hairline bg-white px-3 py-1.5 font-display text-[12px] font-semibold text-brand transition-colors hover:bg-surface-soft"
+              className="rounded-[8px] border border-hairline bg-white px-3 py-1.5 font-display text-[12px] font-semibold text-brand transition-colors hover:bg-surface-soft"
             >
               Reset the book
             </button>
@@ -254,19 +369,19 @@ export default function BookView({ ranked, selectedId }: Props) {
                       all, so a heading always sits over its own column. */}
                   <div className="-mx-2 flex items-center gap-3 border-b border-hairline/60 px-2 pb-2">
                     <span className="w-6 shrink-0">
-                      <ColumnMenu
-                        sortKey="rank"
-                        heading="#"
-                        activeSort={sort}
-                        fromBack={fromBack}
-                        onSort={setOrder}
-                      />
+                      <span
+                        title="Rank on the board, by fit score"
+                        className="eyebrow"
+                      >
+                        #
+                      </span>
                     </span>
                     <span className="size-9 shrink-0" />
                     <span className="min-w-0 flex-1">
                       <ColumnMenu
                         sortKey="name"
-                        heading="Prospect · Specialty"
+                        heading="Specialty"
+                        hint="What they practise. Filter the book to one specialty."
                         filterLabel="Show specialty"
                         options={specialties}
                         value={specialty}
@@ -280,24 +395,27 @@ export default function BookView({ ranked, selectedId }: Props) {
                       <ColumnMenu
                         sortKey="trigger"
                         heading="Why now"
+                        hint="The most recent event worth calling about — a new licence, a practice, a property purchase."
                         activeSort={sort}
                         fromBack={fromBack}
                         onSort={setOrder}
                       />
                     </span>
-                    <span className="hidden shrink-0 md:block">
+                    <span className="hidden w-[86px] shrink-0 md:block">
                       <ColumnMenu
-                        sortKey="rank"
+                        sortKey="evidence"
                         heading="Evidence"
+                        hint="How many of the seven signals we look for were actually found for this prospect."
                         activeSort={sort}
                         fromBack={fromBack}
                         onSort={setOrder}
                       />
                     </span>
-                    <span className="hidden shrink-0 sm:block">
+                    <span className="hidden w-[86px] shrink-0 sm:block">
                       <ColumnMenu
                         sortKey="tier"
                         heading="Tier"
+                        hint="Score band — strong, promising, neutral, weak or poor."
                         options={tiers}
                         value={tier}
                         onValue={setTier}
@@ -310,6 +428,7 @@ export default function BookView({ ranked, selectedId }: Props) {
                       <ColumnMenu
                         sortKey="movement"
                         heading="Move"
+                        hint="How the fit score has changed since the last data refresh."
                         align="right"
                         activeSort={sort}
                         fromBack={fromBack}
@@ -320,6 +439,7 @@ export default function BookView({ ranked, selectedId }: Props) {
                       <ColumnMenu
                         sortKey="rank"
                         heading="Fit"
+                        hint="The overall fit score out of 100. The board is ranked by it."
                         align="right"
                         filterLabel="Show"
                         activeSort={sort}
@@ -414,6 +534,7 @@ export default function BookView({ ranked, selectedId }: Props) {
 function ColumnMenu({
   sortKey,
   heading,
+  hint,
   align = "left",
   options,
   value,
@@ -425,6 +546,8 @@ function ColumnMenu({
 }: {
   sortKey: SortKey;
   heading: string;
+  /** Plain-English meaning — a column head is a label, not an explanation. */
+  hint?: string;
   align?: "left" | "right";
   /** Values this column can filter to. Omit for a sort-only column. */
   options?: readonly string[];
@@ -447,14 +570,14 @@ function ColumnMenu({
       className="group/menu relative"
     >
       <summary
-        title={`Sort or filter by ${heading}`}
+        title={hint ? `${heading} — ${hint}` : `Sort or filter by ${heading}`}
         className={
           "flex cursor-pointer list-none items-center gap-1 [&::-webkit-details-marker]:hidden " +
           (align === "right" ? "justify-end" : "")
         }
       >
         <span
-          className="eyebrow truncate"
+          className={"eyebrow " + (filtered ? "truncate" : "")}
           // A filtered column prints the value it is filtered to, so the
           // heading answers "what is hiding rows?" without being opened.
           title={filtered ? `${heading}: ${value}` : heading}
@@ -465,19 +588,24 @@ function ColumnMenu({
           {filtered ? value : heading}
         </span>
         {active ? (
-          <span aria-hidden className="text-[9px] text-brand">
+          <span
+            aria-hidden
+            title={fromBack ? "Sorted from the back" : "Sorted from the front"}
+            className="text-[10px] leading-none text-brand"
+          >
             {fromBack ? "▼" : "▲"}
           </span>
-        ) : null}
-        <span
-          aria-hidden
-          className={
-            "text-[8px] transition-transform group-open/menu:rotate-180 " +
-            (filtered ? "text-brand" : "text-ink-faint")
-          }
-        >
-          ▼
-        </span>
+        ) : (
+          <span
+            aria-hidden
+            className={
+              "text-[10px] leading-none transition-transform group-open/menu:rotate-180 " +
+              (filtered ? "text-brand" : "text-ink-faint")
+            }
+          >
+            ▾
+          </span>
+        )}
       </summary>
 
       <div
@@ -534,6 +662,67 @@ function ColumnMenu({
         ) : null}
       </div>
     </details>
+  );
+}
+
+/** A saved-view tab. Carries its own count so the advisor can see how much
+ *  a view narrows the board before opening it. */
+function ViewChip({
+  label,
+  count,
+  active,
+  onClick,
+  onRemove,
+  title,
+}: {
+  label: string;
+  count: number;
+  active: boolean;
+  onClick: () => void;
+  onRemove?: () => void;
+  title: string;
+}) {
+  return (
+    <span
+      className={
+        "inline-flex items-center rounded-full border transition-colors " +
+        (active
+          ? "border-brand bg-brand text-white"
+          : "border-hairline bg-white text-ink-muted hover:bg-surface-soft")
+      }
+    >
+      <button
+        type="button"
+        onClick={onClick}
+        title={title}
+        aria-pressed={active}
+        className="max-w-[210px] truncate rounded-full py-1.5 pl-3 pr-2 font-display text-[12px] font-semibold"
+      >
+        {label}{" "}
+        <span className={active ? "text-white/70" : "text-ink-faint"}>
+          · {count}
+        </span>
+      </button>
+
+      {onRemove ? (
+        <button
+          type="button"
+          onClick={onRemove}
+          title={`Forget the "${label}" view`}
+          aria-label={`Forget the ${label} view`}
+          className={
+            "rounded-full py-1.5 pr-3 pl-1 font-display text-[13px] leading-none " +
+            (active
+              ? "text-white/70 hover:text-white"
+              : "text-ink-faint hover:text-tier-poor")
+          }
+        >
+          ×
+        </button>
+      ) : (
+        <span className="pr-2" />
+      )}
+    </span>
   );
 }
 
@@ -594,11 +783,11 @@ function BookEntry({
         )}
       </span>
 
-      <span className="hidden shrink-0 md:block">
+      <span className="hidden w-[86px] shrink-0 md:block">
         <EvidenceChip evidence={candidate.evidence} />
       </span>
 
-      <span className="hidden shrink-0 sm:block">
+      <span className="hidden w-[86px] shrink-0 sm:block">
         <span
           title={`Tier — ${candidate.tierLabel}, from the fit score.`}
           className="cursor-help"
