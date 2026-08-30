@@ -382,7 +382,7 @@ export default function BookView({ ranked, selectedId }: Props) {
               Labelled, because a bare row of chips says nothing about what
               clicking one does. The controls below all carry a label; this
               was the only thing in the strip without one. */}
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 pb-3">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
             <span
               className="eyebrow"
               title="Preset filters. Click one to jump to it, or set your own filters below and save them here."
@@ -488,9 +488,10 @@ export default function BookView({ ranked, selectedId }: Props) {
             )}
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 border-t border-hairline/60 pt-3">
-            <label className="flex flex-col gap-1">
-              <span className="eyebrow">Look up</span>
+          <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-hairline/60 pt-3">
+            {/* Label beside the field, not stacked above it. */}
+            <label className="flex items-center gap-2">
+              <span className="eyebrow shrink-0">Look up</span>
               <input
                 type="search"
                 value={query}
