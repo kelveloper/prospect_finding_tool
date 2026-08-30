@@ -535,7 +535,7 @@ export default function BookView({ ranked, selectedId }: Props) {
                   {/* Column headings, printed on each page like a ledger's.
                       Widths mirror BookEntry exactly, responsive rules and
                       all, so a heading always sits over its own column. */}
-                  <div className="-mx-2 flex items-center gap-3 border-b border-hairline/60 px-2 pb-2">
+                  <div className="-mx-2 flex items-start gap-3 border-b border-hairline/60 px-2 pb-2">
                     <span className="w-6 shrink-0">
                       <span
                         title="Rank on the board, by fit score"
@@ -545,11 +545,15 @@ export default function BookView({ ranked, selectedId }: Props) {
                       </span>
                     </span>
                     <span className="size-9 shrink-0" />
-                    <span className="min-w-0 flex-1">
+                    {/* Two triggers, not one menu holding two filters. A
+                        location filter tucked under a "Specialty" heading is
+                        there but unfindable — the label is the only thing
+                        anyone reads before deciding to click. */}
+                    <span className="flex min-w-0 flex-1 flex-col gap-1">
                       <ColumnMenu
-                        sortKey="name"
-                        heading="Specialty · Location"
-                        hint="Where and in what they practise. Filter on either, or both together."
+                        sortKey="specialty"
+                        heading="Specialty"
+                        hint="What they practise."
                         filters={[
                           {
                             label: "Show specialty",
@@ -557,6 +561,16 @@ export default function BookView({ ranked, selectedId }: Props) {
                             value: specialty,
                             onValue: setSpecialty,
                           },
+                        ]}
+                        activeSort={sort}
+                        fromBack={fromBack}
+                        onSort={setOrder}
+                      />
+                      <ColumnMenu
+                        sortKey="location"
+                        heading="Location"
+                        hint="Where they practise."
+                        filters={[
                           {
                             label: "Show location",
                             options: locations,
