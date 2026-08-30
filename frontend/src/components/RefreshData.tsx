@@ -49,7 +49,11 @@ function ago(iso: string): string {
 /** Nav-bar data control: quiet status line + Refresh Data button. Hovering
  *  shows how often each upstream source actually updates, so advisors know
  *  a weekly refresh is the honest cadence. */
-export default function RefreshData({ status: initial }: { status: IngestStatus | null }) {
+export default function RefreshData({
+  status: initial,
+}: {
+  status: IngestStatus | null;
+}) {
   const router = useRouter();
   const [status, setStatus] = useState(initial);
   const [running, setRunning] = useState(false);
@@ -103,18 +107,19 @@ export default function RefreshData({ status: initial }: { status: IngestStatus 
 
   return (
     <div className="group relative flex items-center gap-2.5">
-      <span className="hidden text-[12px] text-ink-faint sm:inline">
-        {running
-          ? "Sweeping four live sources — this can take a few minutes"
-          : error
-            ? "Refresh failed — is the API up?"
-            : status?.lastRunAt
-              ? `Data updated ${ago(status.lastRunAt)}` +
-                (status.staleSummaries > 0
-                  ? ` · ${status.staleSummaries} summaries pending`
-                  : "")
-              : "No ingest recorded yet"}
-      </span>
+      {/* Only the states that need acting on stay in the bar. */}
+      {running || error ? (
+        <span
+          className={
+            "hidden text-[12px] sm:inline " +
+            (error ? "font-semibold text-tier-poor" : "text-ink-muted")
+          }
+        >
+          {running
+            ? "Sweeping four live sources…"
+            : "Refresh failed — is the API up?"}
+        </span>
+      ) : null}
 
       <button
         type="button"
@@ -142,23 +147,24 @@ export default function RefreshData({ status: initial }: { status: IngestStatus 
         )}
       </button>
 
-      {/* Dev/test escape hatch: same sweep, bypasses the weekly lock */}
-      <button
-        type="button"
-        onClick={() => runIngest(true)}
-        disabled={running}
-        title="Test sweep — bypasses the weekly lock (dev only)"
-        className="rounded-[8px] border border-dashed border-hairline bg-white px-2.5 py-1.5 font-display text-[11px] font-semibold text-ink-faint transition-colors hover:bg-surface-soft hover:text-brand disabled:opacity-60"
-      >
-        Test
-      </button>
-
       {/* Source-cadence tooltip — small, hover only */}
-      <div className="pointer-events-none absolute right-0 top-full z-20 mt-2 hidden w-[240px] rounded-[12px] bg-white p-3 shadow-panel group-hover:block">
-        <p className="eyebrow">Source Update Cadence</p>
+      <div className="absolute right-0 top-full z-20 mt-2 hidden w-[260px] rounded-[12px] border border-hairline bg-white p-3 shadow-panel group-hover:block">
+        <p className="text-[12px] text-ink-muted">
+          {status?.lastRunAt
+            ? `Data updated ${ago(status.lastRunAt)}`
+            : "No ingest recorded yet"}
+          {status && status.staleSummaries > 0
+            ? ` · ${status.staleSummaries} summaries pending`
+            : ""}
+        </p>
+
+        <p className="eyebrow mt-3">Source Update Cadence</p>
         <dl className="mt-1.5 space-y-1">
           {SOURCE_CADENCE.map((s) => (
-            <div key={s.name} className="flex justify-between gap-3 text-[11px]">
+            <div
+              key={s.name}
+              className="flex justify-between gap-3 text-[11px]"
+            >
               <dt className="text-ink-muted">{s.name}</dt>
               <dd className="shrink-0 font-display font-semibold text-ink">
                 {s.cadence}
@@ -166,10 +172,22 @@ export default function RefreshData({ status: initial }: { status: IngestStatus 
             </div>
           ))}
         </dl>
-        <p className="mt-2 text-[10px] leading-[14px] text-ink-faint">
-          Weekly refresh recommended — existing prospects update in place
-          (no duplicates); only fresh entrants (&lt;6 mo NPI or licence) join.
+        <p className="mt-2 text-[10px] leading-[14px] text-ink-muted">
+          Weekly refresh recommended — existing prospects update in place (no
+          duplicates); only fresh entrants (&lt;6 mo NPI or licence) join.
         </p>
+
+        {/* Dev/test escape hatch: same sweep, bypasses the weekly lock. Lives
+            here rather than in the bar — it is not advisor-facing. */}
+        <button
+          type="button"
+          onClick={() => runIngest(true)}
+          disabled={running}
+          title="Test sweep — bypasses the weekly lock (dev only)"
+          className="mt-3 w-full rounded-[8px] border border-dashed border-hairline bg-white px-2.5 py-1.5 font-display text-[11px] font-semibold text-ink-muted transition-colors hover:bg-surface-soft hover:text-brand disabled:opacity-60"
+        >
+          Test sweep — ignore the weekly lock
+        </button>
       </div>
     </div>
   );

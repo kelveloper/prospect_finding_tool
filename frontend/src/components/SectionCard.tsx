@@ -17,12 +17,14 @@ export default function SectionCard({ section }: { section: ProfileSection }) {
           <div
             key={row.label}
             className={
-              "flex items-start justify-between gap-6 py-3.5 " +
-              (i < section.rows.length - 1 ? "border-b border-surface-soft" : "")
+              "py-3 " +
+              (i < section.rows.length - 1
+                ? "border-b border-surface-soft"
+                : "")
             }
           >
-            <dt className="text-[14px] text-ink-muted">{row.label}</dt>
-            <dd className="text-right font-display text-[14px] font-semibold text-ink">
+            <dt className="text-[12px] text-ink-muted">{row.label}</dt>
+            <dd className="mt-0.5 font-display text-[14px] font-semibold leading-[20px] text-ink">
               {row.pill ? (
                 <span
                   className={

@@ -1,17 +1,10 @@
 import Collapsible from "./Collapsible";
 import ScoreBreakdownCard from "./ScoreBreakdownCard";
-import SectionCard from "./SectionCard";
 import WhatChangedCard from "./WhatChangedCard";
-import type {
-  Candidate,
-  CandidateProfile,
-  FieldChangeItem,
-  ScoreSnapshotItem,
-} from "@/lib/data";
+import type { Candidate, FieldChangeItem, ScoreSnapshotItem } from "@/lib/data";
 
 type Props = {
   candidate: Candidate;
-  profile: CandidateProfile;
   fieldChanges: FieldChangeItem[];
   scoreHistory: ScoreSnapshotItem[];
 };
@@ -25,26 +18,15 @@ type Props = {
  *  field count, the score) to be skipped without being opened. */
 export default function CandidateDossier({
   candidate,
-  profile,
   fieldChanges,
   scoreHistory,
 }: Props) {
-  const fieldCount = profile.sections.reduce((n, s) => n + s.rows.length, 0);
+  // Nothing here until an ingest gives it something to say, so the whole
+  // band disappears rather than standing empty under a heading.
+  if (fieldChanges.length === 0 && scoreHistory.length <= 1) return null;
 
   return (
-    <div className="flex flex-col gap-4">
-      <Collapsible
-        title="Full Record"
-        hint="Licence, practice and property detail behind this prospect"
-        badge={`${fieldCount} fields`}
-      >
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-          {profile.sections.map((section) => (
-            <SectionCard key={section.title} section={section} />
-          ))}
-        </div>
-      </Collapsible>
-
+    <div className="mt-8 flex flex-col gap-4">
       {fieldChanges.length > 0 ? (
         <Collapsible
           title="What Changed"
