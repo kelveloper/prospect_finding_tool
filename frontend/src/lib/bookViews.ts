@@ -17,6 +17,7 @@ export const VIEWS_KEY = "prospectiq_book_views";
 export type BookViewState = {
   specialty: string;
   tier: string;
+  location: string;
   query: string;
   /** Built-ins narrow the board in ways the filter controls cannot. */
   onlyNew?: boolean;
@@ -35,6 +36,7 @@ export type SavedView = {
 export const EMPTY_STATE: BookViewState = {
   specialty: "all",
   tier: "all",
+  location: "all",
   query: "",
   onlyNew: false,
   sort: "rank",
@@ -45,6 +47,7 @@ export function isEmpty(s: BookViewState): boolean {
   return (
     s.specialty === "all" &&
     s.tier === "all" &&
+    (s.location ?? "all") === "all" &&
     s.query.trim() === "" &&
     !s.onlyNew &&
     (s.sort ?? "rank") === "rank" &&
@@ -56,6 +59,7 @@ export function sameState(a: BookViewState, b: BookViewState): boolean {
   return (
     a.specialty === b.specialty &&
     a.tier === b.tier &&
+    (a.location ?? "all") === (b.location ?? "all") &&
     a.query.trim() === b.query.trim() &&
     !!a.onlyNew === !!b.onlyNew &&
     (a.sort ?? "rank") === (b.sort ?? "rank") &&
@@ -81,6 +85,7 @@ export function describe(s: BookViewState): string {
   const parts: string[] = [];
   if (s.onlyNew) parts.push("New arrivals");
   if (s.specialty !== "all") parts.push(s.specialty);
+  if ((s.location ?? "all") !== "all") parts.push(s.location);
   if (s.tier !== "all")
     parts.push(s.tier.charAt(0).toUpperCase() + s.tier.slice(1));
   if (s.query.trim()) parts.push(`"${s.query.trim()}"`);

@@ -116,6 +116,7 @@ type Props = {
 export default function BookView({ ranked, selectedId }: Props) {
   const [specialty, setSpecialty] = useState("all");
   const [tier, setTier] = useState("all");
+  const [location, setLocation] = useState("all");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("rank");
   const [fromBack, setFromBack] = useState(false);
@@ -173,6 +174,7 @@ export default function BookView({ ranked, selectedId }: Props) {
   const viewState: BookViewState = {
     specialty,
     tier,
+    location,
     query,
     onlyNew,
     sort,
@@ -182,6 +184,7 @@ export default function BookView({ ranked, selectedId }: Props) {
   function applyState(next: BookViewState) {
     setSpecialty(next.specialty ?? "all");
     setTier(next.tier ?? "all");
+    setLocation(next.location ?? "all");
     setQuery(next.query ?? "");
     setOnlyNew(!!next.onlyNew);
     setSort(
@@ -235,14 +238,45 @@ export default function BookView({ ranked, selectedId }: Props) {
     [ranked],
   );
 
+  /** Commonest first, so the value that matches most of the board is the
+   *  first thing you see. Ties fall back to alphabetical. */
+  const optionsFor = useMemo(
+    () => (pick: (e: Entry) => string) => {
+      const counts = new Map<string, number>();
+      for (const entry of entries) {
+        const key = pick(entry);
+        counts.set(key, (counts.get(key) ?? 0) + 1);
+      }
+      return [
+        { value: "all", count: entries.length },
+        ...[...counts.entries()]
+          .map(([value, count]) => ({ value, count }))
+          .sort((a, b) => b.count - a.count || a.value.localeCompare(b.value)),
+      ];
+    },
+    [entries],
+  );
+
   const specialties = useMemo(
-    () => [...new Set(entries.map((e) => e.specialty))].sort(),
-    [entries],
+    () => optionsFor((e) => e.specialty),
+    [optionsFor],
   );
-  const tiers = useMemo(
-    () => [...new Set(entries.map((e) => e.tier))],
-    [entries],
-  );
+  const locations = useMemo(() => optionsFor((e) => e.location), [optionsFor]);
+  /** Tier keeps quality order rather than frequency — strong to poor reads
+   *  as a scale, and shuffling it by count would break that. */
+  const tiers = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const entry of entries) {
+      counts.set(entry.tier, (counts.get(entry.tier) ?? 0) + 1);
+    }
+    return [
+      { value: "all", count: entries.length },
+      ...TIER_ORDER.filter((t) => counts.has(t)).map((t) => ({
+        value: t as string,
+        count: counts.get(t) ?? 0,
+      })),
+    ];
+  }, [entries]);
 
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -251,6 +285,7 @@ export default function BookView({ ranked, selectedId }: Props) {
         (e) =>
           (!onlyNew || e.isNew) &&
           (specialty === "all" || e.specialty === specialty) &&
+          (location === "all" || e.location === location) &&
           (tier === "all" || e.tier === tier) &&
           (q === "" ||
             e.name.toLowerCase().includes(q) ||
@@ -268,7 +303,7 @@ export default function BookView({ ranked, selectedId }: Props) {
         }
         return SORTS[sort].cmp(a, b) * (fromBack ? -1 : 1);
       });
-  }, [entries, specialty, tier, query, sort, fromBack, onlyNew]);
+  }, [entries, specialty, tier, location, query, sort, fromBack, onlyNew]);
 
   /** Clicking a menu entry both picks the column and sets which end to read
    *  from, so one call covers what were two controls. */
@@ -289,6 +324,7 @@ export default function BookView({ ranked, selectedId }: Props) {
   const clear = () => {
     setSpecialty("all");
     setTier("all");
+    setLocation("all");
     setQuery("");
     setOnlyNew(false);
     setSort("rank");
@@ -514,10 +550,20 @@ export default function BookView({ ranked, selectedId }: Props) {
                         sortKey="name"
                         heading="Specialty"
                         hint="What they practise. Filter the book to one specialty."
-                        filterLabel="Show specialty"
-                        options={specialties}
-                        value={specialty}
-                        onValue={setSpecialty}
+                        filters={[
+                          {
+                            label: "Show specialty",
+                            options: specialties,
+                            value: specialty,
+                            onValue: setSpecialty,
+                          },
+                          {
+                            label: "Show location",
+                            options: locations,
+                            value: location,
+                            onValue: setLocation,
+                          },
+                        ]}
                         activeSort={sort}
                         fromBack={fromBack}
                         onSort={setOrder}
@@ -548,9 +594,14 @@ export default function BookView({ ranked, selectedId }: Props) {
                         sortKey="tier"
                         heading="Tier"
                         hint="Score band — strong, promising, neutral, weak or poor."
-                        options={tiers}
-                        value={tier}
-                        onValue={setTier}
+                        filters={[
+                          {
+                            label: "Show tier",
+                            options: tiers,
+                            value: tier,
+                            onValue: setTier,
+                          },
+                        ]}
                         activeSort={sort}
                         fromBack={fromBack}
                         onSort={setOrder}
@@ -573,7 +624,6 @@ export default function BookView({ ranked, selectedId }: Props) {
                         heading="Fit"
                         hint="The overall fit score out of 100. The board is ranked by it."
                         align="right"
-                        filterLabel="Show"
                         activeSort={sort}
                         fromBack={fromBack}
                         onSort={setOrder}
@@ -668,10 +718,7 @@ function ColumnMenu({
   heading,
   hint,
   align = "left",
-  options,
-  value,
-  onValue,
-  filterLabel = "Show",
+  filters = [],
   activeSort,
   fromBack,
   onSort,
@@ -681,17 +728,28 @@ function ColumnMenu({
   /** Plain-English meaning — a column head is a label, not an explanation. */
   hint?: string;
   align?: "left" | "right";
-  /** Values this column can filter to. Omit for a sort-only column. */
-  options?: readonly string[];
-  value?: string;
-  onValue?: (v: string) => void;
-  filterLabel?: string;
+  /** Filters this column offers, stacked in the order given. A cell that
+   *  prints two facts can filter on both. Empty for a sort-only column. */
+  filters?: {
+    label: string;
+    options: readonly { value: string; count: number }[];
+    value: string;
+    onValue: (v: string) => void;
+  }[];
   activeSort: SortKey;
   fromBack: boolean;
   onSort: (key: SortKey, back: boolean) => void;
 }) {
   const active = activeSort === sortKey;
-  const filtered = value !== undefined && value !== "all";
+  const live = filters.filter((f) => f.value !== "all");
+  const filtered = live.length > 0;
+  // With two filters on, the head cannot show both — it says how many.
+  const value =
+    live.length === 1
+      ? live[0].value
+      : live.length > 1
+        ? `${live.length} filters`
+        : "";
   const sort = SORTS[sortKey];
 
   return (
@@ -775,34 +833,38 @@ function ColumnMenu({
           {sort.back}
         </button>
 
-        {options && onValue ? (
-          <>
+        {filters.map((filter) => (
+          <div key={filter.label}>
             <hr className="my-1.5 border-surface-soft" />
             <p className="px-2 pb-1 text-[10px] uppercase tracking-[0.6px] text-ink-faint">
-              {filterLabel}
+              {filter.label}
             </p>
-            {["all", ...options].map((opt) => (
+            {filter.options.map((opt) => (
               <button
-                key={opt}
+                key={opt.value}
                 type="button"
-                onClick={() => onValue(opt)}
+                onClick={() => filter.onValue(opt.value)}
                 className="flex w-full items-center gap-2 rounded-[6px] px-2 py-1.5 text-left text-[12px] text-ink hover:bg-canvas"
               >
                 <span aria-hidden className="w-3 shrink-0 text-brand">
-                  {(value ?? "all") === opt ? "✓" : ""}
+                  {filter.value === opt.value ? "✓" : ""}
                 </span>
                 <span
                   className="truncate"
-                  title={opt === "all" ? undefined : opt}
+                  title={opt.value === "all" ? undefined : opt.value}
                 >
-                  {opt === "all"
+                  {opt.value === "all"
                     ? "All"
-                    : opt.charAt(0).toUpperCase() + opt.slice(1)}
+                    : opt.value.charAt(0).toUpperCase() + opt.value.slice(1)}
+                </span>
+                {/* The count says what the filter will leave you with. */}
+                <span className="ml-auto shrink-0 font-display text-[11px] tabular-nums text-ink-faint">
+                  {opt.count}
                 </span>
               </button>
             ))}
-          </>
-        ) : null}
+          </div>
+        ))}
       </div>
     </details>
   );
