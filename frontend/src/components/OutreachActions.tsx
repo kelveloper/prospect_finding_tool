@@ -7,66 +7,69 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 type EventType = OutreachEntry["eventType"];
 
-const ACTIONS: {
+type Action = {
   value: EventType;
   label: string;
   tone: string;
   needsReason: boolean;
-}[] = [
-  {
-    value: "connected",
-    label: "Connected ✓",
-    tone: "bg-brand text-white shadow-brand hover:bg-brand-dark",
-    needsReason: false,
-  },
-  {
-    value: "not_connected",
-    label: "Couldn't Reach",
-    tone: "border border-hairline bg-white text-brand hover:bg-surface-soft",
-    needsReason: true,
-  },
-  {
-    value: "follow_up_later",
-    label: "Follow Up Later",
-    tone: "border border-hairline bg-white text-brand hover:bg-surface-soft",
-    needsReason: true,
-  },
-  {
-    value: "converted",
-    label: "Became Client ★",
-    tone: "bg-tier-strong text-white hover:opacity-90",
-    needsReason: false,
-  },
-  {
-    value: "not_converted",
-    label: "Didn't Work Out",
-    tone: "border border-hairline bg-white text-ink-muted hover:bg-surface-soft",
-    needsReason: true,
-  },
+};
+
+const PRIMARY = "bg-brand text-white shadow-brand hover:bg-brand-dark";
+const QUIET = "border border-hairline bg-white text-brand hover:bg-surface-soft";
+const GOOD = "bg-tier-strong text-white hover:opacity-90";
+const MUTED = "border border-hairline bg-white text-ink-muted hover:bg-surface-soft";
+
+/** Step 1 — the only thing knowable at the moment of the attempt. */
+const REACHED: Action[] = [
+  { value: "connected", label: "Yes, I spoke to them", tone: PRIMARY, needsReason: false },
+  { value: "not_connected", label: "No, couldn't reach", tone: QUIET, needsReason: true },
 ];
 
+/** Step 2 — only answerable once they have actually been spoken to, which
+ *  is why it is never on screen at the same time as step 1. */
+const OUTCOME: Action[] = [
+  { value: "converted", label: "They became a client", tone: GOOD, needsReason: false },
+  { value: "follow_up_later", label: "Following up later", tone: QUIET, needsReason: true },
+  { value: "not_converted", label: "Not a fit", tone: MUTED, needsReason: true },
+];
+
+/** Which question this prospect is actually at.
+ *
+ *  connected            → they have been reached; ask how it went
+ *  converted / not_..   → finished; show the result, offer a way back
+ *  anything else        → ask whether this attempt reached them. A
+ *                         follow_up_later loops back here on purpose: next
+ *                         time round, the advisor is dialling again.
+ */
+function stepFor(last: OutreachEntry | undefined): "reached" | "outcome" | "done" {
+  if (!last) return "reached";
+  if (last.eventType === "connected") return "outcome";
+  if (last.eventType === "converted" || last.eventType === "not_converted") return "done";
+  return "reached";
+}
+
 const LABELS: Record<EventType, string> = {
-  connected: "Connected",
-  not_connected: "Couldn't reach",
-  follow_up_later: "Follow up later",
-  converted: "Became client",
-  not_converted: "Didn't work out",
+  connected: "Spoke to them",
+  not_connected: "Couldn't reach them",
+  follow_up_later: "Following up later",
+  converted: "Became a client",
+  not_converted: "Not a fit",
 };
 
 const MODAL_PROMPTS: Partial<
   Record<EventType, { title: string; placeholder: string; askDate?: boolean }>
 > = {
   not_connected: {
-    title: "Couldn't reach — what happened?",
+    title: "Couldn't reach them — what happened?",
     placeholder: "e.g. Gatekeeper wouldn't transfer; left a message with the front desk",
   },
   follow_up_later: {
-    title: "Follow up later — what did they say?",
+    title: "Following up later — what did they say?",
     placeholder: "e.g. Interested, but wants to talk after bonus season",
     askDate: true,
   },
   not_converted: {
-    title: "Didn't work out — why not?",
+    title: "Not a fit — why not?",
     placeholder: "e.g. Already has an advisor; not interested right now",
   },
 };
@@ -98,6 +101,8 @@ export default function OutreachActions({
   const [followUpOn, setFollowUpOn] = useState("");
   const [pending, setPending] = useState<EventType | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [reopened, setReopened] = useState(false);
+  const [revising, setRevising] = useState(false);
 
   useEffect(() => {
     if (!modalFor) return;
@@ -112,8 +117,16 @@ export default function OutreachActions({
     setPending(eventType);
     setError(null);
     try {
-      const res = await fetch(`${API_URL}/prospects/${prospectId}/outreach`, {
-        method: "POST",
+      // Revising corrects the event already there; logging appends a new
+      // one. Appending a correction would leave both outcomes in the
+      // funnel and count the prospect in two stages at once.
+      const target = revising && history[0] ? history[0] : null;
+      const res = await fetch(
+        target
+          ? `${API_URL}/prospects/${prospectId}/outreach/${target.id}`
+          : `${API_URL}/prospects/${prospectId}/outreach`,
+        {
+        method: target ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           event_type: eventType,
@@ -122,23 +135,24 @@ export default function OutreachActions({
           follow_up_on:
             eventType === "follow_up_later" && followUpOn ? followUpOn : null,
         }),
-      });
+      },
+      );
       if (!res.ok) throw new Error(`Backend responded ${res.status}`);
       const saved = await res.json();
-      setHistory([
-        {
-          id: saved.id,
-          eventType: saved.event_type,
-          channel: saved.channel,
-          notes: saved.notes,
-          occurredAt: saved.occurred_at,
-          followUpOn: saved.follow_up_on,
-        },
-        ...history,
-      ]);
+      const entry = {
+        id: saved.id,
+        eventType: saved.event_type,
+        channel: saved.channel,
+        notes: saved.notes,
+        occurredAt: saved.occurred_at,
+        followUpOn: saved.follow_up_on,
+      };
+      setHistory(target ? [entry, ...history.slice(1)] : [entry, ...history]);
       setModalFor(null);
       setReason("");
       setFollowUpOn("");
+      setReopened(false);
+      setRevising(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save");
     } finally {
@@ -146,7 +160,7 @@ export default function OutreachActions({
     }
   }
 
-  function onClick(action: (typeof ACTIONS)[number]) {
+  function onClick(action: Action) {
     if (action.needsReason) {
       setReason("");
       setFollowUpOn("");
@@ -159,24 +173,83 @@ export default function OutreachActions({
 
   const last = history[0];
   const prompt = modalFor ? MODAL_PROMPTS[modalFor] : undefined;
+  const step = reopened ? "reached" : stepFor(last);
+
+  // Revising shows the same set the mislogged event came from, so a wrong
+  // "Not a fit" is one click from being right rather than a restart.
+  const revisable = last
+    ? OUTCOME.some((a) => a.value === last.eventType)
+      ? OUTCOME
+      : REACHED
+    : REACHED;
+  const actions = revising ? revisable : step === "outcome" ? OUTCOME : REACHED;
+
+  // The heading is the question, so the buttons read as answers to it
+  // rather than as a menu of five unrelated things.
+  const question =
+    revising && last
+      ? `Logged "${LABELS[last.eventType]}" on ${fmtDate(last.occurredAt)}. What should it say?`
+      : step === "outcome"
+        ? last
+          ? `You spoke to them on ${fmtDate(last.occurredAt)}. How did it go?`
+          : "How did it go?"
+        : "Did you reach them?";
 
   return (
     <div className="mt-5">
-      <p className="eyebrow">Log The Outcome</p>
+      <p className="eyebrow">Log the outcome</p>
 
-      <div className="mt-2.5 flex flex-wrap gap-3">
-        {ACTIONS.map((action) => (
+      {step === "done" && !revising ? (
+        <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <p className="font-display text-[15px] font-bold text-ink">
+            {last?.eventType === "converted" ? "★ " : ""}
+            {last ? `${LABELS[last.eventType]} on ${fmtDate(last.occurredAt)}` : ""}
+          </p>
           <button
-            key={action.value}
             type="button"
-            disabled={pending !== null}
-            onClick={() => onClick(action)}
-            className={`rounded-[8px] px-5 py-2.5 font-display text-[13px] font-semibold transition-colors disabled:opacity-50 ${action.tone}`}
+            onClick={() => setRevising(true)}
+            className="font-display text-[13px] font-semibold text-brand hover:underline"
           >
-            {pending === action.value && !modalFor ? "Saving…" : action.label}
+            Change this
           </button>
-        ))}
-      </div>
+          <button
+            type="button"
+            onClick={() => setReopened(true)}
+            className="font-display text-[13px] font-semibold text-ink-muted hover:text-brand hover:underline"
+          >
+            Log something new →
+          </button>
+        </div>
+      ) : (
+        <>
+          <p className="mt-1 text-[14px] text-ink">{question}</p>
+          <div className="mt-2.5 flex flex-wrap items-center gap-3">
+            {actions.map((action) => (
+              <button
+                key={action.value}
+                type="button"
+                disabled={pending !== null}
+                onClick={() => onClick(action)}
+                className={`rounded-[8px] px-5 py-2.5 font-display text-[13px] font-semibold transition-colors disabled:opacity-50 ${action.tone}`}
+              >
+                {pending === action.value && !modalFor ? "Saving…" : action.label}
+              </button>
+            ))}
+            {revising || reopened ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setRevising(false);
+                  setReopened(false);
+                }}
+                className="font-display text-[13px] font-semibold text-ink-muted hover:text-brand hover:underline"
+              >
+                Cancel
+              </button>
+            ) : null}
+          </div>
+        </>
+      )}
 
       {error && !modalFor ? (
         <p className="mt-2.5 text-[13px] font-semibold text-tier-poor-fg">
@@ -184,11 +257,23 @@ export default function OutreachActions({
         </p>
       ) : null}
 
-      {last ? (
-        <p className="mt-2.5 text-[12px] text-ink-faint">
+      {last && step !== "done" ? (
+        <p className="mt-2.5 text-[12px] text-ink-muted">
           Last action: {LABELS[last.eventType]} · {fmtDate(last.occurredAt)}
           {last.followUpOn ? ` · circling back ${fmtDate(last.followUpOn)}` : ""}
           {last.notes ? ` — ${last.notes}` : ""}
+          {!revising ? (
+            <>
+              {" · "}
+              <button
+                type="button"
+                onClick={() => setRevising(true)}
+                className="font-display font-semibold text-brand hover:underline"
+              >
+                Change
+              </button>
+            </>
+          ) : null}
         </p>
       ) : null}
 
@@ -207,7 +292,7 @@ export default function OutreachActions({
           >
             <div className="flex items-center gap-2">
               <span className="h-4 w-[3px] shrink-0 rounded-full bg-brand" />
-              <p className="eyebrow">Log The Outcome</p>
+              <p className="eyebrow">Log the outcome</p>
             </div>
             <h3 className="mt-3 font-display text-[18px] font-bold tracking-[-0.4px] text-ink">
               {prompt.title}
@@ -222,7 +307,7 @@ export default function OutreachActions({
               autoFocus
               rows={3}
               placeholder={prompt.placeholder}
-              className="mt-4 w-full rounded-[12px] border border-hairline bg-canvas p-3 text-[14px] text-ink placeholder:text-ink-faint focus:border-brand focus:outline-none"
+              className="mt-4 w-full rounded-[12px] border border-hairline bg-canvas p-3 text-[14px] text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
             />
 
             {prompt.askDate ? (
@@ -240,7 +325,7 @@ export default function OutreachActions({
               </div>
             ) : null}
 
-            <p className="mt-1.5 text-[11px] text-ink-faint">
+            <p className="mt-1.5 text-[12px] text-ink-muted">
               This is stored with the prospect and feeds scoring recalibration.
             </p>
 
