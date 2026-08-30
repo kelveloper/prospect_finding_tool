@@ -1,6 +1,6 @@
 # Docs
 
-Nineteen files, flat on purpose — they cross-reference each other as siblings,
+Nineteen documents, flat on purpose — they cross-reference each other as siblings,
 so nesting them into folders would break roughly two dozen links for no gain.
 
 ## Start here
@@ -45,6 +45,19 @@ so nesting them into folders would break roughly two dozen links for no gain.
 | [`RESEARCH_CAREER_SIGNAL.md`](RESEARCH_CAREER_SIGNAL.md) | Choosing a real source for career moves |
 | [`RESEARCH_PROPERTY_SIGNAL.md`](RESEARCH_PROPERTY_SIGNAL.md) | Choosing a real source for property purchases |
 | [`RESEARCH_CONTACT_OUTREACH.md`](RESEARCH_CONTACT_OUTREACH.md) | Channels and contact data once a prospect is ranked |
+
+## Visuals
+
+Standalone HTML pages — open them in a browser. The first two survey the
+market; the last two are the before/after arguments behind the Sources
+redesign, built with one real prospect's data.
+
+| | |
+|---|---|
+| [`visuals/prospecting-ux-teardown.html`](visuals/prospecting-ux-teardown.html) | How the market presents prospects, and where we sit against it |
+| [`visuals/prospectiq-retrofit.html`](visuals/prospectiq-retrofit.html) | The four changes that teardown recommends, mocked against our UI |
+| [`visuals/paths-not-taken.html`](visuals/paths-not-taken.html) | Why the breakdown page was unreadable: it rendered every branch the model didn't take |
+| [`visuals/evidence-ledger.html`](visuals/evidence-ledger.html) | Three mismatched layouts replaced by one ledger — the Sources page as it is now |
 
 ## Historical
 
