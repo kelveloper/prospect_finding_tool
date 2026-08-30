@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
-import Badge from "./Badge";
 import { EvidenceChip, MovementChip, TriggerChip } from "./RowChips";
 import { ChevronLeft, ChevronRight } from "./icons";
 import type { Candidate } from "@/lib/data";
@@ -320,6 +319,18 @@ export default function BookView({ ranked, selectedId }: Props) {
       ? "This is already the New arrivals view."
       : (views.find((v) => sameState(viewState, v.state))?.name ?? null);
 
+  /** After a single ingest there is nothing to compare against, so the column
+   *  prints "no change yet" on all but a stray row or two. One mover out of
+   *  219 does not earn a column and a header; the cutoff is a twentieth of the
+   *  board, below which the column is 95% identical text. */
+  const hasMovement = useMemo(() => {
+    if (entries.length === 0) return false;
+    const moved = entries.filter(
+      (e) => e.scoreChange !== null && e.scoreChange !== 0,
+    ).length;
+    return moved / entries.length >= 0.05;
+  }, [entries]);
+
   const filtered = !isEmpty(viewState);
   const clear = () => {
     setSpecialty("all");
@@ -619,11 +630,25 @@ export default function BookView({ ranked, selectedId }: Props) {
                         onSort={setOrder}
                       />
                     </span>
-                    <span className="hidden w-[86px] shrink-0 sm:block">
+                    {hasMovement ? (
+                      <span className="hidden w-[78px] shrink-0 text-right md:block">
+                        <ColumnMenu
+                          sortKey="movement"
+                          heading="Move"
+                          hint="How the fit score has changed since the last data refresh."
+                          align="right"
+                          activeSort={sort}
+                          fromBack={fromBack}
+                          onSort={setOrder}
+                        />
+                      </span>
+                    ) : null}
+                    <span className="w-[104px] shrink-0">
                       <ColumnMenu
                         sortKey="tier"
-                        heading="Tier"
-                        hint="Score band — strong, promising, neutral, weak or poor."
+                        heading="Fit"
+                        hint="The score out of 100 and the band it falls in. The board is ranked by it."
+                        align="right"
                         filters={[
                           {
                             label: "Show tier",
@@ -632,28 +657,6 @@ export default function BookView({ ranked, selectedId }: Props) {
                             onValue: setTier,
                           },
                         ]}
-                        activeSort={sort}
-                        fromBack={fromBack}
-                        onSort={setOrder}
-                      />
-                    </span>
-                    <span className="hidden w-[78px] shrink-0 text-right md:block">
-                      <ColumnMenu
-                        sortKey="movement"
-                        heading="Move"
-                        hint="How the fit score has changed since the last data refresh."
-                        align="right"
-                        activeSort={sort}
-                        fromBack={fromBack}
-                        onSort={setOrder}
-                      />
-                    </span>
-                    <span className="w-11 shrink-0">
-                      <ColumnMenu
-                        sortKey="rank"
-                        heading="Fit"
-                        hint="The overall fit score out of 100. The board is ranked by it."
-                        align="right"
                         activeSort={sort}
                         fromBack={fromBack}
                         onSort={setOrder}
@@ -668,6 +671,7 @@ export default function BookView({ ranked, selectedId }: Props) {
                         candidate={entry}
                         rank={entry.rank}
                         active={entry.id === selectedId}
+                        showMovement={hasMovement}
                       />
                     ))}
                   </div>
@@ -982,10 +986,13 @@ function BookEntry({
   candidate,
   rank,
   active,
+  showMovement,
 }: {
   candidate: Candidate;
   rank: number;
   active: boolean;
+  /** Hidden until an ingest gives it something to compare against. */
+  showMovement: boolean;
 }) {
   const style = tierStyle(candidate.tier);
 
@@ -1047,26 +1054,30 @@ function BookEntry({
         <EvidenceChip evidence={candidate.evidence} />
       </span>
 
-      <span className="hidden w-[86px] shrink-0 sm:block">
-        <span
-          title={`Tier — ${candidate.tierLabel}, from the fit score.`}
-          className="cursor-help"
-        >
-          <Badge bg={style.badgeBg} fg={style.badgeFg}>
-            {candidate.tier}
-          </Badge>
+      {showMovement ? (
+        <span className="hidden w-[78px] shrink-0 text-right md:block">
+          <MovementChip change={candidate.scoreChange} />
         </span>
-      </span>
+      ) : null}
 
-      <span className="hidden w-[78px] shrink-0 text-right md:block">
-        <MovementChip change={candidate.scoreChange} />
-      </span>
-
+      {/* Score and band together: the band is a function of the score, so two
+          columns were one fact printed twice. */}
       <span
-        className="w-11 shrink-0 text-right font-display text-[15px] font-bold tabular-nums"
-        style={{ color: style.badgeFg }}
+        title={`${candidate.score} out of 100 — ${candidate.tierLabel}.`}
+        className="flex w-[104px] shrink-0 cursor-help items-baseline justify-end gap-1.5"
       >
-        {candidate.score}
+        <span
+          className="hidden text-[11px] font-medium sm:inline"
+          style={{ color: style.badgeFg }}
+        >
+          {candidate.tier}
+        </span>
+        <span
+          className="font-display text-[15px] font-bold tabular-nums"
+          style={{ color: style.badgeFg }}
+        >
+          {candidate.score}
+        </span>
       </span>
     </Link>
   );
