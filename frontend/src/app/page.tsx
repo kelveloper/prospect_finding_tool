@@ -1,7 +1,7 @@
 import BookView from "@/components/BookView";
-import CandidateCard from "@/components/CandidateCard";
 import CandidateDetail from "@/components/CandidateDetail";
 import CandidateSlideOver from "@/components/CandidateSlideOver";
+import Scoreboard from "@/components/Scoreboard";
 import Header from "@/components/Header";
 import LaunchOverlay from "@/components/LaunchOverlay";
 import ViewToggle from "@/components/ViewToggle";
@@ -14,8 +14,6 @@ import {
   fetchOutreachHistory,
   fetchRankedCandidates,
 } from "@/lib/api";
-
-export const dynamic = "force-dynamic";
 
 export default async function ScoreboardPage({
   searchParams,
@@ -74,9 +72,6 @@ export default async function ScoreboardPage({
     : undefined;
   const rank = featured ? ranked.findIndex((c) => c.id === featured.id) + 1 : 0;
 
-  // Fresh arrivals (last 48h) get the NEW badge and the list-top alert
-  const newCount = ranked.filter((c) => c.isNew).length;
-
   return (
     <div className="min-h-screen">
       {/* Opening page — covers the scoreboard until the advisor starts.
@@ -117,51 +112,13 @@ export default async function ScoreboardPage({
           ) : null}
         </>
       ) : (
-        <div className="mx-auto grid max-w-[1560px] grid-cols-1 items-start lg:grid-cols-[minmax(0,1fr)_420px]">
-          {/* ── Featured candidate ───────────────────────── */}
-          <main className="min-h-[calc(100vh-4rem)] bg-white px-8 py-8">
-            {featured ? (
-              <CandidateDetail
-                candidate={featured}
-                profile={detail?.profile}
-                dossier={dossier}
-                contactKit={contactKit}
-                outreach={outreach}
-                rank={rank}
-                total={ranked.length}
-              />
-            ) : null}
-          </main>
-
-          {/* ── Ranked list ──────────────────────────────── */}
-          <aside className="border-l border-hairline/60 px-6 py-8 lg:sticky lg:top-16 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto">
-            <h2 className="font-display text-[16px] font-bold text-ink">
-              All Prospects
-            </h2>
-            <p className="eyebrow mt-3">Ranked by fit score</p>
-
-            {/* New-arrivals alert — only rendered when there is something new */}
-            {newCount > 0 ? (
-              <div className="mt-3 flex items-center gap-2 rounded-[12px] bg-tier-strong-bg px-4 py-3">
-                <span className="font-display text-[13px] font-semibold text-tier-strong-fg">
-                  ✨ {newCount} new prospect{newCount === 1 ? "" : "s"} since
-                  the last ingest — look for the NEW badge below.
-                </span>
-              </div>
-            ) : null}
-
-            <div className="mt-3 flex flex-col gap-3">
-              {ranked.map((candidate, i) => (
-                <CandidateCard
-                  key={candidate.id}
-                  candidate={candidate}
-                  rank={i + 1}
-                  active={candidate.id === featured?.id}
-                />
-              ))}
-            </div>
-          </aside>
-        </div>
+        /* Selection lives client-side: clicking a card swaps the panel and
+           fetches one dossier instead of re-rendering the whole board. */
+        <Scoreboard
+          ranked={ranked}
+          initialSelectedId={selectedId}
+          initialDossier={{ detail, contactKit, outreach }}
+        />
       )}
     </div>
   );

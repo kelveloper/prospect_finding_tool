@@ -1,4 +1,3 @@
-import Link from "next/link";
 import ScoreRing from "./ScoreRing";
 import { EvidenceChip, MovementChip, TriggerChip } from "./RowChips";
 import Badge from "./Badge";
@@ -10,17 +9,31 @@ type Props = {
   rank: number;
   /** Highlights the row the detail panel is currently showing. */
   active?: boolean;
+  /** Swap the panel in place — a server navigation here re-rendered and
+   *  re-sent the entire board on every click. */
+  onSelect: () => void;
 };
 
-export default function CandidateCard({ candidate, rank, active }: Props) {
+export default function CandidateCard({
+  candidate,
+  rank,
+  active,
+  onSelect,
+}: Props) {
   const style = tierStyle(candidate.tier);
 
   return (
-    <Link
+    <a
       // One click opens the whole profile in the panel beside this list.
+      // The href keeps the row linkable (copy, middle-click, new tab);
+      // a plain left click is handled in place instead.
       href={`/?id=${candidate.id}`}
-      // Switching candidates must not yank the list back to the top of the page.
-      scroll={false}
+      onClick={(e) => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0)
+          return;
+        e.preventDefault();
+        onSelect();
+      }}
       aria-current={active ? "true" : undefined}
       title={
         active
@@ -90,6 +103,6 @@ export default function CandidateCard({ candidate, rank, active }: Props) {
           <MovementChip change={candidate.scoreChange} />
         </span>
       </div>
-    </Link>
+    </a>
   );
 }

@@ -4,8 +4,6 @@ import ScoreRing from "@/components/ScoreRing";
 import SourcesDocument from "@/components/SourcesDocument";
 import { fetchCandidateDetail } from "@/lib/api";
 
-export const dynamic = "force-dynamic";
-
 /** One document answering one question: how do we know this? It reads in
  *  pipeline order — the raw facts, then how we knew they were his, then what
  *  each was worth. These used to be two pages and two tabs. */

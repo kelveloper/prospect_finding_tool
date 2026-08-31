@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { revalidateBoard } from "@/lib/actions";
 import type { IngestStatus } from "@/lib/api";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -69,7 +70,9 @@ export default function RefreshData({
       setStatus(fresh);
       if (fresh.lastRunAt !== lastSeen) {
         lastSeen = fresh.lastRunAt;
-        router.refresh(); // a new run landed elsewhere — reload the board
+        // A new run landed elsewhere — drop the cached board, then reload
+        await revalidateBoard();
+        router.refresh();
       }
     };
     const id = setInterval(tick, POLL_MS);
@@ -91,6 +94,7 @@ export default function RefreshData({
       );
       if (!res.ok) throw new Error(String(res.status));
       setStatus(await loadStatus());
+      await revalidateBoard();
       router.refresh();
     } catch {
       setError(true);

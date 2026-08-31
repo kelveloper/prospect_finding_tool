@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { revalidateBoard } from "@/lib/actions";
 import type { OutreachEntry } from "@/lib/data";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -148,6 +149,9 @@ export default function OutreachActions({
         followUpOn: saved.follow_up_on,
       };
       setHistory(target ? [entry, ...history.slice(1)] : [entry, ...history]);
+      // The board's cached payload carries outreach state — drop it so the
+      // next navigation reflects this event immediately.
+      void revalidateBoard();
       setModalFor(null);
       setReason("");
       setFollowUpOn("");

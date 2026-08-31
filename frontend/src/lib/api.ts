@@ -545,7 +545,10 @@ function toSignalItems(d: ApiDetail): SignalItem[] {
 /* ── Fetchers ────────────────────────────────────────────── */
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, { cache: "no-store", ...init });
+  // Fresh by default; a caller that passes `next` opts that GET into the
+  // data cache instead, and the two options must not be sent together.
+  const defaults: RequestInit = init?.next ? {} : { cache: "no-store" };
+  const res = await fetch(`${API_URL}${path}`, { ...defaults, ...init });
   if (!res.ok)
     throw new ApiError(
       res.status,
@@ -566,13 +569,26 @@ export class ApiError extends Error {
 // The API defaults to 50; ask for its maximum so the whole board shows.
 const RANKED_PATH = "/prospects/ranked?limit=5000";
 
+/** Cache tag for the ranked board — `revalidateBoard()` invalidates it
+ *  after an ingest run or a logged outreach event. */
+export const BOARD_TAG = "ranked-board";
+
+/** The whole board. Cached in the data cache for a minute and shared by
+ *  every page render (header count included), so clicking around never
+ *  re-downloads it; mutations revalidate BOARD_TAG for instant freshness. */
+function fetchRanked(): Promise<ApiRanked[]> {
+  return api<ApiRanked[]>(RANKED_PATH, {
+    next: { revalidate: 60, tags: [BOARD_TAG] },
+  });
+}
+
 /** How many prospects are on the board — for the nav bar on every page.
  *  Deliberately never triggers ingestion, and never breaks the header when
- *  the API is down; the same GET is memoised alongside the scoreboard's own
- *  ranked fetch, so this costs nothing on `/`. */
+ *  the API is down; it reads the same cached board fetch as the scoreboard,
+ *  so this costs nothing. */
 export async function fetchCandidateCount(): Promise<number | undefined> {
   try {
-    const ranked = await api<ApiRanked[]>(RANKED_PATH);
+    const ranked = await fetchRanked();
     return ranked.length;
   } catch {
     return undefined;
@@ -581,9 +597,11 @@ export async function fetchCandidateCount(): Promise<number | undefined> {
 
 /** Ranked list; runs ingestion first if the database is empty. */
 export async function fetchRankedCandidates(): Promise<Candidate[]> {
-  let ranked = await api<ApiRanked[]>(RANKED_PATH);
+  let ranked = await fetchRanked();
   if (ranked.length === 0) {
     await api("/ingest/run", { method: "POST" });
+    // Bypass the cache here — the empty board was just cached for a minute,
+    // and a render pass is not allowed to revalidate the tag itself.
     ranked = await api<ApiRanked[]>(RANKED_PATH);
   }
   return ranked.map((p) => toCandidate(p));
