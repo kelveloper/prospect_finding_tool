@@ -26,6 +26,9 @@ class ProspectRepository:
             .options(
                 selectinload(Prospect.signals),
                 selectinload(Prospect.score_history),
+                # outreach_status serializes from this relationship; without
+                # the eager load every ranked response lazy-loads it per row
+                selectinload(Prospect.outreach_events),
             )
             .order_by(Prospect.total_score.desc())
             .limit(limit)

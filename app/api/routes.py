@@ -27,7 +27,7 @@ from app.schemas.api import (
     OutreachEventOut,
     ScoreComponent,
 )
-from app.summaries import is_stale
+from app.summaries import count_stale
 from app.scoring import ScoringEngine
 from app.services import RankingService
 
@@ -75,7 +75,7 @@ def run_ingestion(
 def ingest_status(db: Session = Depends(get_db)):
     """Latest ingest run plus how many advisor summaries it left stale."""
     last = db.query(IngestRun).order_by(IngestRun.ran_at.desc()).first()
-    stale = sum(1 for p in RankingService(db).ranked(limit=100_000) if is_stale(p))
+    stale = count_stale(db)
     return IngestStatusOut(
         next_sweep_at=next_sweep_due_at(db),
         last_run_at=last.ran_at if last else None,

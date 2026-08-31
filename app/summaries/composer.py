@@ -8,24 +8,65 @@ the UI simply by being what's stored.
 """
 from datetime import date, datetime, timedelta, timezone
 
-from app.models import Prospect
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
+
+from app.models import OutreachEvent, Prospect
 
 HIGH_EARNING_STRENGTH = 0.75
 
 
-def is_stale(p: Prospect) -> bool:
+def _stale(
+    summary: str | None,
+    generated_at: datetime | None,
+    updated_at: datetime | None,
+    last_event_at: datetime | None,
+) -> bool:
     """No summary yet, facts changed since it was written, or the advisor
     acted on the prospect after it was written.
 
     Writing the summary itself bumps updated_at (onupdate) a moment after
     summary_generated_at, so the comparison carries a short tolerance —
     only a *later* fact change marks the row stale."""
-    if p.advisor_summary is None or p.summary_generated_at is None:
+    if summary is None or generated_at is None:
         return True
-    threshold = p.summary_generated_at + timedelta(seconds=5)
-    if p.updated_at and p.updated_at > threshold:
+    threshold = generated_at + timedelta(seconds=5)
+    if updated_at and updated_at > threshold:
         return True
-    return any(e.created_at > threshold for e in p.outreach_events)
+    return last_event_at is not None and last_event_at > threshold
+
+
+def is_stale(p: Prospect) -> bool:
+    last_event_at = max((e.created_at for e in p.outreach_events), default=None)
+    return _stale(
+        p.advisor_summary, p.summary_generated_at, p.updated_at, last_event_at
+    )
+
+
+def count_stale(db: Session) -> int:
+    """Book-wide stale count for /ingest/status. Reads only the three
+    timestamp/summary columns plus each prospect's latest outreach event —
+    never hydrates Prospect rows, which made the old per-object sweep cost
+    half a second at ~1,200 prospects."""
+    latest_event_at = dict(
+        db.execute(
+            select(
+                OutreachEvent.prospect_id, func.max(OutreachEvent.created_at)
+            ).group_by(OutreachEvent.prospect_id)
+        ).all()
+    )
+    rows = db.execute(
+        select(
+            Prospect.id,
+            Prospect.advisor_summary,
+            Prospect.summary_generated_at,
+            Prospect.updated_at,
+        )
+    )
+    return sum(
+        _stale(summary, generated_at, updated_at, latest_event_at.get(pid))
+        for pid, summary, generated_at, updated_at in rows
+    )
 
 
 def _months_ago(d: date | None) -> int | None:
