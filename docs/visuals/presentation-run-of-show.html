@@ -464,7 +464,8 @@
       <li><b>Start the backend on the real database.</b> <code>.venv/bin/uvicorn app.main:app --port 8000</code> &mdash; the default <code>prospects.db</code> holds the 219 scored physicians. Do not point <code>DATABASE_URL</code> at a file that does not exist; SQLite creates it empty and you will be on stage with a blank board.</li>
       <li><b>Start the frontend</b> &mdash; <code>cd frontend &amp;&amp; npm run dev</code>, then open <code>localhost:3000</code>.</li>
       <li><b>Do not run a live ingest on stage.</b> It returns immediately and runs in the background now, but it still calls four government APIs and takes about two minutes; a second start returns 409, and the weekly gate returns 429 unless you pass <code>force=true</code>. Run it beforehand if you want fresh data.</li>
-      <li><b>Load the screens in tabs ahead of time</b> so no click waits on a spinner: the board, Rahul Aggarwal, Beth Ann Adams, Smita Aggarwal, and a score breakdown.</li>
+      <li><b>Load the screens in tabs ahead of time</b> so no click waits on a spinner: the opening page, the board, Rahul Aggarwal, his score breakdown, his contact kit, and the book view. That is the whole demo &mdash; you never open a second prospect.</li>
+      <li><b>Beth Ann Adams is your back pocket, not a demo step.</b> She is the answer if someone asks about practice ownership, or challenges why an established doctor ranks highly. Have her open in a spare tab and leave her there.</li>
       <li><b>Sanity check</b> &mdash; <code>curl localhost:8000/health</code> returns ok, and <code>pytest -q</code> shows <b>76 passed</b>. Worth having that terminal open if the manager asks.</li>
       <li><b>Know your top name.</b> Rahul Aggarwal is rank 1 and carries the whole thesis: Illinois license two months ago, a $1,100,000 house two months ago. If the board has been re-ingested, check who is on top before you walk in.</li>
       <li><b>Agree the handoff line.</b> Each speaker ends by naming the next person. It sounds rehearsed because it is.</li>
@@ -485,12 +486,10 @@
           Today we&rsquo;re presenting our Emerging Affluent Prospecting proof of concept.
         </p>
         <p class="say">
-          The problem is that every advisor chases the same people &mdash; the ones who are already visibly
-          wealthy. And by the time somebody lands on a wealth list, they&rsquo;ve had an advisor for ten
-          years. You&rsquo;re not pitching at that point. You&rsquo;re trying to break up a marriage.
+          So here&rsquo;s the problem. Every advisor is chasing the same people &mdash; the ones who are already rich. But by the time someone shows up on a wealth list, they&rsquo;ve usually had an advisor for ten years. At that point you&rsquo;re not really pitching. You&rsquo;re trying to break up a marriage.
         </p>
         <p class="say">
-          So we asked: can we find them earlier, while the wealth is still forming?
+          So we asked a different question. Could we find these people earlier, while they&rsquo;re still building it?
         </p>
         <div class="note"><span class="tag">Note</span><span>Land the problem before you mention doctors, data or scores. If the room doesn&rsquo;t feel &ldquo;too late,&rdquo; nothing after this matters.</span></div>
       </div>
@@ -498,14 +497,11 @@
       <div class="beat">
         <div class="do"><span class="tag">Do &middot; why physicians</span><span>Move to the opportunity slide.</span></div>
         <p class="say">
-          We started with physicians &mdash; twenty-three thousand new openings a year, and a career that
-          leaves a public trail: license, practice, ownership.
+          We started with doctors. There are around twenty-three thousand new openings a year, and a doctor&rsquo;s career leaves a public trail &mdash; first a license, then a practice, then ownership.
         </p>
         <div class="note" data-kind="cut"><span class="tag">Cut first</span><span>If you are running long, drop the openings figure and start at &ldquo;a career that leaves a public trail.&rdquo; Nothing later depends on the number.</span></div>
         <p class="say">
-          And we&rsquo;re looking for <em>change</em>, not status. A new license is more actionable than twenty
-          years of tenure. So the hypothesis is that <b>recent, corroborated transitions tell us not just who
-          is worth calling, but when.</b>
+          And we&rsquo;re not really looking for status. We&rsquo;re looking for <em>change</em>. A brand new license tells us more than twenty years of experience does. So the idea is simple: <b>recent changes tell us two things &mdash; who&rsquo;s worth calling, and when to call them.</b>
         </p>
         <div class="note"><span class="tag">Note</span><span>That last sentence is the thesis. Pause after it &mdash; it is the line a manager repeats to somebody else.</span></div>
       </div>
@@ -513,16 +509,13 @@
       <div class="beat">
         <div class="do"><span class="tag">Do &middot; the solution</span><span>Move to the engine slide. This is the &ldquo;so we built it&rdquo; beat.</span></div>
         <p class="say">
-          And every one of those transitions is public record &mdash; sitting in four government databases
-          that nobody had joined up.
+          And here&rsquo;s the thing that made this worth building. All of those changes are public record. They were just sitting in four separate government databases, and nobody had put them together.
         </p>
         <p class="say">
-          So that is what we built. The engine pulls all four, works out which records are genuinely the same
-          person, and ranks them. And it doesn&rsquo;t just return a number &mdash; it tells the advisor
-          <b>why this person matters now</b>, and <b>what to do next</b>.
+          So that&rsquo;s what we built. It pulls all four sources, works out which records actually belong to the same person, and ranks them. And it doesn&rsquo;t just hand back a number &mdash; it tells the advisor <b>why this person matters now</b>, and <b>what to do next</b>.
         </p>
         <p class="say">
-          Two hundred and nineteen Illinois physicians, ranked. <b>[Speaker 2]</b> will show you.
+          Two hundred and nineteen Illinois doctors, ranked. <b>[Speaker 2]</b> will show you what that looks like.
         </p>
       </div>
     </div>
@@ -531,72 +524,95 @@
   <section class="speaker" data-s="2">
     <div class="speaker-bar">
       <span class="slot-who">Speaker 2</span>
-      <h2>The demo</h2>
+      <h2>The demo &mdash; one doctor, start to finish</h2>
       <span class="slot-time">1:40 &ndash; 3:40</span>
     </div>
 
     <div class="beats">
       <div class="beat">
-        <div class="do"><span class="tag">Do &middot; rank</span><span>Share the screen. Land on the <b>scoreboard</b>.</span></div>
+        <div class="do"><span class="tag">Do &middot; open</span><span>Share the screen on the <b>opening page</b>, before you press Begin.</span></div>
         <p class="say">
-          This is ProspectIQ. Two hundred and nineteen real Illinois physicians, pulled from federal and
-          state registries, ranked best fit first. This is an advisor&rsquo;s Monday morning.
+          This is what an advisor sees when they open it. Just three things: who they are, what came in
+          today, and a button to start. That&rsquo;s the whole screen.
         </p>
-        <div class="do"><span class="tag">Do</span><span>Point at the score ring on the featured panel.</span></div>
         <p class="say">
-          Everyone gets a score out of a hundred, and it&rsquo;s really two questions. Should we care about
-          this person &mdash; that&rsquo;s sixty percent. And why now &mdash; that&rsquo;s the other forty.
-          Those are transparent prototype weights; in production they&rsquo;d be calibrated against what
-          advisors actually convert.
+          The number in the corner is their advisor ID. The idea is that this book belongs to them, instead
+          of one shared list that two people are working at the same time.
         </p>
-        <div class="note"><span class="tag">Note</span><span>Saying &ldquo;prototype weights, calibrated later&rdquo; here kills the &ldquo;why sixty-forty?&rdquo; question before anyone asks it.</span></div>
+        <div class="guard"><span class="tag">Careful</span><span>Keep that to one line. The ID is displayed, but prospects are <b>not</b> scoped to it &mdash; there is no assignment in the data model. If he asks: &ldquo;It&rsquo;s shown, not enforced. Splitting the book by territory is a data question we haven&rsquo;t answered yet.&rdquo; Never describe it as built.</span></div>
       </div>
 
       <div class="beat">
-        <div class="do"><span class="tag">Do &middot; explain</span><span>Open <b>Rahul Aggarwal</b>, rank 1. Lead with him &mdash; he is the thesis made real.</span></div>
+        <div class="do"><span class="tag">Do &middot; the board</span><span>Press Begin. Land on the <b>scoreboard</b>.</span></div>
         <p class="say">
-          Top of the list. He got his Illinois license two months ago, and two months ago he bought a
-          one-point-one-million-dollar house in Cook County. Two separate government records, two months
-          apart, same person. That is exactly the moment we said we were looking for.
+          So this is the ProspectIQ scoreboard. Two hundred and nineteen real Illinois doctors, from federal
+          and state registries, ranked best fit first. This is an advisor&rsquo;s Monday morning.
         </p>
-        <div class="do"><span class="tag">Do</span><span>Open <b>Beth Ann Adams</b>. Point at the ownership card.</span></div>
+        <div class="do"><span class="tag">Do</span><span>Hover the <b>score tooltip</b> that shows the 60 / 40 split.</span></div>
         <p class="say">
-          A different kind of signal. She bills Medicare under a company called &ldquo;Beth Adams Medical
-          Services.&rdquo; We didn&rsquo;t buy that from a data vendor &mdash; we worked it out. The company
-          carries her own name, so she almost certainly owns it. Nobody routes their income through a
-          stranger&rsquo;s company that happens to be named after them.
+          Everyone here gets a score out of a hundred, and that score is really answering two questions.
+          <b>First: should we care about this person at all?</b> That&rsquo;s sixty percent of it.
+          <b>Second: why now?</b> That&rsquo;s the other forty.
         </p>
-        <div class="guard"><span class="tag">Careful</span><span>She is a strong <b>ownership</b> example and a weak <b>timing</b> one &mdash; licensed seventeen years ago, timing score 5.5. Do not present her as somebody about to become wealthy; her chip reads &ldquo;Owns practice&rdquo;, not &ldquo;new&rdquo;, because we have no date for it. If you need a line: &ldquo;high fit, no recent trigger &mdash; which is exactly why she sits at eleven and not at one.&rdquo;</span></div>
       </div>
 
       <div class="beat">
-        <div class="do"><span class="tag">Do &middot; the moment</span><span>Put <b>Rahul Aggarwal</b> and <b>Smita Aggarwal</b> side by side. Pause after this one.</span></div>
+        <div class="do"><span class="tag">Do &middot; the one example</span><span>Open <b>Rahul Aggarwal</b>, number one.</span></div>
         <p class="say">
-          This is the one I&rsquo;d remember. She bought a two-point-four-five-million-dollar house.
-          He bought a one-point-one-million-dollar house. <em>He ranks first and she doesn&rsquo;t.</em>
+          Let&rsquo;s follow one person all the way through. This is who&rsquo;s at the top today.
         </p>
         <p class="say">
-          Because hers was twenty-six months ago and his was two months ago. The bigger house scores lower.
-          That is the whole product &mdash; this isn&rsquo;t a rich list, it&rsquo;s a timing engine.
+          He got his Illinois license two months ago. And two months ago, he bought a house for one point
+          one million dollars. Those are two completely separate government records, and they&rsquo;re the
+          same person. That&rsquo;s the moment we said we were looking for.
         </p>
-        <div class="note"><span class="tag">Note</span><span>If you only land one beat, land this one. It kills &ldquo;so it&rsquo;s just a wealthy-people filter&rdquo; before anyone says it out loud.</span></div>
-        <div class="guard"><span class="tag">Numbers</span><span>Rahul 62.0 total, 71.5 timing. Smita 48.7 total, 14.5 timing. If you would rather contrast timing alone, James Mathai Abraham&rsquo;s $672,500 ten months ago scores 31.0 timing against Smita&rsquo;s 14.5 &mdash; but his <b>total</b> is lower than hers, so never say &ldquo;he scores higher&rdquo; about those two.</span></div>
+        <p class="say">
+          And here&rsquo;s what I&rsquo;d really pay attention to. Someone further down this list bought a house
+          for more money, and he still ranks above her. Because hers was two years ago, and his was two
+          months ago.
+        </p>
       </div>
 
       <div class="beat">
-        <div class="do"><span class="tag">Do &middot; act</span><span>Open the <b>score breakdown</b>, expand one component, then the <b>contact kit</b>.</span></div>
+        <div class="do"><span class="tag">Do &middot; the action</span><span>Open his <b>contact section</b>.</span></div>
         <p class="say">
-          And there&rsquo;s no black box. Every point traces back to a specific government record. If
-          compliance asks why this person is on the list, we show them the row.
+          Then the contact section gives the advisor what they need for the first call. The practice address,
+          the phone number.
         </p>
-        <div class="note" data-kind="cut"><span class="tag">Cut first</span><span>If you are running long, drop the breakdown beat &mdash; Speaker 3 covers traceability anyway.</span></div>
+      </div>
+
+      <div class="beat">
+        <div class="do"><span class="tag">Do &middot; the loop</span><span>Point at the <b>outreach buttons</b> on his profile. Don&rsquo;t click through the whole flow &mdash; just show they&rsquo;re there.</span></div>
         <p class="say">
-          Last thing. The contact kit gives the advisor the practice address, the phone, and the one trigger
-          to lead with &mdash; why now, and what to do next. And notice what it doesn&rsquo;t mention: the
-          house. The property tells us <em>when</em> to reach out. We&rsquo;d never write about it.
+          And once the advisor has actually reached out, they tell us what happened. Did they speak to him
+          or not. Did he become a client, or was he not a fit.
         </p>
         <p class="say">
-          <b>[Speaker 3]</b> can tell you how it actually gets built.
+          Right now we&rsquo;re just storing those answers. But that&rsquo;s the loop we want to close. Every one
+          of them is a real outcome we could tune the ranking against &mdash; so eventually the board is
+          learning from what actually worked, instead of from weights we picked ourselves.
+        </p>
+        <div class="guard"><span class="tag">Careful</span><span>Say &ldquo;we&rsquo;re storing them&rdquo; and &ldquo;the loop we want to close&rdquo; &mdash; never &ldquo;it re-scores.&rdquo; Nothing in <code>app/scoring/</code> reads these events. He will check.</span></div>
+      </div>
+
+      <div class="beat">
+        <div class="do"><span class="tag">Do &middot; zoom back out</span><span>Switch to the <b>book view</b>. Change a filter, save the view and name it if you have time.</span></div>
+        <p class="say">
+          Last thing, and then I&rsquo;ll hand over. That was one person, but day to day an advisor is working
+          a list. So it&rsquo;s the same data in two shapes &mdash; the board is for scanning, and the book is
+          the list they&rsquo;d actually work through.
+        </p>
+        <p class="say">
+          And they can change the table filter, then save that view and name it, so Monday starts where
+          Friday stopped.
+        </p>
+        <p class="say">
+          We took that from other tools advisors already use. We went through how each of them presents a
+          prospect and reused the patterns people already know, so the tool can be more intuitive.
+        </p>
+        <div class="note"><span class="tag">If he asks who</span><span>Catchlight and Aidentified on the wealth side, Apollo and ZoomInfo on the sales side. There is a written teardown of all four. Only name them if he asks &mdash; it is a stronger answer to a question than a claim.</span></div>
+        <p class="say">
+          <b>[Kelvin]</b> can tell you how it actually gets built.
         </p>
       </div>
     </div>
@@ -667,36 +683,27 @@
             </svg>
           </div>
         <p class="say">
-          Underneath, it&rsquo;s one pipeline. We start with the national physician registry &mdash; who they
-          are, their specialty, and their state license number. We take those license numbers to the Illinois
-          licensing board, their NPI to Medicare, and their names to Cook County deeds.
+          Underneath, it&rsquo;s all one pipeline. We start with the national doctor registry, which gives us who they are, their specialty, and their state license number. Then we take those license numbers to Illinois licensing, their NPI to Medicare, and their names to Cook County property records.
         </p>
         <p class="say">
-          The important part is that the registry goes first, and its identifiers drive targeted queries into
-          the other three. We never bulk-download anything. We only ever ask about physicians we already hold.
+          The important part is the order. The registry has to go first, because it&rsquo;s what gives us the IDs for the other three. We never bulk-download anything &mdash; we only ever ask about doctors we already have.
         </p>
         <p class="say">
-          Then three things happen. We work out which records belong to the same human. We turn the facts into
-          signals. And we weigh the signals into a score.
+          Then three things happen. We work out which records belong to the same person, we turn those facts into signals, and we weigh the signals into a score.
         </p>
       </div>
 
       <div class="beat">
         <div class="do"><span class="tag">Do</span><span>These two rules answer most objections. Say them slowly.</span></div>
         <p class="say">
-          Two rules we don&rsquo;t bend. One: the scoring is completely deterministic &mdash; there is no AI
-          anywhere inside it. Same data in, same number out. That is what makes it defensible in a compliance
-          conversation.
+          There are two rules we don&rsquo;t bend. <b>The first is that there&rsquo;s no AI anywhere in the scoring.</b> Same data in, same number out, every time. That&rsquo;s what makes it defensible in a compliance conversation.
         </p>
         <p class="say">
-          Two: <b>a missed signal is safer than attaching another person&rsquo;s evidence.</b> If we can&rsquo;t
-          prove two records are the same person, we drop it rather than guess. Attaching somebody else&rsquo;s
-          house or business to a prospect would quietly corrupt the whole thing.
+          <b>And the second is that a missed signal is safer than a wrong one.</b> If we can&rsquo;t prove two records are the same person, we drop it rather than guess. Attaching someone else&rsquo;s house to a prospect would quietly break the whole thing.
         </p>
         <div class="note"><span class="tag">Note</span><span>Pause after that second rule. It should sound like a design principle, not a technical limitation.</span></div>
         <p class="say">
-          Seventy-six automated tests, all passing. Four government APIs, all free. Our data cost today is
-          zero.
+          Seventy-six automated tests, all passing. Four government APIs, all free. So our data cost today is zero.
         </p>
         <div class="note" data-kind="cut"><span class="tag">Cut first</span><span>Drop the test count if you are over &mdash; but keep &ldquo;our data cost today is zero.&rdquo; Managers remember that one.</span></div>
       </div>
@@ -704,37 +711,26 @@
       <div class="beat">
         <div class="do"><span class="tag">Do</span><span>What production would add. This stops anyone assuming the POC already does everything.</span></div>
         <p class="say">
-          What we&rsquo;ve shown is a working end-to-end core. Going to production would need broader data
-          agreements and coverage, stronger data-quality and governance controls, authentication and audit,
-          and integration into the advisor&rsquo;s existing workflow &mdash; Coach or the CRM.
+          So what we&rsquo;ve shown you is a working core, end to end. To take it to production we&rsquo;d need broader data agreements, stronger data-quality and governance controls, authentication and audit, and it would need to live inside the tools advisors already use &mdash; Coach, or the CRM.
         </p>
         <p class="say">
-          And collecting advisor outcomes, so the ranking can eventually be calibrated on what actually leads
-          to engagement instead of on our own guesses. We&rsquo;re already storing every good-fit and
-          not-a-fit verdict for exactly that.
+          And we&rsquo;d need to collect real advisor outcomes, so we can tune the ranking on what actually works instead of on weights we chose ourselves. We&rsquo;re already storing every one of those answers for exactly that reason.
         </p>
       </div>
 
       <div class="beat">
         <div class="do"><span class="tag">Do &middot; the close</span><span>The decision slide. This is a conclusion, not more architecture.</span></div>
         <p class="say">
-          So we evaluated the concept across four questions.
+          So stepping back, we looked at this from four angles.
         </p>
         <p class="say">
-          <b>Is it desirable?</b> Physicians give us a repeatable population of career and financial
-          transitions where earlier prospecting creates value.
-          <b>Is it feasible?</b> This is a working path from public data through ranking into an
-          advisor-facing experience.
+          <b>Is it desirable?</b> Doctors give us a repeatable group of career and financial changes, where getting there earlier genuinely creates value. <b>Is it feasible?</b> Well, we have a working path from public data, through ranking, into a screen an advisor can actually use.
         </p>
         <p class="say">
-          <b>Is it credible?</b> Every recommendation traces back to dated public evidence rather than an
-          unexplained score. And <b>is it expandable?</b> The architecture is built around adapters &mdash; the
-          same core extends to other professions, states and sources. That is one new connector each; the
-          scoring engine doesn&rsquo;t change.
+          <b>Is it credible?</b> Every recommendation traces back to dated public evidence, so it&rsquo;s never just an unexplained score. <b>And is it expandable?</b> The whole thing is built around adapters, so the same core extends to other professions and other states. That&rsquo;s one new connector each time &mdash; the scoring engine doesn&rsquo;t change at all.
         </p>
         <p class="say">
-          So the opportunity isn&rsquo;t another list of leads. It&rsquo;s an engine that tells an advisor
-          <em>who may be worth engaging, why they were surfaced, and why now</em>.
+          So the opportunity here isn&rsquo;t another list of leads. It&rsquo;s an engine that tells an advisor <em>who</em> is worth calling, <em>why</em> they showed up, and <em>why now</em>.
         </p>
         <div class="note"><span class="tag">Note</span><span>Then stop. That is the ending &mdash; don&rsquo;t add a summary after it. &ldquo;Happy to take questions&rdquo; is fine; anything more dilutes it.</span></div>
       </div>
@@ -753,6 +749,14 @@
     <div class="qa-item">
       <p class="qa-q">&ldquo;Why sixty-forty?&rdquo;</p>
       <p class="qa-a">Say this on slide 7 before it gets asked. They are transparent prototype weights, set so fit outranks timing &mdash; a strong prospect at an average moment still matters more than a weak one at a perfect moment. In production they would be calibrated against advisor outcomes, which is why we already store every good-fit and not-a-fit verdict.</p>
+    </div>
+    <div class="qa-item">
+      <p class="qa-q">&ldquo;Is the book actually split per advisor?&rdquo;</p>
+      <p class="qa-a">No &mdash; and say so straight. The advisor ID is displayed in the header, but nothing is scoped to it: there is no assignment on the prospect record and no filtering by it. We show it because a shared list is how a prospect gets called twice, and we wanted the identity carried through the UI rather than bolted on later. Who owns which prospect is a data and policy question we have not answered.</p>
+    </div>
+    <div class="qa-item">
+      <p class="qa-q">&ldquo;Did you look at what already exists?&rdquo;</p>
+      <p class="qa-a">Yes &mdash; Catchlight and Aidentified on the wealth side, Apollo and ZoomInfo on the sales side, and there is a written teardown of how each of them presents a prospect. The conventions are settled, so we used them: a saved view, a chip saying why a row is here, a confidence indicator. Nothing on screen should need training. What none of them show is the source record behind the claim, and that is where our own effort went.</p>
     </div>
     <div class="qa-item">
       <p class="qa-q">&ldquo;That dermatologist is nineteen years in and owns her practice &mdash; surely she already has an advisor?&rdquo;</p>
