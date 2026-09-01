@@ -144,11 +144,11 @@ have.
 | Step | What it does | Where |
 |---|---|---|
 | **1. NPPES** | Pull physicians by state and specialty (8 specialty sweeps by default). Non-physician taxonomies and out-of-state records are dropped at the adapter | `app/adapters/npi/live.py` |
-| **2. IDFPR** | Take the license numbers NPPES returned, normalise them (`036.057912` → `036057912`), and query the Illinois open-data portal *by those numbers*. Verifies exactly the physicians we found | `app/adapters/idfpr/live.py` |
+| **2. IDFPR** | Take the license numbers NPPES returned, normalize them (`036.057912` → `036057912`), and query the Illinois open-data portal *by those numbers*. Verifies exactly the physicians we found | `app/adapters/idfpr/live.py` |
 | **3. PECOS** | Query CMS by NPI for billing-group reassignments and facility affiliations. Diff against the stored snapshot → career events; detect self-named billing groups → ownership inference | `app/services/pecos_sync.py` |
 | **4. Cook County** | Query the Assessor's parcel-sales dataset *by buyer name* for the physicians we now hold, within the 36-month decay window and above a $100k price floor | `app/adapters/cook_county/live.py` |
 | **5. Resolve** | Records describing the same human are clustered. Tier 1: identical license number → confidence 1.0. Tier 2: deterministic name + state rules → 0.85–0.95. Merge threshold 0.80 | `app/identity/resolver.py` |
-| **6. Attach** | A billing entity, a deed, or a career event attaches only on exact NPI or exact normalised first + last name in the same state. Near-misses are rejected on purpose | `app/identity/enrichment.py` |
+| **6. Attach** | A billing entity, a deed, or a career event attaches only on exact NPI or exact normalized first + last name in the same state. Near-misses are rejected on purpose | `app/identity/enrichment.py` |
 | **7. Detect** | The merged profile becomes signals: `PHYSICIAN`, `SPECIALTY`, `NEW_LICENSE`, `OWNERSHIP`, `PROPERTY_EVENT`, `CAREER_ADVANCEMENT` — each with a strength (0–1) and a confidence (0–1) | `app/scoring/detector.py` |
 | **8. Score** | Signals become points; points become the two sub-scores and the total | `app/scoring/engine.py` |
 | **9. Explain** | A summary sentence is assembled from signals at strength ≥ 0.3 — template-based, no LLM, so the same input always yields the same words | `app/scoring/reasons.py` |
@@ -228,9 +228,9 @@ NPPES record by a specific key:
 
 | Connection | Key | Rule | Certainty |
 |---|---|---|---|
-| NPPES ↔ IDFPR | **state license number**, normalised | exact match = 1.0 merge; else name + state tiers ≥ 0.80 | strongest — a shared government ID |
+| NPPES ↔ IDFPR | **state license number**, normalized | exact match = 1.0 merge; else name + state tiers ≥ 0.80 | strongest — a shared government ID |
 | NPPES ↔ PECOS | **NPI** | exact NPI = attach; no NPI = no attach | zero name-match risk |
-| NPPES ↔ Cook County | **buyer name** "FIRST LAST" + state IL | exact normalised first + last + state = 0.9 attach; anything less is dropped | weakest link — mitigated by the $100k floor and drop-don't-guess matching |
+| NPPES ↔ Cook County | **buyer name** "FIRST LAST" + state IL | exact normalized first + last + state = 0.9 attach; anything less is dropped | weakest link — mitigated by the $100k floor and drop-don't-guess matching |
 | PECOS ↔ itself over time | **NPI** | current pull diffed against `affiliation_snapshots` → `career_events` | exact |
 
 ### 3.2 The two clever bits worth calling out
@@ -241,7 +241,7 @@ is *inferred* from Medicare: if a physician bills under a group whose legal
 name contains their own surname — *"Beth Adams Medical Services PLLC"* — they
 almost certainly own it. The inference is scored lower than a registry record
 would be (strength 0.8 instead of 0.9, confidence 0.7 instead of 0.85), and
-it is labelled in the UI as an inference, not a filing.
+it is labeled in the UI as an inference, not a filing.
 
 **Career moves from snapshot diffing.** PECOS has no "start date" field. So
 every sync stores the physician's current billing groups and facility
@@ -279,7 +279,7 @@ owner can retune them without an engineering ticket.
 | Component | Max points | How strength (0–1) is decided |
 |---|---:|---|
 | **Physician standing** | 40 | Active IDFPR-verified license = 1.0 · NPI only, license unverified = 0.7 · license present but not active = 0.5 |
-| **Specialty earning tier** | 35 | Orthopaedic / neurological / plastic surgery = 1.0 · cardiovascular disease = 0.95 · dermatology, gastroenterology = 0.9 · anesthesiology, radiology = 0.85 · urology = 0.8 · oncology = 0.75 · emergency medicine = 0.6 · internal medicine = 0.45 · family medicine, pediatrics, unknown = 0.4 |
+| **Specialty earning tier** | 35 | Orthopedic / neurological / plastic surgery = 1.0 · cardiovascular disease = 0.95 · dermatology, gastroenterology = 0.9 · anesthesiology, radiology = 0.85 · urology = 0.8 · oncology = 0.75 · emergency medicine = 0.6 · internal medicine = 0.45 · family medicine, pediatrics, unknown = 0.4 |
 | **Practice ownership** | 25 | Bills under own PLLC / PC / SC = 0.8 · own generic LLC = 0.55 · × 0.6 if the entity is inactive · none found = 0 |
 
 `points = max_points × strength`
@@ -411,7 +411,7 @@ a *monitoring* system rather than a one-shot report.
 
 | Structure | Role |
 |---|---|
-| `RawProviderRecord` | The universal shape every *person* source normalises into. Adding a state board means producing this shape — nothing downstream changes |
+| `RawProviderRecord` | The universal shape every *person* source normalizes into. Adding a state board means producing this shape — nothing downstream changes |
 | `EnrichmentRecord` | The universal shape for an *event about* a person (entity, deed, career move). Explicitly does **not** establish identity — it only enriches someone already resolved |
 | `ResolvedProspect` | One deduplicated person: merged field values, the source records behind them, the match evidence, and attached enrichments |
 | `MatchEvidence` | A scored, reasoned link between two records — what gets written to `identity_matches` |
@@ -425,7 +425,7 @@ a *monitoring* system rather than a one-shot report.
 | `PHYSICIAN` | Licensed physician; active license strengthens it | NPPES + IDFPR | 0.95 corroborated / 0.75 single-source |
 | `SPECIALTY` | How lucrative the specialty is | NPPES | 0.95 / 0.75 |
 | `NEW_LICENSE` | How recently licensed / entered practice | IDFPR (0.95) + NPPES (0.9) | 0.9–0.95 |
-| `OWNERSHIP` | Bills Medicare under a self-named practice entity | CMS PECOS | 0.7 — labelled as inference |
+| `OWNERSHIP` | Bills Medicare under a self-named practice entity | CMS PECOS | 0.7 — labeled as inference |
 | `PROPERTY_EVENT` | Bought property ≥ $100k in the last 36 months | Cook County deeds | 0.8 |
 | `CAREER_ADVANCEMENT` | New billing group or facility affiliation | CMS PECOS snapshot diff | 0.9 |
 
@@ -477,7 +477,7 @@ Presenting these *first* is worth more than the numbers themselves.
    on the list.
 3. **Ownership here is inference, and property matching is name-based.** Seven
    ownership signals come from Medicare billing patterns, not filings. Eight
-   deeds matched on exact name + state within Cook County. Both are labelled as
+   deeds matched on exact name + state within Cook County. Both are labeled as
    such in the UI, and both have a documented paid upgrade path.
 
 ### 6.4 What the live signals actually look like
@@ -548,7 +548,7 @@ never fuzzy-match:
 
 - **NPI-keyed (PECOS):** exact NPI = 1.0 attach. A different NPI = 0.0. There
   is no name-matching risk at all on this join.
-- **Name-keyed (Cook County):** exact normalised first + last name in the same
+- **Name-keyed (Cook County):** exact normalized first + last name in the same
   state = 0.9 attach. Near-miss traps ("Jonathan Smithfield" vs. "John
   Smith") are rejected, and there are tests that exist solely to prove those
   rejections still happen.
@@ -614,7 +614,7 @@ conversation opener."
 
 The explainability screen, laid out **in pipeline order** with two tabs:
 
-- **Gates** — all three gate layers, labelled, with this prospect's own
+- **Gates** — all three gate layers, labeled, with this prospect's own
   verdicts. Gate 2 renders as four side-by-side columns: the three scored
   connection ladders (NPPES ↔ IDFPR, ↔ PECOS, ↔ Cook County), each showing
   which tier fired and then 🔓 *gate cleared — IDFPR data unlocked* or 🔒 *gate
@@ -652,7 +652,7 @@ Public data  →  Ranked list  →  Advisor reviews  →  Verdict captured
 
 The feedback table exists precisely so hand-set weights can eventually be
 calibrated against real advisor judgment. **Be precise when presenting:** the
-labelled dataset is being *built* today; no learning happens yet, and that was
+labeled dataset is being *built* today; no learning happens yet, and that was
 a deliberate scope decision, not an unfinished feature.
 
 ---
@@ -666,7 +666,7 @@ stored, and it is as deterministic as the score.
 | Element | What it contains |
 |---|---|
 | **Mail channel** | Practice street address, city, state, zip from NPPES, with a `complete` flag |
-| **Phone channel** | Practice landline from NPPES, labelled as a business line |
+| **Phone channel** | Practice landline from NPPES, labeled as a business line |
 | **Primary trigger** | The strongest signal to write around: OWNERSHIP → CAREER_ADVANCEMENT → NEW_LICENSE, most recent first |
 | **Letter draft** | Salutation + body, chosen by trigger, with `[bracketed]` placeholders the advisor must fill in |
 | **Urgency** | `elevated` when a property purchase exists, otherwise `standard` |
@@ -785,7 +785,7 @@ Open **http://localhost:3000**.
 | 5 | Go to **Score & Match Breakdown → Gates** | "Before anything is scored, it has to get through three gates. Entry: are you eligible. Identity: are these the same person. Derivation: what is this fact allowed to claim. Here's this prospect's own verdicts — including the refusals." |
 | 6 | Switch to the **Scoring** tab | "Now, and only now, we weigh. Every component, every tier in the rulebook, and the row this person landed on. Nothing is a black box." |
 | 7 | Open the **Contact Kit** on the dossier | "The strongest trigger becomes a letter — to the practice address, congratulating the practice launch. Note what it *doesn't* say: it never mentions the house. Property raises urgency; we never write about it." |
-| 8 | Open **Review & Feedback**, cast a verdict | "The advisor's judgment goes back in as a labelled row — which is how these weights eventually get calibrated against real outcomes." |
+| 8 | Open **Review & Feedback**, cast a verdict | "The advisor's judgment goes back in as a labeled row — which is how these weights eventually get calibrated against real outcomes." |
 | 9 | Compare **Smita Aggarwal ($2.45M, 26 mo)** with **James Abraham ($672k, 10 mo)** | "Her purchase was nearly four times his, and she scores lower on that component. This is not a rich list. It's a *timing* engine." |
 | 10 | If the room is technical | Show `/docs`, or run the ingest live: `curl -X POST "localhost:8000/ingest/run?state=IL&limit=25"` |
 
@@ -800,7 +800,7 @@ moving."
 
 - **60 automated tests, all passing** — across identity resolution, scoring
   bounds and monotonicity, configurable weights, deterministic reason
-  summaries, ranked-order API behaviour, idempotent re-ingestion, the
+  summaries, ranked-order API behavior, idempotent re-ingestion, the
   feedback round-trip, near-miss ownership rejections, the contact kit, and
   all four live adapters stubbed at the source boundary.
 - **194 real Illinois physicians** resolved in one run; **130** joined to the
@@ -869,7 +869,7 @@ per query; lifting it is a parameter, and it's on the list.
 They're still in the system, scored on NPPES evidence alone, flagged at
 identity confidence 0.6, and shown as "single-source — not yet corroborated."
 They score lower because license recency is worth 40 timing points and we
-don't have their license date — not because we penalised them. A name+state
+don't have their license date — not because we penalized them. A name+state
 fallback tier for that gap is the next matching change.
 
 **"How many prospects could this actually produce?"**
@@ -942,7 +942,7 @@ added *around* it, in two places, with guardrails:
 - PostgreSQL with real Alembic migrations and connection pooling. *(Today the
   prototype auto-creates tables at startup, so a schema change means deleting
   the local database file.)*
-- Authentication, authorisation, and read audit logging.
+- Authentication, authorization, and read audit logging.
 - Monitoring on source availability and match rates.
 - Feedback-informed weight calibration — verdicts are already captured in a
   retraining-ready shape; nothing learns from them yet, by design.

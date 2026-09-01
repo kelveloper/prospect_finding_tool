@@ -72,7 +72,7 @@ Status as of 2026-08-30. Spec: `PROJECT_SPEC.md` · Mechanics:
 - [ ] Scoreboard freshness states (every card always declares its ingest status, not just movers):
       **NEW** badge — prospect first appeared in the latest ingest (detectable today: exactly one score snapshot, or created_at within the last run) ·
       **▲ / ▼** green/red arrow — score moved (built) ·
-      **· grey dot / "no change"** — re-ingested, nothing moved: an explicit "we checked, still the same" instead of silent absence ·
+      **· gray dot / "no change"** — re-ingested, nothing moved: an explicit "we checked, still the same" instead of silent absence ·
       **"not seen"** marker — prospect wasn't returned by the latest pull (license lapsed, left the state, fell out of the specialty query) — today they silently keep their last score forever; needs a last_seen_at timestamp on the prospect, stamped each ingest. Ordering idea: NEW and big movers float a "Movers & arrivals" strip above the ranked list
 - [ ] Feedback-informed weight calibration (data is being captured; no learning yet)
 - [ ] Real Alembic migrations (prototype uses create_all; schema changes need `rm prospects.db`)

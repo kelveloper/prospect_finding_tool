@@ -241,7 +241,7 @@ function toEvidence(signalTypes: string[]): Candidate["evidence"] {
  *
  *  Order matters: 132 of 219 prospects carry NEW_LICENSE, so leading with it
  *  would print the same chip on most of the board. Ownership (6) and property
- *  (9) are the ones that actually separate a row from its neighbours, so they
+ *  (9) are the ones that actually separate a row from its neighbors, so they
  *  win when a prospect has several. */
 const TRIGGERS: { type: string; label: string; hint: string; hot?: boolean }[] =
   [

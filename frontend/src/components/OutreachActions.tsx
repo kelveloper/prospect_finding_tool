@@ -40,7 +40,7 @@ const OUTCOME: Action[] = [
  *  converted / not_..   → finished; show the result, offer a way back
  *  anything else        → ask whether this attempt reached them. A
  *                         follow_up_later loops back here on purpose: next
- *                         time round, the advisor is dialling again.
+ *                         time round, the advisor is dialing again.
  */
 function stepFor(last: OutreachEntry | undefined): "reached" | "outcome" | "done" {
   if (!last) return "reached";

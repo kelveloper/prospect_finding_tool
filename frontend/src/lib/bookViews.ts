@@ -6,7 +6,7 @@
  * state itself. That also means a view survives a refresh without the URL
  * carrying four parameters an advisor never reads.
  *
- * A shareable-link version would need the filters serialised into the URL
+ * A shareable-link version would need the filters serialized into the URL
  * first — worth doing, but a separate change.
  */
 

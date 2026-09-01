@@ -79,7 +79,7 @@ not a code one.
 into explainability were the loudest things on the profile: a full-width
 brand button ("Supporting Signal Evidence") and a whole-card link into the
 breakdown. They are now footnote-weight citations under a "Sources" heading,
-so a busy advisor reads past them and a sceptical one can still follow them.
+so a busy advisor reads past them and a skeptical one can still follow them.
 
 - `frontend/src/components/Citation.tsx` — small, muted, dotted underline
 - `frontend/src/components/CandidateDetail.tsx` — "Sources" block; one beside
@@ -99,7 +99,7 @@ sites on the breakdown page.
 - [x] `frontend/src/components/SourcesDocument.tsx` — was lines 152, 177, 271,
       288. Note 152 and 177 print the *same* products twice on one screen.
 
-> Judgement call: now that the page is framed as backend explainability rather
+> Judgment call: now that the page is framed as backend explainability rather
 > than advisor work, keeping the math *there* may be right — it is the "here's
 > how scoring works behind the scenes" aside the feedback asked for. What
 > mattered was that it stopped competing for advisor attention.

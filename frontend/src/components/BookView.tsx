@@ -390,7 +390,7 @@ export default function BookView({ ranked, selectedId }: Props) {
               replace. "New arrivals" is the one that turns the board from a
               database into a morning routine.
 
-              Labelled, because a bare row of chips says nothing about what
+              Labeled, because a bare row of chips says nothing about what
               clicking one does. The controls below all carry a label; this
               was the only thing in the strip without one. */}
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -580,7 +580,7 @@ export default function BookView({ ranked, selectedId }: Props) {
                       <ColumnMenu
                         sortKey="specialty"
                         heading="Specialty"
-                        hint="What they practise."
+                        hint="What they practice."
                         filters={[
                           {
                             label: "Show specialty",
@@ -596,7 +596,7 @@ export default function BookView({ ranked, selectedId }: Props) {
                       <ColumnMenu
                         sortKey="location"
                         heading="Location"
-                        hint="Where they practise."
+                        hint="Where they practice."
                         filters={[
                           {
                             label: "Show location",

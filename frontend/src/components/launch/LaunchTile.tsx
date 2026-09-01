@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 type Props = {
   /** Small-caps label in the tile's top-left corner. */
   eyebrow: string;
-  /** Headline content, optically centred in the tile. */
+  /** Headline content, optically centered in the tile. */
   children: ReactNode;
   /** Quiet supporting line pinned to the bottom edge. */
   footer?: ReactNode;
@@ -11,7 +11,7 @@ type Props = {
 };
 
 /** Shared shell for every square on the opening page: same radius, padding
- *  and three-band layout (eyebrow / centred body / footer), so tiles can be
+ *  and three-band layout (eyebrow / centered body / footer), so tiles can be
  *  swapped or reordered without the composition drifting. */
 export default function LaunchTile({ eyebrow, children, footer, className = "" }: Props) {
   return (

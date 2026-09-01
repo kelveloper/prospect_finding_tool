@@ -3,7 +3,7 @@ import Link from "next/link";
 /** A way into the reasoning behind the board, weighted like a citation.
  *
  *  Signal evidence and the scoring model both answer "how do you know?" —
- *  a question a busy advisor never asks and a sceptical one always does. So
+ *  a question a busy advisor never asks and a skeptical one always does. So
  *  they get a footnote's prominence: small, muted, dotted underline, sitting
  *  under the claim rather than competing with the next action. */
 export default function Citation({

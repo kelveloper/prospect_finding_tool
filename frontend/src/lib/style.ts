@@ -22,7 +22,7 @@ export const STYLES = {
   },
   client: {
     label: "Client view",
-    hint: "Same information, client-facing colours",
+    hint: "Same information, client-facing colors",
   },
 } as const;
 

@@ -215,7 +215,7 @@ multi-source prospects, `0.75` for single-source.
 | ≤ 36 months | 0.3 |
 | > 36 months | 0.1 |
 
-**Specialty tiers** (earning potential) run from `1.0` (orthopaedic /
+**Specialty tiers** (earning potential) run from `1.0` (orthopedic /
 neurological / plastic surgery) down to `0.4` (family medicine, pediatrics),
 with an unknown-specialty fallback of `0.4`.
 

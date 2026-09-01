@@ -35,7 +35,7 @@ const RULEBOOK: Record<string, Rule[]> = {
     { label: "License is not active", value: 0.5 },
   ],
   "Specialty earning tier": [
-    { label: "Orthopaedic, neurological or plastic surgery", value: 1.0 },
+    { label: "Orthopedic, neurological or plastic surgery", value: 1.0 },
     { label: "Cardiology", value: 0.95 },
     { label: "Dermatology or gastroenterology", value: 0.9 },
     { label: "Anesthesiology or radiology", value: 0.85 },
@@ -83,7 +83,7 @@ const QUESTIONS: Record<string, string> = {
   "Physician standing": "Is he a licensed doctor?",
   "Specialty earning tier": "How well does his specialty pay?",
   "Practice ownership": "Does he own his practice?",
-  "Practice entry (NPI enumeration)": "How long has he been practising?",
+  "Practice entry (NPI enumeration)": "How long has he been practicing?",
   "License recency": "How new is his Illinois license?",
   "Property purchase recency": "How recently did he buy a home?",
   "Career advancement": "Has he changed jobs?",

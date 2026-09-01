@@ -19,7 +19,7 @@
      A good→bad ramp. "Neutral" is a slate rather than an olive: the olive
      sat in the same warm family as weak and poor, which put three of five
      tiers in one narrow hue band — neutral and weak were indistinguishable
-     to a red-green colour-blind reader, and that is the boundary between
+     to a red-green color-blind reader, and that is the boundary between
      "worth a call" and "not". Weak and poor stay close, which costs less:
      both mean the same thing to an advisor. */
   --color-tier-strong: #10b981;
@@ -92,7 +92,7 @@ html[data-launched] [data-launch-overlay] {
 
    Structure, so a second option stays cheap:
      · this shared block  — what any client-facing style would share
-     · one block per style — the colours that differ
+     · one block per style — the colors that differ
      · the rules below     — written once, against those variables
 
    The shared selector is "has a style, and it is not advisor", so a new style
@@ -111,7 +111,7 @@ html[data-style]:not([data-style="advisor"]) {
      A good→bad ramp in the bronze world. The original ran green, olive,
      gold, burnt orange and brick — elegant, but four of the five sat in
      one warm hue band, and neutral and weak were two units apart to a
-     red-green colour-blind reader. Neutral steps out to a taupe and
+     red-green color-blind reader. Neutral steps out to a taupe and
      promising to a teal-green; weak and poor separate by lightness,
      since amber and red converge whatever their hue. */
   --color-tier-strong: #2f7d4f;
@@ -131,7 +131,7 @@ html[data-style]:not([data-style="advisor"]) {
   --color-tier-poor-fg: #b01342;
 
   /* Elevation: wider blur at lower opacity than advisor's, which is most of
-     what reads as modern. --shadow-ink is the per-style shadow colour. */
+     what reads as modern. --shadow-ink is the per-style shadow color. */
   --shadow-card: 0 1px 2px rgb(var(--shadow-ink) / 0.05), 0 1px 3px rgb(var(--shadow-ink) / 0.04);
   --shadow-raised: 0 1px 2px rgb(var(--shadow-ink) / 0.06);
   --shadow-float: 0 4px 14px rgb(var(--shadow-ink) / 0.1);
@@ -196,7 +196,7 @@ html[data-style]:not([data-style="advisor"]) .bg-brand {
 }
 
 /* BeginTile swaps to bg-brand-dark on hover; without this the gradient above
-   would paint straight over the new colour and nothing would happen. */
+   would paint straight over the new color and nothing would happen. */
 html[data-style]:not([data-style="advisor"]) .hover\:bg-brand-dark:hover,
 html[data-style]:not([data-style="advisor"]) .bg-brand-dark {
   background-image: linear-gradient(135deg, var(--fill-hover-light) 0%, var(--fill-hover-dark) 100%);
@@ -207,7 +207,7 @@ html[data-style]:not([data-style="advisor"]) .bg-brand-light {
   background-image: linear-gradient(135deg, var(--color-brand-light) 0%, var(--fill-dark) 100%);
 }
 
-/* Soft panels read as raised paper rather than a flat grey box. */
+/* Soft panels read as raised paper rather than a flat gray box. */
 html[data-style]:not([data-style="advisor"]) .bg-surface-soft {
   background-image: linear-gradient(180deg, var(--soft-top) 0%, var(--soft-bottom) 100%);
 }

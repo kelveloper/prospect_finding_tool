@@ -61,7 +61,7 @@ Keep the explanation, drop the multiplication. That is change 01 below.
 
 The last row is worth a slide. No competitor surfaces DNC exposure or routes
 every touch to a practice address. In a regulated market that is the strongest
-thing we own, and it is currently styled as grey footnotes.
+thing we own, and it is currently styled as gray footnotes.
 
 ---
 
@@ -121,7 +121,7 @@ Specialty stays; it just stops going first.
 `BookView.tsx` + new storage · ~2 hrs
 
 Saved lists are the core object in Apollo, not a convenience. Our book already
-serialises every filter into the URL (`?f_specialty=…&sort=…`) — naming and
+serializes every filter into the URL (`?f_specialty=…&sort=…`) — naming and
 storing those strings is the only step left.
 
 A single chip row above the ledger: `Whole book · 219` / `Chicago derms · 23` /

@@ -12,7 +12,7 @@ type Props = {
 };
 
 /** A native <details> panel. No JavaScript, works before hydration, and the
- *  keyboard and screen-reader behaviour come from the browser. */
+ *  keyboard and screen-reader behavior come from the browser. */
 export default function Collapsible({
   title,
   hint,
