@@ -140,6 +140,8 @@
     color: var(--mid); border-bottom: 1px solid var(--rule); text-transform: uppercase;
   }
   td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 13.5px; }
+  td.gate { font-family: var(--mono); font-size: 13px; color: var(--warn); white-space: nowrap; }
+  td strong { font-family: var(--display); font-weight: 600; }
   td code, p code, li code { font-family: var(--mono); font-size: 13px; background: var(--rule-2); padding: 1px 5px; border-radius: 2px; }
 
   /* ---------- pull quote / rule box ---------- */
@@ -414,23 +416,26 @@
       <table>
         <caption>Where a record can be thrown out</caption>
         <thead>
-          <tr><th scope="col">Gate</th><th scope="col">Question it asks</th><th scope="col">Thrown out if…</th></tr>
+          <tr><th scope="col">Layer</th><th scope="col">Question it asks</th><th scope="col">Thrown out if…</th><th scope="col">Where it runs</th></tr>
         </thead>
         <tbody>
           <tr>
-            <td>Entry</td>
-            <td>Are you even eligible?</td>
+            <td class="gate">GATE 1</td>
+            <td><strong>Entry</strong> — are you even eligible?</td>
             <td>Not a physician, not Illinois, not an individual licence, deed under $100k or older than 3 years</td>
+            <td>Inside each adapter, as the data arrives</td>
           </tr>
           <tr>
-            <td>Identity</td>
-            <td>Are these the same person?</td>
+            <td class="gate">GATE 2</td>
+            <td><strong>Identity</strong> — are these the same person?</td>
             <td>Name evidence is too weak to merge, or an event's name isn't an exact match</td>
+            <td>The resolver and the matcher</td>
           </tr>
           <tr>
-            <td>Derivation</td>
-            <td>What is this fact allowed to claim?</td>
+            <td class="gate">GATE 3</td>
+            <td><strong>Derivation</strong> — what is this fact allowed to claim?</td>
             <td>The signal is too weak to be worth mentioning</td>
+            <td>The signal detector</td>
           </tr>
         </tbody>
       </table>
