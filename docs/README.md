@@ -1,7 +1,18 @@
 # Docs
 
-Twenty documents, flat on purpose — they cross-reference each other as siblings,
-so nesting them into folders would break roughly two dozen links for no gain.
+Nineteen documents and four visuals, flat on purpose — they cross-reference each
+other as siblings, so nesting them into folders would break roughly two dozen
+links for no gain. Read top to bottom: the sections below run from *decide this*
+through *how it works* to *why we chose it*.
+
+## Decide first
+
+Open questions where the code and the pitch disagree. Nothing here is broken in
+production, but each one changes what the product claims.
+
+| | |
+|---|---|
+| [`OWNERSHIP_TENURE_BIAS.md`](OWNERSHIP_TENURE_BIAS.md) | The ownership signal has no date, so it selects for physicians established for twenty years — the opposite of the thesis. Three options, one recommendation |
 
 ## Start here
 
@@ -46,6 +57,7 @@ so nesting them into folders would break roughly two dozen links for no gain.
 | [`RESEARCH_CAREER_SIGNAL.md`](RESEARCH_CAREER_SIGNAL.md) | Choosing a real source for career moves |
 | [`RESEARCH_PROPERTY_SIGNAL.md`](RESEARCH_PROPERTY_SIGNAL.md) | Choosing a real source for property purchases |
 | [`RESEARCH_CONTACT_OUTREACH.md`](RESEARCH_CONTACT_OUTREACH.md) | Channels and contact data once a prospect is ranked |
+| [`RESEARCH_COMPETITIVE_UX.md`](RESEARCH_COMPETITIVE_UX.md) | How competing tools present a prospect, and what we took from them |
 
 ## Visuals
 

@@ -44,6 +44,11 @@ No signal → no points. The system never guesses.
 
 ## 3. Qualification: "should we care?" (max 100 pts)
 
+> **Open question:** ownership carries no formation date, so this component
+> currently scores a practice formed last month and one formed in 2006
+> identically — and in the book it selects for physicians twenty years
+> established. See [`OWNERSHIP_TENURE_BIAS.md`](OWNERSHIP_TENURE_BIAS.md).
+
 | Component | Max pts | How strength is decided |
 |---|---|---|
 | **Physician standing** | 40 | Active verified license = 1.0 · NPI-only, unverified = 0.7 · inactive license = 0.5 |
