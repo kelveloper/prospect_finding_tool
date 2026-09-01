@@ -203,8 +203,8 @@
         </tr>
         <tr>
           <td class="row-id">ROW 2</td><td>IL Licensing</td>
-          <td class="key">licence number from row 1</td>
-          <td>Licence 036-104271, issued 8 months ago, active</td>
+          <td class="key">license number from row 1</td>
+          <td>License 036-104271, issued 8 months ago, active</td>
           <td class="verdict-keep">kept</td>
         </tr>
         <tr>
@@ -252,21 +252,21 @@ flowchart TB
 
   R1 --> E1{"GATE 1 · ENTRY — a physician, in Illinois?"}
   E1 -.->|"fail"| X1(["a Wisconsin dermatologist stops here"])
-  E1 -->|"pass — row 1 now supplies all three lookup keys"| SEED["Her licence number 036-104271, her NPI 1538291746, her surname REYES"]
+  E1 -->|"pass — row 1 now supplies all three lookup keys"| SEED["Her license number 036-104271, her NPI 1538291746, her surname REYES"]
 
   subgraph PAR ["STEPS 2, 3 and 4 · asked at the same time, because none needs the others"]
     direction LR
-    R2["ROW 2 · licence issued 8 months ago, status active"]
+    R2["ROW 2 · license issued 8 months ago, status active"]
     R3["ROW 3 · payments go to Reyes Orthopaedic Group PLLC"]
     D0["Two deeds come back under that surname"]
   end
 
-  SEED -->|"STEP 2 · ask IL Licensing by licence number"| R2
+  SEED -->|"STEP 2 · ask IL Licensing by license number"| R2
   SEED -->|"STEP 3 · ask Medicare Billing by NPI"| R3
   SEED -->|"STEP 4 · ask County Deeds by surname"| D0
 
-  R2 --> E2{"GATE 1 · ENTRY — an active individual licence?"}
-  E2 -.->|"fail"| X2(["a lapsed or business licence stops here"])
+  R2 --> E2{"GATE 1 · ENTRY — an active individual license?"}
+  E2 -.->|"fail"| X2(["a lapsed or business license stops here"])
 
   R3 --> E3{"GATE 1 · ENTRY — a payment reassignment row?"}
   E3 -.->|"fail"| X3(["a plain facility affiliation stops here"])
@@ -286,18 +286,18 @@ flowchart TB
   S5 -->|"rows 3, 4 and 5 say what happened to her"| E6{"GATE 2 · IDENTITY — whose event is this?"}
 
   E5 -.->|"weaker evidence"| X5(["they would stay two separate people"])
-  E5 -->|"both rows carry licence 036-104271, so MERGE"| M1["ONE PERSON · Dr A. Reyes"]
+  E5 -->|"both rows carry license 036-104271, so MERGE"| M1["ONE PERSON · Dr A. Reyes"]
 
   E6 -.->|"row 5 — Reyes-Martin is not an exact surname"| X6(["discarded, attached to nobody"])
   E6 -->|"row 3 by NPI, row 4 by exact name, so ATTACH"| S6
 
   M1 --> S6["STEP 6 · One profile — 4 rows kept, each logged with its match reason"]
-  S6 --> S7["STEP 7 · Signals — physician, orthopaedics, new licence, owns practice, bought property"]
+  S6 --> S7["STEP 7 · Signals — physician, orthopaedics, new license, owns practice, bought property"]
 
   S7 --> E7{"GATE 3 · DERIVATION — strong enough to claim?"}
   E7 -.->|"career move needs a second monthly snapshot"| X7(["not claimed on her dossier"])
   E7 -->|"5 of 6 signals pass"| Q1["Should we care? · physician 40 + orthopaedics 35 + own PLLC 20 = 95"]
-  E7 -->|"5 of 6 signals pass"| Q2["Why now? · licence 34 + property 30 + practice entry 12.8 = 76.8"]
+  E7 -->|"5 of 6 signals pass"| Q2["Why now? · license 34 + property 30 + practice entry 12.8 = 76.8"]
 
   Q1 -->|"95 × 0.60 = 57.0"| T1
   Q2 -->|"76.8 × 0.40 = 30.7"| T1

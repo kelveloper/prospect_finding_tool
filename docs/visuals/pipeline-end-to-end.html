@@ -258,7 +258,7 @@
         <!-- BAND 4: ATTACH -->
         <text class="t-band" x="12" y="358">4 · ONE PROFILE</text>
         <rect class="node-accent" x="12" y="368" width="876" height="62" rx="2"></rect>
-        <text class="t"    x="26" y="392">One physician, one file — licence, practice, company, property</text>
+        <text class="t"    x="26" y="392">One physician, one file — license, practice, company, property</text>
         <text class="t-sm" x="26" y="412">every merge and attach is logged with a score and a plain-English reason, so any claim can be traced back</text>
 
         <line class="flow-drop" x1="700" y1="430" x2="700" y2="466" marker-end="url(#ar-d)"></line>
@@ -270,7 +270,7 @@
         <text class="t-band" x="12" y="464">5 · SIGNALS</text>
         <rect class="node" x="12" y="474" width="628" height="70" rx="2"></rect>
         <text class="t"    x="26" y="498">Turn facts into six scoreable signals</text>
-        <text class="t-sm" x="26" y="517">physician · specialty · new licence</text>
+        <text class="t-sm" x="26" y="517">physician · specialty · new license</text>
         <text class="t-sm" x="26" y="532">owns a practice · bought property · career move</text>
         <text class="t-lbl" x="470" y="517">each rated 0 to 1</text>
         <text class="t-lbl" x="470" y="532">on how strong it is</text>
@@ -375,7 +375,7 @@
           <h3><span class="verb">One format</span> — four messy feeds become two shapes</h3>
           <p>Each source returns completely different JSON. A small translator (an "adapter") per source rewrites every row into one of exactly two shapes:</p>
           <ul class="plain">
-            <li><strong>A person record</strong> — name, specialty, licence, NPI, practice address, phone. Only the NPI Registry and IL licensing produce these.</li>
+            <li><strong>A person record</strong> — name, specialty, license, NPI, practice address, phone. Only the NPI Registry and IL licensing produce these.</li>
             <li><strong>An event record</strong> — something that happened <em>to</em> a person: they own a company, they bought a house, they changed roles. Only Medicare billing and county deeds produce these.</li>
           </ul>
           <p>Everything downstream — matching, signals, scoring — only ever sees those two shapes. That's why adding a fifth data source later doesn't touch any of the scoring logic.</p>
@@ -388,7 +388,7 @@
           <h3><span class="verb">Same person?</span> — merging duplicates</h3>
           <p>The same physician shows up in the NPI Registry and again in the licensing roster. The system decides whether two records are one human:</p>
           <ul class="plain">
-            <li><strong>Same licence number</strong> → certainly the same person. Perfect evidence, no judgement needed.</li>
+            <li><strong>Same license number</strong> → certainly the same person. Perfect evidence, no judgement needed.</li>
             <li><strong>Same last name, same state, same first name ignoring middle initials</strong> → confident match. "John Smith MD" and "John A Smith MD" merge.</li>
             <li><strong>Anything weaker</strong> → they stay two separate people. A missed merge is acceptable; a wrong merge is not.</li>
           </ul>
@@ -422,7 +422,7 @@
           <tr>
             <td class="gate">GATE 1</td>
             <td><strong>Entry</strong> — are you even eligible?</td>
-            <td>Not a physician, not Illinois, not an individual licence, deed under $100k or older than 3 years</td>
+            <td>Not a physician, not Illinois, not an individual license, deed under $100k or older than 3 years</td>
             <td>Inside each adapter, as the data arrives</td>
           </tr>
           <tr>
@@ -462,7 +462,7 @@
         <tbody>
           <tr><td>Physician</td><td>They really are a licensed doctor</td><td>NPI + IL licensing</td></tr>
           <tr><td>Specialty</td><td>How well their specialty pays</td><td>NPI Registry</td></tr>
-          <tr><td>New licence</td><td>How recently they started practising</td><td>IL licensing + NPI</td></tr>
+          <tr><td>New license</td><td>How recently they started practising</td><td>IL licensing + NPI</td></tr>
           <tr><td>Owns a practice</td><td>They bill Medicare through their own company</td><td>Medicare billing</td></tr>
           <tr><td>Bought property</td><td>They just made a large purchase</td><td>County deeds</td></tr>
           <tr><td>Career move</td><td>They changed employer or went independent</td><td>Comparing this month's billing data to last month's</td></tr>
@@ -489,7 +489,7 @@
 
   <figure>
     <div class="fig-frame">
-      <svg class="diagram" viewBox="0 0 880 316" role="img" aria-label="The score formula: a qualification score out of 100 built from physician standing 40 points, specialty 35 points and practice ownership 25 points, weighted 60 percent; plus a timing score out of 100 built from licence recency 40 points, property purchase 30 points, practice entry 15 points and career move 15 points, weighted 40 percent.">
+      <svg class="diagram" viewBox="0 0 880 316" role="img" aria-label="The score formula: a qualification score out of 100 built from physician standing 40 points, specialty 35 points and practice ownership 25 points, weighted 60 percent; plus a timing score out of 100 built from license recency 40 points, property purchase 30 points, practice entry 15 points and career move 15 points, weighted 40 percent.">
         <text class="t-band" x="14" y="20">QUESTION ONE · WEIGHTED 60%</text>
         <text class="t"     x="14" y="46">Should we care about this person?</text>
         <text class="t-sm"  x="14" y="64">are they the kind of person who becomes wealthy?</text>

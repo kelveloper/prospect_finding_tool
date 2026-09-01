@@ -124,3 +124,38 @@ def test_default_formula_60_40():
     b = ScoringEngine().score(signals)
     expected = round(b.qualification_score * 0.6 + b.timing_score * 0.4, 1)
     assert b.total_score == expected
+
+
+def test_signal_strengths_expose_recency_not_just_presence():
+    """NEW_LICENSE is emitted for anyone holding a license date at all, so the
+    board cannot tell a two-month registration from a seventeen-year one by
+    presence. The strength map is what the UI gates its recency claims on."""
+    from app.models import Prospect, Signal
+
+    prospect = Prospect(first_name="Ada", last_name="Vance", full_name="Ada Vance")
+    prospect.signals = [
+        Signal(signal_type="NEW_LICENSE", source="idfpr", description="17 years ago",
+               strength=0.1, confidence=1.0),
+        Signal(signal_type="PHYSICIAN", source="npi", description="active",
+               strength=1.0, confidence=1.0),
+    ]
+
+    strengths = prospect.signal_strengths
+    assert "NEW_LICENSE" in prospect.signal_types      # present...
+    assert strengths["NEW_LICENSE"] == 0.1             # ...but stale
+    assert strengths["PHYSICIAN"] == 1.0
+
+
+def test_signal_strengths_keep_the_strongest_duplicate():
+    """Two entities named after the same physician must not weaken ownership."""
+    from app.models import Prospect, Signal
+
+    prospect = Prospect(first_name="Ada", last_name="Vance", full_name="Ada Vance")
+    prospect.signals = [
+        Signal(signal_type="OWNERSHIP", source="pecos", description="generic llc",
+               strength=0.55, confidence=0.7),
+        Signal(signal_type="OWNERSHIP", source="pecos", description="own pllc",
+               strength=0.8, confidence=0.7),
+    ]
+
+    assert prospect.signal_strengths["OWNERSHIP"] == 0.8

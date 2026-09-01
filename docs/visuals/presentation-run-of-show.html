@@ -466,7 +466,7 @@
       <li><b>Do not run a live ingest on stage.</b> It returns immediately and runs in the background now, but it still calls four government APIs and takes about two minutes; a second start returns 409, and the weekly gate returns 429 unless you pass <code>force=true</code>. Run it beforehand if you want fresh data.</li>
       <li><b>Load the screens in tabs ahead of time</b> so no click waits on a spinner: the board, Rahul Aggarwal, Beth Ann Adams, Smita Aggarwal, and a score breakdown.</li>
       <li><b>Sanity check</b> &mdash; <code>curl localhost:8000/health</code> returns ok, and <code>pytest -q</code> shows <b>74 passed</b>. Worth having that terminal open if the manager asks.</li>
-      <li><b>Know your top name.</b> Rahul Aggarwal is rank 1 and carries the whole thesis: Illinois licence two months ago, a $1,100,000 house two months ago. If the board has been re-ingested, check who is on top before you walk in.</li>
+      <li><b>Know your top name.</b> Rahul Aggarwal is rank 1 and carries the whole thesis: Illinois license two months ago, a $1,100,000 house two months ago. If the board has been re-ingested, check who is on top before you walk in.</li>
       <li><b>Agree the handoff line.</b> Each speaker ends by naming the next person. It sounds rehearsed because it is.</li>
     </ul>
   </div>
@@ -499,11 +499,11 @@
         <div class="do"><span class="tag">Do &middot; why physicians</span><span>Move to the opportunity slide.</span></div>
         <p class="say">
           We started with physicians &mdash; twenty-three thousand new openings a year, and a career that
-          leaves a public trail: licence, practice, ownership.
+          leaves a public trail: license, practice, ownership.
         </p>
         <div class="note" data-kind="cut"><span class="tag">Cut first</span><span>If you are running long, drop the openings figure and start at &ldquo;a career that leaves a public trail.&rdquo; Nothing later depends on the number.</span></div>
         <p class="say">
-          And we&rsquo;re looking for <em>change</em>, not status. A new licence is more actionable than twenty
+          And we&rsquo;re looking for <em>change</em>, not status. A new license is more actionable than twenty
           years of tenure. So the hypothesis is that <b>recent, corroborated transitions tell us not just who
           is worth calling, but when.</b>
         </p>
@@ -555,7 +555,7 @@
       <div class="beat">
         <div class="do"><span class="tag">Do &middot; explain</span><span>Open <b>Rahul Aggarwal</b>, rank 1. Lead with him &mdash; he is the thesis made real.</span></div>
         <p class="say">
-          Top of the list. He got his Illinois licence two months ago, and two months ago he bought a
+          Top of the list. He got his Illinois license two months ago, and two months ago he bought a
           one-point-one-million-dollar house in Cook County. Two separate government records, two months
           apart, same person. That is exactly the moment we said we were looking for.
         </p>
@@ -668,7 +668,7 @@
           </div>
         <p class="say">
           Underneath, it&rsquo;s one pipeline. We start with the national physician registry &mdash; who they
-          are, their specialty, and their state licence number. We take those licence numbers to the Illinois
+          are, their specialty, and their state license number. We take those license numbers to the Illinois
           licensing board, their NPI to Medicare, and their names to Cook County deeds.
         </p>
         <p class="say">
@@ -764,7 +764,7 @@
     </div>
     <div class="qa-item">
       <p class="qa-q">&ldquo;How do you know two records are the same person?&rdquo;</p>
-      <p class="qa-a">Mostly we don&rsquo;t have to guess. The licence number and the NPI are <b>exact government IDs</b> shared across datasets. Only the property match is name-based, and there we require an exact first and last name in the same state &mdash; anything less is dropped, and there are tests that exist purely to prove near-misses still get rejected.</p>
+      <p class="qa-a">Mostly we don&rsquo;t have to guess. The license number and the NPI are <b>exact government IDs</b> shared across datasets. Only the property match is name-based, and there we require an exact first and last name in the same state &mdash; anything less is dropped, and there are tests that exist purely to prove near-misses still get rejected.</p>
     </div>
     <div class="qa-item">
       <p class="qa-q">&ldquo;Why doctors?&rdquo;</p>
@@ -792,7 +792,7 @@
       <p class="qa-a">Don&rsquo;t apologise for scores in the fifties and sixties. <b>Ninety-one is the day-one ceiling</b>, on purpose, and that is a better story than a system handing out perfect hundreds on its first run.</p>
     </div>
     <div class="qa-item">
-      <p class="qa-a">Beth Ann Adams is the <b>ownership</b> example, not a timing one. Her licence is seventeen years old. Lead the demo with Rahul Aggarwal, who actually carries the thesis.</p>
+      <p class="qa-a">Beth Ann Adams is the <b>ownership</b> example, not a timing one. Her license is seventeen years old. Lead the demo with Rahul Aggarwal, who actually carries the thesis.</p>
     </div>
     <div class="qa-item">
       <p class="qa-a">The advisor screen on slide 8 is <b>representative</b>; the data behind the demo is <b>real</b>. Keep those two words apart &mdash; muddling them either oversells the mock or undersells the build.</p>

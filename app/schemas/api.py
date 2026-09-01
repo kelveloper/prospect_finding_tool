@@ -44,6 +44,9 @@ class RankedProspect(BaseModel):
     score_change: float | None = None
     # Distinct detected signal types — powers the scoreboard category chips
     signal_types: list[str] = []
+    # Strongest strength per type; the board gates recency claims on this,
+    # since holding a license date says nothing about when it was issued
+    signal_strengths: dict[str, float] = {}
     # Latest logged outreach event type; None until the advisor acts
     outreach_status: str | None = None
     # Arrived in the book within the last 48 hours — NEW badge + alert

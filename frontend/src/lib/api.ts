@@ -38,6 +38,7 @@ type ApiRanked = {
   advisor_summary: string | null;
   summary_source: string | null;
   signal_types: string[];
+  signal_strengths?: Record<string, number>;
   score_change: number | null;
   outreach_status: string | null;
   is_new: boolean;
@@ -188,7 +189,7 @@ function tenure(from: string | null): string {
 const SIGNAL_LABELS: [string, string][] = [
   ["PHYSICIAN", "Active license"],
   ["SPECIALTY", "Specialty tier"],
-  ["NEW_LICENSE", "Newly licensed"],
+  ["NEW_LICENSE", "License date"],
   ["PRACTICE_ENTRY", "Entered practice"],
   ["CAREER_ADVANCEMENT", "Career move"],
   ["OWNERSHIP", "Practice ownership"],
@@ -249,9 +250,25 @@ const TRIGGERS: { type: string; label: string; hint: string; hot?: boolean }[] =
     },
   ];
 
-function toTrigger(signalTypes: string[]): Candidate["trigger"] {
+/** Signals that only mean something if they happened recently. A license is
+ *  emitted for everyone who holds one, so presence alone would print "New
+ *  license" on a seventeen-year-old registration. 0.6 is the detector's
+ *  two-year step on the recency curve. */
+const RECENCY_GATED: Record<string, number> = {
+  NEW_LICENSE: 0.6,
+  CAREER_ADVANCEMENT: 0.6,
+};
+
+function toTrigger(
+  signalTypes: string[],
+  strengths: Record<string, number> = {},
+): Candidate["trigger"] {
   const present = new Set(signalTypes);
-  const hit = TRIGGERS.find((t) => present.has(t.type));
+  const hit = TRIGGERS.find((t) => {
+    if (!present.has(t.type)) return false;
+    const floor = RECENCY_GATED[t.type];
+    return floor === undefined || (strengths[t.type] ?? 0) >= floor;
+  });
   return hit
     ? { label: hit.label, hint: hit.hint, hot: hit.hot ?? false }
     : null;
@@ -288,6 +305,13 @@ function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
       detail
         ? detail.signals.map((sig) => sig.signal_type)
         : (p.signal_types ?? []),
+      // On the detail view the real strengths are to hand; on the board they
+      // ride along on the ranked payload.
+      detail
+        ? Object.fromEntries(
+            detail.signals.map((sig) => [sig.signal_type, sig.strength]),
+          )
+        : (p.signal_strengths ?? {}),
     ),
     evidence: toEvidence(
       detail

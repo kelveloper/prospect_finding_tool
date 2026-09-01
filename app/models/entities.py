@@ -80,6 +80,21 @@ class Prospect(Base):
         return sorted({s.signal_type for s in self.signals})
 
     @property
+    def signal_strengths(self) -> dict[str, float]:
+        """Strongest strength per signal type.
+
+        The board needs this because presence alone is misleading for the
+        recency signals: NEW_LICENSE is emitted for anyone holding a license
+        date at all, and the strength is what says whether it was two months
+        ago or seventeen years. Strongest wins so duplicates never weaken a
+        type."""
+        best: dict[str, float] = {}
+        for s in self.signals:
+            if s.strength > best.get(s.signal_type, -1.0):
+                best[s.signal_type] = s.strength
+        return best
+
+    @property
     def is_new(self) -> bool:
         """Arrived in the book within the last 48 hours — powers the NEW
         badge and the new-prospects alert on the scoreboard."""
