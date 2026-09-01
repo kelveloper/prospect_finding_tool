@@ -129,8 +129,9 @@ def live_stub(monkeypatch):
 
 def _ingest(client):
     # force=true: tests exercise repeat ingests; the weekly gate is
-    # covered by its own test below
-    response = client.post("/ingest/run?force=true")
+    # covered by its own test below. wait=true: run in-request so the
+    # result is returned and the test session's DB is the one written.
+    response = client.post("/ingest/run?force=true&wait=true")
     assert response.status_code == 200, response.text
     return response.json()
 
@@ -170,20 +171,20 @@ def test_weekly_gate_blocks_early_reruns_but_not_the_test_sweep(client):
     assert blocked.status_code == 429
     assert "next unlock" in blocked.json()["detail"]
     # The test sweep bypasses the gate explicitly
-    assert client.post("/ingest/run?force=true").status_code == 200
+    assert client.post("/ingest/run?force=true&wait=true").status_code == 200
 
 
 def test_discovery_filter_creates_fresh_entrants_only(client):
     # Smith/Gonzalez enumerated ~3-4 months ago → fresh; Brooks (2017,
     # no license) is an established stranger → skipped, not created
-    result = client.post("/ingest/run?new_within_months=6&force=true").json()
+    result = client.post("/ingest/run?new_within_months=6&force=true&wait=true").json()
     assert result["prospects_created"] == 2
     assert result["prospects_skipped"] == 1
     names = {p["name"] for p in client.get("/prospects/ranked").json()}
     assert "Michael Brooks" not in names
 
     # Known prospects still update on a filtered re-run
-    second = client.post("/ingest/run?new_within_months=6&force=true").json()
+    second = client.post("/ingest/run?new_within_months=6&force=true&wait=true").json()
     assert second["prospects_created"] == 0
     assert second["prospects_updated"] == 2
     assert second["prospects_skipped"] == 1

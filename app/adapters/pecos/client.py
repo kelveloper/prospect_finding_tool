@@ -6,12 +6,15 @@ already track:
   bills under (their employer / practice group)
 - Facility Affiliation — which hospitals/facilities they're affiliated with
 """
-import time
+from concurrent.futures import ThreadPoolExecutor
 from typing import Callable, Iterable
 
-import httpx
+from app.adapters.base import polite_get_json
 
-THROTTLE_SECONDS = 0.25
+# data.cms.gov is the slowest source in the sweep; a few requests in
+# flight (each still throttled) keeps us polite while not serializing
+# ~30 batches end to end.
+MAX_CONCURRENT_BATCHES = 4
 
 REASSIGNMENT_URL = (
     "https://data.cms.gov/data-api/v1/dataset/"
@@ -24,20 +27,22 @@ BATCH_SIZE = 50
 
 
 def _default_get_json(url: str, params: dict) -> dict | list:
-    time.sleep(THROTTLE_SECONDS)  # keyless public API — stay polite
-    response = httpx.get(url, params=params, timeout=60)
-    response.raise_for_status()
-    return response.json()
+    return polite_get_json(url, params, timeout=60)
 
 
 class PECOSClient:
     def __init__(self, get_json: Callable[[str, dict], dict | list] = _default_get_json):
         self.get_json = get_json
 
+    def _fetch_batches(self, url: str, all_params: list[dict]) -> list[dict | list]:
+        """Run one request per batch, a few concurrently, results in order."""
+        with ThreadPoolExecutor(max_workers=MAX_CONCURRENT_BATCHES) as pool:
+            return list(pool.map(lambda p: self.get_json(url, p), all_params))
+
     def group_reassignments(self, npis: Iterable[str]) -> list[dict]:
         """Rows of {npi, group_pac_id, group_name, specialty, employer_count}."""
         npis = sorted(set(npis))
-        rows: list[dict] = []
+        all_params: list[dict] = []
         for start in range(0, len(npis), BATCH_SIZE):
             batch = npis[start : start + BATCH_SIZE]
             params: dict = {
@@ -47,7 +52,9 @@ class PECOSClient:
             }
             for i, npi in enumerate(batch):
                 params[f"filter[n][condition][value][{i}]"] = npi
-            data = self.get_json(REASSIGNMENT_URL, params)
+            all_params.append(params)
+        rows: list[dict] = []
+        for data in self._fetch_batches(REASSIGNMENT_URL, all_params):
             for row in data if isinstance(data, list) else []:
                 if row.get("Record Type") != "Reassignment":
                     continue
@@ -65,7 +72,7 @@ class PECOSClient:
     def facility_affiliations(self, npis: Iterable[str]) -> list[dict]:
         """Rows of {npi, facility_type, cert_number}."""
         npis = sorted(set(npis))
-        rows: list[dict] = []
+        all_params: list[dict] = []
         for start in range(0, len(npis), BATCH_SIZE):
             batch = npis[start : start + BATCH_SIZE]
             params: dict = {
@@ -75,7 +82,9 @@ class PECOSClient:
             }
             for i, npi in enumerate(batch):
                 params[f"conditions[0][value][{i}]"] = npi
-            data = self.get_json(FACILITY_URL, params)
+            all_params.append(params)
+        rows: list[dict] = []
+        for data in self._fetch_batches(FACILITY_URL, all_params):
             results = data.get("results", []) if isinstance(data, dict) else []
             for row in results:
                 cert = row.get("facility_affiliations_certification_number") or ""

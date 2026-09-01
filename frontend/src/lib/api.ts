@@ -528,7 +528,9 @@ export async function fetchCandidateCount(): Promise<number | undefined> {
 export async function fetchRankedCandidates(): Promise<Candidate[]> {
   let ranked = await fetchRanked();
   if (ranked.length === 0) {
-    await api("/ingest/run", { method: "POST" });
+    // wait=true: this bootstrap needs the data in hand for the refetch
+    // below — everywhere else the sweep runs in the background.
+    await api("/ingest/run?wait=true", { method: "POST" });
     // Bypass the cache here — the empty board was just cached for a minute,
     // and a render pass is not allowed to revalidate the tag itself.
     ranked = await api<ApiRanked[]>(RANKED_PATH);
@@ -612,6 +614,10 @@ export type IngestStatus = {
   prospectsCreated: number | null;
   prospectsUpdated: number | null;
   staleSummaries: number;
+  /** A background sweep is in flight right now. */
+  running: boolean;
+  /** Why the last background sweep produced no run, if it failed. */
+  lastError: string | null;
 };
 
 /** Latest ingest run + stale-summary count; null when the API is down. */
@@ -623,6 +629,8 @@ export async function fetchIngestStatus(): Promise<IngestStatus | null> {
       prospects_created: number | null;
       prospects_updated: number | null;
       stale_summaries: number;
+      running: boolean;
+      last_error: string | null;
     }>("/ingest/status");
     return {
       lastRunAt: s.last_run_at,
@@ -630,6 +638,8 @@ export async function fetchIngestStatus(): Promise<IngestStatus | null> {
       prospectsCreated: s.prospects_created,
       prospectsUpdated: s.prospects_updated,
       staleSummaries: s.stale_summaries,
+      running: s.running,
+      lastError: s.last_error,
     };
   } catch {
     return null;

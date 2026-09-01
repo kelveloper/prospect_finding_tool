@@ -189,6 +189,17 @@ class IngestStatusOut(BaseModel):
     prospects_updated: int | None
     # Advisor summaries needing a refresh (python -m app.summaries --stale)
     stale_summaries: int
+    # A background sweep is in flight right now
+    running: bool = False
+    # Why the last background sweep produced no run, if it failed
+    last_error: str | None = None
+
+
+class IngestStarted(BaseModel):
+    """POST /ingest/run's reply when the sweep is handed to the background —
+    completion lands as a new IngestRun visible in /ingest/status."""
+
+    started: bool = True
 
 
 class IngestResult(BaseModel):

@@ -19,6 +19,8 @@ async function loadStatus(): Promise<IngestStatus | null> {
       prospectsCreated: s.prospects_created,
       prospectsUpdated: s.prospects_updated,
       staleSummaries: s.stale_summaries,
+      running: s.running ?? false,
+      lastError: s.last_error ?? null,
     };
   } catch {
     return null;
@@ -83,25 +85,47 @@ export default function RefreshData({
   // but unknown physicians are only created when their NPI or state
   // license is under 6 months old — fresh entrants, not backlog.
   // force=true is the test sweep's explicit bypass of the weekly gate.
+  // The sweep itself runs in the backend's background — the POST returns
+  // immediately and this watches /ingest/status until the run lands.
   async function runIngest(force: boolean) {
     setRunning(true);
     setError(false);
     try {
+      const before = status?.lastRunAt ?? null;
       const res = await fetch(
         `${API_URL}/ingest/run?limit=200&new_within_months=6` +
           (force ? "&force=true" : ""),
         { method: "POST" },
       );
-      if (!res.ok) throw new Error(String(res.status));
-      setStatus(await loadStatus());
-      await revalidateBoard();
-      router.refresh();
+      // 409 = a sweep is already in flight (another tab) — watch that one
+      if (!res.ok && res.status !== 409) throw new Error(String(res.status));
+      for (let tick = 0; tick < 300; tick++) {
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+        const fresh = await loadStatus();
+        if (!fresh) continue;
+        setStatus(fresh);
+        if (fresh.running) continue;
+        if (fresh.lastError) throw new Error(fresh.lastError);
+        if (fresh.lastRunAt !== before) {
+          await revalidateBoard();
+          router.refresh();
+          return;
+        }
+        // Not running, no error, no new run — after a grace tick for the
+        // thread to spin up, treat it as a silent failure.
+        if (tick >= 2) throw new Error("sweep ended without recording a run");
+      }
+      throw new Error("sweep timed out");
     } catch {
       setError(true);
     } finally {
       setRunning(false);
     }
   }
+
+  // Spin for our own run and for one started anywhere else (the 15s poll
+  // carries the backend's running flag)
+  const sweeping = running || (status?.running ?? false);
 
   // The weekly lock: unclickable until 7 days after the last run
   const lockedDays =
@@ -112,14 +136,14 @@ export default function RefreshData({
   return (
     <div className="group relative flex items-center gap-2.5">
       {/* Only the states that need acting on stay in the bar. */}
-      {running || error ? (
+      {sweeping || error ? (
         <span
           className={
             "hidden text-[12px] sm:inline " +
             (error ? "font-semibold text-tier-poor" : "text-ink-muted")
           }
         >
-          {running
+          {sweeping
             ? "Sweeping four live sources…"
             : "Refresh failed — is the API up?"}
         </span>
@@ -128,7 +152,7 @@ export default function RefreshData({
       <button
         type="button"
         onClick={() => runIngest(false)}
-        disabled={running || lockedDays > 0}
+        disabled={sweeping || lockedDays > 0}
         title={
           lockedDays > 0
             ? `Weekly cadence — the sources barely move faster. Unlocks in ${lockedDays}d.`
@@ -136,7 +160,7 @@ export default function RefreshData({
         }
         className="flex items-center gap-2 rounded-[8px] border border-hairline bg-white px-3 py-1.5 font-display text-[12px] font-semibold text-brand transition-colors hover:bg-surface-soft disabled:opacity-60"
       >
-        {running ? (
+        {sweeping ? (
           <>
             <span
               aria-hidden
@@ -186,7 +210,7 @@ export default function RefreshData({
         <button
           type="button"
           onClick={() => runIngest(true)}
-          disabled={running}
+          disabled={sweeping}
           title="Test sweep — bypasses the weekly lock (dev only)"
           className="mt-3 w-full rounded-[8px] border border-dashed border-hairline bg-white px-2.5 py-1.5 font-display text-[11px] font-semibold text-ink-muted transition-colors hover:bg-surface-soft hover:text-brand disabled:opacity-60"
         >

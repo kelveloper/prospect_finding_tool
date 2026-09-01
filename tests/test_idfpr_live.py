@@ -65,9 +65,9 @@ def test_batches_license_numbers():
         calls.append(params["$where"])
         return []
 
-    numbers = [f"0360{i:05d}" for i in range(120)]
+    numbers = [f"0360{i:05d}" for i in range(400)]
     list(IDFPRLiveDataSource(numbers, fetch_json=fake_fetch).fetch())
-    assert len(calls) == 3  # 120 numbers / 50 per batch
+    assert len(calls) == 3  # 400 numbers / 150 per batch
     assert calls[0].startswith("license_number in(")
 
 

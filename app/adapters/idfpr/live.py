@@ -10,16 +10,12 @@ import re
 from datetime import date, datetime
 from typing import Callable, Iterable
 
-import time
-
-import httpx
-
-THROTTLE_SECONDS = 0.25
-
-from app.adapters.base import BaseDataSource, RawProviderRecord
+from app.adapters.base import BaseDataSource, RawProviderRecord, polite_get_json
 
 DATASET_URL = "https://data.illinois.gov/resource/pzzh-kp68.json"
-BATCH_SIZE = 50
+# Socrata handles large IN() lists fine; 150 short license numbers is
+# ~2KB of query — 3x fewer round-trips than the old 50.
+BATCH_SIZE = 150
 
 
 def normalize_license(value: str | None) -> str | None:
@@ -31,10 +27,8 @@ def normalize_license(value: str | None) -> str | None:
 
 
 def _default_fetch_json(params: dict) -> list[dict]:
-    time.sleep(THROTTLE_SECONDS)  # keyless public API — stay polite
-    response = httpx.get(DATASET_URL, params=params, timeout=30)
-    response.raise_for_status()
-    return response.json()
+    data = polite_get_json(DATASET_URL, params, timeout=30)
+    return data if isinstance(data, list) else []
 
 
 def _parse_us_date(value: str | None) -> date | None:

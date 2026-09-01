@@ -12,25 +12,19 @@ keep false attaches down until a paid, address-keyed source is added.
 from datetime import date, timedelta
 from typing import Callable, Iterable
 
-import time
-
-import httpx
-
-THROTTLE_SECONDS = 0.25
-
-from app.adapters.base import BaseDataSource, EnrichmentRecord
+from app.adapters.base import BaseDataSource, EnrichmentRecord, polite_get_json
 
 DATASET_URL = "https://datacatalog.cookcountyil.gov/resource/wvhk-k5uv.json"
-BATCH_SIZE = 25
+# Socrata handles large IN() lists fine; 100 names is ~2.5KB of query —
+# 4x fewer round-trips than the old 25.
+BATCH_SIZE = 100
 MIN_SALE_PRICE = 100_000       # ignore token transfers / junk deeds
 LOOKBACK_DAYS = int(36.5 * 30.44)  # ~36 months — beyond that, recency ≈ 0
 
 
 def _default_fetch_json(params: dict) -> list[dict]:
-    time.sleep(THROTTLE_SECONDS)  # keyless public API — stay polite
-    response = httpx.get(DATASET_URL, params=params, timeout=60)
-    response.raise_for_status()
-    return response.json()
+    data = polite_get_json(DATASET_URL, params, timeout=60)
+    return data if isinstance(data, list) else []
 
 
 class CookCountyLiveDataSource(BaseDataSource):
