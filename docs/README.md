@@ -49,13 +49,16 @@ so nesting them into folders would break roughly two dozen links for no gain.
 
 ## Visuals
 
-Standalone HTML pages — open them in a browser. The first is the script for
-presenting live; the next two survey the market; the last two are the
-before/after arguments behind the Sources redesign, built with one real
-prospect's data.
+Standalone HTML pages — open them in a browser. The first three explain the
+pipeline itself; the next is the script for presenting live; then two survey
+the market; the last two are the before/after arguments behind the Sources
+redesign, built with one real prospect's data.
 
 | | |
 |---|---|
+| [`visuals/pipeline-end-to-end.html`](visuals/pipeline-end-to-end.html) | Sourcing to ranked prospect in plain English — the whole engine, hand-drawn |
+| [`visuals/pipeline-flowchart.html`](visuals/pipeline-flowchart.html) | The same pipeline as a flowchart: 8 numbered steps, 3 gate layers, every drop-out |
+| [`visuals/one-doctor-trace.html`](visuals/one-doctor-trace.html) | One invented physician's five rows traced from the first query to her score |
 | [`visuals/presentation-run-of-show.html`](visuals/presentation-run-of-show.html) | The five-minute, three-speaker script: timings, stage directions, Q&A prep |
 | [`visuals/prospecting-ux-teardown.html`](visuals/prospecting-ux-teardown.html) | How the market presents prospects, and where we sit against it |
 | [`visuals/prospectiq-retrofit.html`](visuals/prospectiq-retrofit.html) | The four changes that teardown recommends, mocked against our UI |

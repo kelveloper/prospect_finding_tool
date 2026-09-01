@@ -1,0 +1,557 @@
+<title>How a Prospect Gets Found</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+  :root {
+    --paper:   #EFF2F3;
+    --card:    #FFFFFF;
+    --ink:     #131A1C;
+    --mid:     #54646A;
+    --faint:   #7C8B90;
+    --rule:    #C9D4D7;
+    --rule-2:  #E1E8EA;
+    --accent:  #0B6B70;
+    --accent-soft: #DDECEC;
+    --warn:    #9A5B08;
+    --warn-soft:   #F2E7D6;
+    --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    --body:    "Source Serif 4", Georgia, "Times New Roman", serif;
+    --mono:    "IBM Plex Mono", "SF Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:  #101617;
+      --card:   #171F21;
+      --ink:    #E3EBEC;
+      --mid:    #A2B2B6;
+      --faint:  #7E8F94;
+      --rule:   #2E3B3E;
+      --rule-2: #232E30;
+      --accent: #5AC4C9;
+      --accent-soft: #1B3234;
+      --warn:   #D9A45E;
+      --warn-soft:  #2E2618;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:  #101617;
+    --card:   #171F21;
+    --ink:    #E3EBEC;
+    --mid:    #A2B2B6;
+    --faint:  #7E8F94;
+    --rule:   #2E3B3E;
+    --rule-2: #232E30;
+    --accent: #5AC4C9;
+    --accent-soft: #1B3234;
+    --warn:   #D9A45E;
+    --warn-soft:  #2E2618;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 17px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 940px;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+  }
+
+  /* ---------- masthead ---------- */
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 24px; margin-bottom: 40px; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 14px;
+  }
+  h1 {
+    font-family: var(--display); font-weight: 700; font-size: clamp(34px, 6vw, 52px);
+    line-height: 1.04; letter-spacing: -0.02em; margin: 0 0 16px; text-wrap: balance;
+  }
+  .standfirst { font-size: 19px; color: var(--mid); max-width: 60ch; margin: 0; }
+
+  /* ---------- sections ---------- */
+  section { margin: 0 0 12px; }
+  h2 {
+    font-family: var(--display); font-weight: 600; font-size: 24px; letter-spacing: -0.01em;
+    margin: 48px 0 10px; text-wrap: balance;
+  }
+  h3 {
+    font-family: var(--display); font-weight: 600; font-size: 17px; letter-spacing: 0;
+    margin: 28px 0 6px;
+  }
+  p { margin: 0 0 16px; max-width: 68ch; }
+  .lede { font-size: 18px; }
+
+  /* ---------- numbered stage list ---------- */
+  .stages { list-style: none; margin: 24px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+  .stage {
+    display: grid; grid-template-columns: 54px 1fr; gap: 20px;
+    padding: 22px 0; border-top: 1px solid var(--rule-2);
+  }
+  .stage:first-child { border-top: 1px solid var(--rule); }
+  .stage-num {
+    font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--accent);
+    padding-top: 5px; letter-spacing: .04em;
+  }
+  .stage-body > :last-child { margin-bottom: 0; }
+  .stage h3 { margin-top: 0; }
+  .stage h3 .verb { color: var(--accent); }
+
+  /* ---------- figures ---------- */
+  figure { margin: 32px 0; }
+  .fig-frame {
+    background: var(--card); border: 1px solid var(--rule); border-radius: 3px;
+    padding: 22px 18px; overflow-x: auto;
+  }
+  svg.diagram { display: block; width: 100%; min-width: 620px; max-width: 100%; height: auto; color: var(--ink); }
+  figcaption {
+    font-family: var(--mono); font-size: 12px; line-height: 1.55; color: var(--mid);
+    margin-top: 12px; max-width: 72ch;
+  }
+
+  /* svg primitives */
+  .node  { fill: var(--card); stroke: var(--ink); stroke-width: 1.25; }
+  .node-accent { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
+  .node-src { fill: none; stroke: var(--mid); stroke-width: 1.25; stroke-dasharray: none; }
+  .flow  { stroke: var(--ink); stroke-width: 1.4; fill: none; }
+  .flow-accent { stroke: var(--accent); stroke-width: 2; fill: none; }
+  .flow-drop { stroke: var(--warn); stroke-width: 1.3; fill: none; stroke-dasharray: 4 3; }
+  .t      { font-family: var(--display); font-size: 13.5px; font-weight: 600; fill: var(--ink); }
+  .t-sm   { font-family: var(--mono); font-size: 10.5px; fill: var(--mid); }
+  .t-lbl  { font-family: var(--mono); font-size: 10.5px; fill: var(--accent); }
+  .t-drop { font-family: var(--mono); font-size: 10.5px; fill: var(--warn); }
+  .t-band { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; fill: var(--faint); }
+
+  /* ---------- tables ---------- */
+  .table-scroll { overflow-x: auto; margin: 22px 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 520px; font-size: 15px; }
+  caption {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--faint); text-align: left; padding-bottom: 10px;
+  }
+  th, td { text-align: left; padding: 11px 14px 11px 0; border-bottom: 1px solid var(--rule-2); vertical-align: top; }
+  th {
+    font-family: var(--display); font-weight: 600; font-size: 13px; letter-spacing: .02em;
+    color: var(--mid); border-bottom: 1px solid var(--rule); text-transform: uppercase;
+  }
+  td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 13.5px; }
+  td code, p code, li code { font-family: var(--mono); font-size: 13px; background: var(--rule-2); padding: 1px 5px; border-radius: 2px; }
+
+  /* ---------- pull quote / rule box ---------- */
+  .rulebox {
+    border-left: 3px solid var(--accent); background: var(--card);
+    padding: 18px 22px; margin: 26px 0; border-radius: 0 3px 3px 0;
+  }
+  .rulebox p { margin: 0; max-width: 62ch; }
+  .rulebox strong { font-family: var(--display); font-weight: 600; }
+
+  .plain { list-style: none; padding: 0; margin: 0 0 16px; display: flex; flex-direction: column; gap: 10px; max-width: 68ch; }
+  .plain li { padding-left: 20px; position: relative; }
+  .plain li::before {
+    content: ""; position: absolute; left: 0; top: .68em;
+    width: 9px; height: 1.5px; background: var(--accent);
+  }
+
+  footer {
+    margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--rule);
+    font-family: var(--mono); font-size: 12px; color: var(--faint);
+  }
+  a { color: var(--accent); }
+  a:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">Prospect finding tool · end-to-end logic</p>
+    <h1>How a Prospect Gets Found</h1>
+    <p class="standfirst">Four public government databases go in. One ranked list of physicians worth calling comes out. Here is every step in between, in plain English.</p>
+  </header>
+
+  <section>
+    <h2>The idea in one sentence</h2>
+    <p class="lede">A physician who just got licensed, then formed their own practice, then bought a house is <em>becoming</em> wealthy — and probably doesn't have a financial advisor yet. The system's whole job is to spot that pattern in public records and put those people at the top of a list.</p>
+  </section>
+
+  <figure>
+    <div class="fig-frame">
+      <svg class="diagram" viewBox="0 0 900 782" role="img" aria-label="End-to-end flow: four public data sources are normalized into two record shapes; person records resolve into one identity, event records attach to it; the merged profile becomes signals, signals become a score, and the score produces a ranked board, a dossier and a contact kit. Records that fail a gate are dropped along the way.">
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"></path>
+          </marker>
+          <marker id="ar-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent)"></path>
+          </marker>
+          <marker id="ar-d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--warn)"></path>
+          </marker>
+        </defs>
+
+        <!-- BAND 1: SOURCES -->
+        <text class="t-band" x="12" y="20">1 · SOURCES</text>
+        <rect class="node-src" x="12"  y="30" width="200" height="62" rx="2"></rect>
+        <text class="t"    x="26" y="53">NPI Registry</text>
+        <text class="t-sm" x="26" y="71">name · specialty · address</text>
+        <text class="t-sm" x="26" y="85">license no. · NPI</text>
+
+        <rect class="node-src" x="240" y="30" width="180" height="62" rx="2"></rect>
+        <text class="t"    x="254" y="53">IL licensing</text>
+        <text class="t-sm" x="254" y="71">issue date</text>
+        <text class="t-sm" x="254" y="85">active / inactive</text>
+
+        <rect class="node-src" x="472" y="30" width="188" height="62" rx="2"></rect>
+        <text class="t"    x="486" y="53">Medicare billing</text>
+        <text class="t-sm" x="486" y="71">which company</text>
+        <text class="t-sm" x="486" y="85">gets paid</text>
+
+        <rect class="node-src" x="688" y="30" width="200" height="62" rx="2"></rect>
+        <text class="t"    x="702" y="53">County deeds</text>
+        <text class="t-sm" x="702" y="71">home purchases</text>
+        <text class="t-sm" x="702" y="85">price · date</text>
+
+        <line class="flow" x1="112" y1="92" x2="112" y2="140" marker-end="url(#ar)"></line>
+        <line class="flow" x1="330" y1="92" x2="330" y2="140" marker-end="url(#ar)"></line>
+        <line class="flow" x1="566" y1="92" x2="566" y2="140" marker-end="url(#ar)"></line>
+        <line class="flow" x1="788" y1="92" x2="788" y2="140" marker-end="url(#ar)"></line>
+
+        <!-- BAND 2: NORMALIZE -->
+        <text class="t-band" x="12" y="130">2 · ONE FORMAT</text>
+        <rect class="node" x="12"  y="140" width="408" height="66" rx="2"></rect>
+        <text class="t"    x="26" y="164">A person record</text>
+        <text class="t-sm" x="26" y="182">who someone is — the only kind of</text>
+        <text class="t-sm" x="26" y="196">record allowed to create a prospect</text>
+
+        <rect class="node" x="472" y="140" width="416" height="66" rx="2"></rect>
+        <text class="t"    x="486" y="164">An event record</text>
+        <text class="t-sm" x="486" y="182">something that happened to someone —</text>
+        <text class="t-sm" x="486" y="196">can only attach, never create</text>
+
+        <line class="flow-drop" x1="440" y1="61" x2="462" y2="61" marker-end="url(#ar-d)"></line>
+        <text class="t-drop" x="428" y="112">gate 1 · not a physician, not Illinois,</text>
+        <text class="t-drop" x="428" y="125">deed too small or too old → discarded</text>
+
+        <line class="flow-accent" x1="216" y1="206" x2="216" y2="252" marker-end="url(#ar-a)"></line>
+
+        <!-- BAND 3: RESOLVE -->
+        <text class="t-band" x="12" y="242">3 · SAME PERSON?</text>
+        <rect class="node-accent" x="12" y="252" width="408" height="72" rx="2"></rect>
+        <text class="t"    x="26" y="276">Merge the duplicates</text>
+        <text class="t-sm" x="26" y="294">same license number → certain match</text>
+        <text class="t-sm" x="26" y="308">same name + state → confident match</text>
+
+        <line class="flow-drop" x1="420" y1="288" x2="470" y2="288" marker-end="url(#ar-d)"></line>
+        <text class="t-drop" x="478" y="284">too weak to merge →</text>
+        <text class="t-drop" x="478" y="297">kept as two separate people</text>
+
+        <line class="flow-accent" x1="216" y1="324" x2="216" y2="368" marker-end="url(#ar-a)"></line>
+        <path class="flow" d="M 680 206 L 680 348 L 300 348" marker-end="url(#ar)"></path>
+        <text class="t-lbl" x="470" y="342">attach by NPI, or exact name + state</text>
+
+        <!-- BAND 4: ATTACH -->
+        <text class="t-band" x="12" y="358">4 · ONE PROFILE</text>
+        <rect class="node-accent" x="12" y="368" width="876" height="62" rx="2"></rect>
+        <text class="t"    x="26" y="392">One physician, one file — licence, practice, company, property</text>
+        <text class="t-sm" x="26" y="412">every merge and attach is logged with a score and a plain-English reason, so any claim can be traced back</text>
+
+        <line class="flow-drop" x1="700" y1="430" x2="700" y2="466" marker-end="url(#ar-d)"></line>
+        <text class="t-drop" x="712" y="452">near-miss name → dropped</text>
+
+        <line class="flow-accent" x1="216" y1="430" x2="216" y2="474" marker-end="url(#ar-a)"></line>
+
+        <!-- BAND 5: SIGNALS -->
+        <text class="t-band" x="12" y="464">5 · SIGNALS</text>
+        <rect class="node" x="12" y="474" width="628" height="70" rx="2"></rect>
+        <text class="t"    x="26" y="498">Turn facts into six scoreable signals</text>
+        <text class="t-sm" x="26" y="517">physician · specialty · new licence</text>
+        <text class="t-sm" x="26" y="532">owns a practice · bought property · career move</text>
+        <text class="t-lbl" x="470" y="517">each rated 0 to 1</text>
+        <text class="t-lbl" x="470" y="532">on how strong it is</text>
+
+        <line class="flow-accent" x1="216" y1="544" x2="216" y2="588" marker-end="url(#ar-a)"></line>
+
+        <!-- BAND 6: SCORE -->
+        <text class="t-band" x="12" y="578">6 · SCORE</text>
+        <rect class="node-accent" x="12" y="588" width="628" height="66" rx="2"></rect>
+        <text class="t"    x="26" y="612">Score out of 100, plus a written reason</text>
+        <text class="t-sm" x="26" y="632">60% &quot;should we care about them?&quot;   ·   40% &quot;why now?&quot;</text>
+
+        <line class="flow-accent" x1="216" y1="654" x2="216" y2="698" marker-end="url(#ar-a)"></line>
+
+        <!-- BAND 7: OUTPUT -->
+        <text class="t-band" x="12" y="688">7 · WHAT THE ADVISOR SEES</text>
+        <rect class="node" x="12"  y="698" width="200" height="58" rx="2"></rect>
+        <text class="t"    x="26" y="722">Ranked board</text>
+        <text class="t-sm" x="26" y="740">best prospect first</text>
+
+        <rect class="node" x="240" y="698" width="200" height="58" rx="2"></rect>
+        <text class="t"    x="254" y="722">Dossier</text>
+        <text class="t-sm" x="254" y="740">every fact, sourced</text>
+
+        <rect class="node" x="468" y="698" width="200" height="58" rx="2"></rect>
+        <text class="t"    x="482" y="722">Contact kit</text>
+        <text class="t-sm" x="482" y="740">address, phone, angle</text>
+
+        <text class="t-sm" x="700" y="722">the score is saved every run,</text>
+        <text class="t-sm" x="700" y="738">so you can see who is rising</text>
+      </svg>
+    </div>
+    <figcaption>The whole pipeline. Solid teal is the main path a prospect travels; dashed amber is where records get thrown out. Note the asymmetry: only person records can create a prospect — event records can attach to one that already exists, or be discarded.</figcaption>
+  </figure>
+
+  <section>
+    <h2>Step by step</h2>
+
+    <ol class="stages">
+
+      <li class="stage">
+        <div class="stage-num">01</div>
+        <div class="stage-body">
+          <h3><span class="verb">Sourcing</span> — four databases, and the order matters</h3>
+          <p>All four are free, public, government-run. No paid data, no scraping, no API keys. But they aren't pulled at the same time — <strong>each one is looked up using an ID the previous one handed over.</strong> That's what keeps the matching honest.</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <figure>
+    <div class="fig-frame">
+      <svg class="diagram" viewBox="0 0 880 300" role="img" aria-label="The lookup chain: the NPI Registry is queried by specialty and state, and its results supply the license numbers used to query Illinois licensing, the NPI numbers used to query Medicare billing, and the names used to query county deeds.">
+        <defs>
+          <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"></path>
+          </marker>
+        </defs>
+
+        <text class="t-band" x="14" y="22">STARTING QUESTION</text>
+        <rect class="node-accent" x="14" y="96" width="212" height="86" rx="2"></rect>
+        <text class="t"    x="30" y="122">NPI Registry</text>
+        <text class="t-sm" x="30" y="142">asked: &quot;every physician in</text>
+        <text class="t-sm" x="30" y="156">Illinois in these specialties&quot;</text>
+        <text class="t-lbl" x="30" y="174">→ returns the IDs below</text>
+
+        <line class="flow" x1="14" y1="60" x2="14" y2="96"></line>
+        <text class="t-sm" x="26" y="44">specialty + state</text>
+        <text class="t-sm" x="26" y="58">is the only thing we guess with</text>
+
+        <path class="flow" d="M 226 118 L 300 118 L 300 46 L 380 46" marker-end="url(#ar2)"></path>
+        <path class="flow" d="M 226 132 L 340 132 L 340 132 L 380 132" marker-end="url(#ar2)"></path>
+        <path class="flow" d="M 226 152 L 300 152 L 300 232 L 380 232" marker-end="url(#ar2)"></path>
+
+        <text class="t-lbl" x="308" y="38">license number</text>
+        <text class="t-lbl" x="308" y="124">NPI number</text>
+        <text class="t-lbl" x="308" y="224">first + last name</text>
+
+        <rect class="node" x="380" y="18" width="484" height="56" rx="2"></rect>
+        <text class="t"    x="396" y="42">IL licensing</text>
+        <text class="t-sm" x="396" y="60">exact ID join — no guessing at all</text>
+
+        <rect class="node" x="380" y="104" width="484" height="56" rx="2"></rect>
+        <text class="t"    x="396" y="128">Medicare billing</text>
+        <text class="t-sm" x="396" y="146">exact ID join — no guessing at all</text>
+
+        <rect class="node" x="380" y="204" width="484" height="70" rx="2"></rect>
+        <text class="t"    x="396" y="228">County deeds</text>
+        <text class="t-sm" x="396" y="246">no shared ID exists — matched on exact name + state,</text>
+        <text class="t-sm" x="396" y="260">and anything less than exact is thrown away</text>
+      </svg>
+    </div>
+    <figcaption>Three of the four sources are looked up by an ID, not a name. Only the deed records force a name match — which is why that one is held to the strictest rule in the system.</figcaption>
+  </figure>
+
+  <section>
+    <ol class="stages" start="2">
+
+      <li class="stage">
+        <div class="stage-num">02</div>
+        <div class="stage-body">
+          <h3><span class="verb">One format</span> — four messy feeds become two shapes</h3>
+          <p>Each source returns completely different JSON. A small translator (an "adapter") per source rewrites every row into one of exactly two shapes:</p>
+          <ul class="plain">
+            <li><strong>A person record</strong> — name, specialty, licence, NPI, practice address, phone. Only the NPI Registry and IL licensing produce these.</li>
+            <li><strong>An event record</strong> — something that happened <em>to</em> a person: they own a company, they bought a house, they changed roles. Only Medicare billing and county deeds produce these.</li>
+          </ul>
+          <p>Everything downstream — matching, signals, scoring — only ever sees those two shapes. That's why adding a fifth data source later doesn't touch any of the scoring logic.</p>
+        </div>
+      </li>
+
+      <li class="stage">
+        <div class="stage-num">03</div>
+        <div class="stage-body">
+          <h3><span class="verb">Same person?</span> — merging duplicates</h3>
+          <p>The same physician shows up in the NPI Registry and again in the licensing roster. The system decides whether two records are one human:</p>
+          <ul class="plain">
+            <li><strong>Same licence number</strong> → certainly the same person. Perfect evidence, no judgement needed.</li>
+            <li><strong>Same last name, same state, same first name ignoring middle initials</strong> → confident match. "John Smith MD" and "John A Smith MD" merge.</li>
+            <li><strong>Anything weaker</strong> → they stay two separate people. A missed merge is acceptable; a wrong merge is not.</li>
+          </ul>
+        </div>
+      </li>
+
+      <li class="stage">
+        <div class="stage-num">04</div>
+        <div class="stage-body">
+          <h3><span class="verb">One profile</span> — attaching the events</h3>
+          <p>Now the company records and property records get hung onto the right person. This bar is set <em>higher</em> than the merge bar, because attaching someone else's house to a prospect would silently corrupt their score.</p>
+          <p>Medicare records attach by NPI, so there's no name risk at all. Deeds must match exact first name + exact last name + same state. Near-misses are dropped rather than guessed at. <strong>Every single merge and attach writes a row recording the score and a human-readable reason</strong> — "license number match", "exact first and last name, same state" — so any claim on a dossier can be traced back to the records that produced it.</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <div class="rulebox">
+    <p><strong>The rule that shapes everything:</strong> gates reject, scoring weighs. Everything up to this point is a yes/no gate about <em>trust</em> — is this a physician, is this the same person, does this deed belong to them. Everything after this point is a sliding scale about <em>value</em>. Once a prospect is through the gates, they are never rejected again — they can only be worth more or less.</p>
+  </div>
+
+  <section>
+    <h3>The three gates, in order</h3>
+    <div class="table-scroll">
+      <table>
+        <caption>Where a record can be thrown out</caption>
+        <thead>
+          <tr><th scope="col">Gate</th><th scope="col">Question it asks</th><th scope="col">Thrown out if…</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Entry</td>
+            <td>Are you even eligible?</td>
+            <td>Not a physician, not Illinois, not an individual licence, deed under $100k or older than 3 years</td>
+          </tr>
+          <tr>
+            <td>Identity</td>
+            <td>Are these the same person?</td>
+            <td>Name evidence is too weak to merge, or an event's name isn't an exact match</td>
+          </tr>
+          <tr>
+            <td>Derivation</td>
+            <td>What is this fact allowed to claim?</td>
+            <td>The signal is too weak to be worth mentioning</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <ol class="stages" start="5">
+      <li class="stage">
+        <div class="stage-num">05</div>
+        <div class="stage-body">
+          <h3><span class="verb">Signals</span> — turning facts into things you can score</h3>
+          <p>The merged profile is read for six specific signals, each rated from 0 to 1 on how strong it is. No signal means no points — the system never guesses at a missing fact.</p>
+        </div>
+      </li>
+    </ol>
+
+    <div class="table-scroll">
+      <table>
+        <caption>The six signals</caption>
+        <thead>
+          <tr><th scope="col">Signal</th><th scope="col">In plain English</th><th scope="col">Comes from</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Physician</td><td>They really are a licensed doctor</td><td>NPI + IL licensing</td></tr>
+          <tr><td>Specialty</td><td>How well their specialty pays</td><td>NPI Registry</td></tr>
+          <tr><td>New licence</td><td>How recently they started practising</td><td>IL licensing + NPI</td></tr>
+          <tr><td>Owns a practice</td><td>They bill Medicare through their own company</td><td>Medicare billing</td></tr>
+          <tr><td>Bought property</td><td>They just made a large purchase</td><td>County deeds</td></tr>
+          <tr><td>Career move</td><td>They changed employer or went independent</td><td>Comparing this month's billing data to last month's</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>The ownership trick, since it's the clever bit</h3>
+    <p>There is no free database of "which doctors own their practice." But before a physician can bill Medicare, they must declare which company gets paid. <strong>If that company is named after them</strong> — "Beth Adams Medical Services PLLC" — they almost certainly own it. Nobody routes their income through a stranger's company bearing their own name.</p>
+    <p>The system flags that as an <em>inference</em>, not a fact: it scores slightly lower than a registry record would, and the dossier says "name-matched billing group" rather than claiming proof.</p>
+  </section>
+
+  <section>
+    <ol class="stages" start="6">
+      <li class="stage">
+        <div class="stage-num">06</div>
+        <div class="stage-body">
+          <h3><span class="verb">Score</span> — two questions, blended</h3>
+          <p>Every prospect is scored on exactly two questions, and nothing else.</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <figure>
+    <div class="fig-frame">
+      <svg class="diagram" viewBox="0 0 880 316" role="img" aria-label="The score formula: a qualification score out of 100 built from physician standing 40 points, specialty 35 points and practice ownership 25 points, weighted 60 percent; plus a timing score out of 100 built from licence recency 40 points, property purchase 30 points, practice entry 15 points and career move 15 points, weighted 40 percent.">
+        <text class="t-band" x="14" y="20">QUESTION ONE · WEIGHTED 60%</text>
+        <text class="t"     x="14" y="46">Should we care about this person?</text>
+        <text class="t-sm"  x="14" y="64">are they the kind of person who becomes wealthy?</text>
+
+        <rect class="node-accent" x="14"  y="80" width="332" height="34" rx="2"></rect>
+        <rect class="node"        x="346" y="80" width="290" height="34" rx="2"></rect>
+        <rect class="node"        x="636" y="80" width="208" height="34" rx="2"></rect>
+        <text class="t-sm" x="26"  y="101">licensed physician · 40 pts</text>
+        <text class="t-sm" x="358" y="101">specialty pay tier · 35 pts</text>
+        <text class="t-sm" x="648" y="101">owns practice · 25 pts</text>
+
+        <text class="t-band" x="14" y="152">QUESTION TWO · WEIGHTED 40%</text>
+        <text class="t"     x="14" y="178">Why now?</text>
+        <text class="t-sm"  x="14" y="196">is the wealth-building happening right now?</text>
+
+        <rect class="node-accent" x="14"  y="212" width="332" height="34" rx="2"></rect>
+        <rect class="node"        x="346" y="212" width="249" height="34" rx="2"></rect>
+        <rect class="node"        x="595" y="212" width="124" height="34" rx="2"></rect>
+        <rect class="node"        x="719" y="212" width="125" height="34" rx="2"></rect>
+        <text class="t-sm" x="26"  y="233">licensed recently · 40 pts</text>
+        <text class="t-sm" x="358" y="233">bought property · 30 pts</text>
+        <text class="t-sm" x="607" y="233">started · 15</text>
+        <text class="t-sm" x="731" y="233">moved · 15</text>
+
+        <line class="flow" x1="14" y1="272" x2="844" y2="272"></line>
+        <text class="t"    x="14"  y="298">Total  =  Question one × 0.60   +   Question two × 0.40</text>
+        <text class="t-sm" x="560" y="298">every date-based part fades with age</text>
+      </svg>
+    </div>
+    <figcaption>Points = the maximum for that row × how strong the signal is. Recency decays on a fixed curve: within 6 months counts full, a year ago counts 85%, three years ago counts 30%. A physician licensed 8 months ago earns 34 of the 40 timing points; one licensed in 2018 earns 4.</figcaption>
+  </figure>
+
+  <section>
+    <p>Two things are deliberately kept <em>out</em> of the score. Match confidence is shown <strong>beside</strong> the score, never multiplied into it — the score says how good the prospect is, confidence says how sure we are it's the right person. And there's no AI in the scoring at all: same data in, same score out, every point traceable to a source record.</p>
+
+    <h3>Why nobody scores 100 on day one</h3>
+    <p>The best possible first-run score is 91. The missing points are honest headroom: proving someone <em>moved</em> requires comparing two months of data, so a single snapshot can never earn those points. A score above 91 means the system watched that person change over time.</p>
+  </section>
+
+  <section>
+    <ol class="stages" start="7">
+      <li class="stage">
+        <div class="stage-num">07</div>
+        <div class="stage-body">
+          <h3><span class="verb">Output</span> — what actually reaches the advisor</h3>
+          <p>Three things, plus a running history:</p>
+          <ul class="plain">
+            <li><strong>The ranked board</strong> — highest score first, so the top of the list is where to start the day.</li>
+            <li><strong>The dossier</strong> — every fact behind the score, each one traceable to the record and the match reason that produced it, with a short plain-English write-up of why this person, why now.</li>
+            <li><strong>The contact kit</strong> — practice address, practice phone, the one trigger to lead the conversation with, and the handling rules. Notably: never write to a home address, and <em>never</em> mention the property purchase. It raises urgency internally; it's not something you say out loud.</li>
+          </ul>
+          <p>Every run appends a new score rather than overwriting the old one, so the board can show who is climbing — which is usually a better reason to call than the score itself.</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Two details worth knowing</h2>
+    <h3>Re-running is safe</h3>
+    <p>The sweep is idempotent — running it twice doesn't create duplicates. Existing prospects are found by NPI (or name + state) and updated in place, and any field that changed is logged as "was X, now Y" so you can see what moved.</p>
+    <h3>New strangers have to be new</h3>
+    <p>Someone already in the book always gets updated. But an <em>unknown</em> physician is only added if they're a fresh arrival — licensed or enumerated within the last six months. Long-established strangers are skipped, so the book fills with genuinely new entrants instead of decades of backlog.</p>
+  </section>
+
+  <footer>
+    Prospect finding tool · pipeline as built in <code>app/services/</code>, <code>app/identity/</code> and <code>app/scoring/</code>
+  </footer>
+
+</div>
