@@ -3,7 +3,8 @@
 **Status:** needs a decision. Found 2026-09-01 while checking a demo prospect.
 **Owner:** unassigned. **Blocking:** nothing today, but it undercuts the thesis.
 Companions: `RANKING.md` (the scoring math) · `HOW_IT_WORKS.md` (the hypothesis)
-· `RESEARCH_COMMERCIAL_SOURCES.md` (the paid fix)
+· `RESEARCH_COMMERCIAL_SOURCES.md` (the paid fix) · [`KNOWN_GAPS.md`](KNOWN_GAPS.md)
+(smaller things found the same way)
 
 ---
 

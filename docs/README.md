@@ -13,6 +13,7 @@ production, but each one changes what the product claims.
 | | |
 |---|---|
 | [`OWNERSHIP_TENURE_BIAS.md`](OWNERSHIP_TENURE_BIAS.md) | The ownership signal has no date, so it selects for physicians established for twenty years — the opposite of the thesis. Three options, one recommendation |
+| [`KNOWN_GAPS.md`](KNOWN_GAPS.md) | Four things that are wrong or misleading on screen, found while demoing — starting with out-of-state doctors labelled Illinois |
 
 ## Start here
 
