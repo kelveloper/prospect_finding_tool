@@ -105,6 +105,24 @@ export default function OutreachActions({
   const [reopened, setReopened] = useState(false);
   const [revising, setRevising] = useState(false);
 
+  // This panel is reused across prospects: the book view swaps `?id=` with a
+  // client navigation, so React keeps this component mounted and only changes
+  // the props. `useState` reads its argument on mount alone, so without this
+  // every state below would still describe whoever was on screen before — the
+  // outcome logged on one prospect showing up on the next one's profile.
+  const [shownFor, setShownFor] = useState(prospectId);
+  if (shownFor !== prospectId) {
+    setShownFor(prospectId);
+    setHistory(initialHistory);
+    setModalFor(null);
+    setReason("");
+    setFollowUpOn("");
+    setPending(null);
+    setError(null);
+    setReopened(false);
+    setRevising(false);
+  }
+
   useEffect(() => {
     if (!modalFor) return;
     function onKey(e: KeyboardEvent) {
