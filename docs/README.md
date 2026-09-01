@@ -1,6 +1,6 @@
 # Docs
 
-Nineteen documents, flat on purpose — they cross-reference each other as siblings,
+Twenty documents, flat on purpose — they cross-reference each other as siblings,
 so nesting them into folders would break roughly two dozen links for no gain.
 
 ## Start here
@@ -36,6 +36,7 @@ so nesting them into folders would break roughly two dozen links for no gain.
 | | |
 |---|---|
 | [`PRESENTATION.md`](PRESENTATION.md) | Everything needed to present the build — proven vs inferred, screen by screen |
+| [`visuals/presentation-run-of-show.html`](visuals/presentation-run-of-show.html) | The five-minute script itself — who says what, when, and what to click |
 
 ## Research (dated decision records)
 
@@ -48,12 +49,14 @@ so nesting them into folders would break roughly two dozen links for no gain.
 
 ## Visuals
 
-Standalone HTML pages — open them in a browser. The first two survey the
-market; the last two are the before/after arguments behind the Sources
-redesign, built with one real prospect's data.
+Standalone HTML pages — open them in a browser. The first is the script for
+presenting live; the next two survey the market; the last two are the
+before/after arguments behind the Sources redesign, built with one real
+prospect's data.
 
 | | |
 |---|---|
+| [`visuals/presentation-run-of-show.html`](visuals/presentation-run-of-show.html) | The five-minute, three-speaker script: timings, stage directions, Q&A prep |
 | [`visuals/prospecting-ux-teardown.html`](visuals/prospecting-ux-teardown.html) | How the market presents prospects, and where we sit against it |
 | [`visuals/prospectiq-retrofit.html`](visuals/prospectiq-retrofit.html) | The four changes that teardown recommends, mocked against our UI |
 | [`visuals/paths-not-taken.html`](visuals/paths-not-taken.html) | Why the breakdown page was unreadable: it rendered every branch the model didn't take |

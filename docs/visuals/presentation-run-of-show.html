@@ -1,0 +1,817 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ProspectIQ Run of Show</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap">
+<style>
+  :root {
+    color-scheme: light;
+
+    --ground:   #F4F6F8;
+    --surface:  #FFFFFF;
+    --sunk:     #ECEFF3;
+    --ink:      #14181F;
+    --ink-2:    #4A5361;
+    --ink-3:    #7A8492;
+    --rule:     #DDE2E9;
+    --rule-2:   #C7CED8;
+
+    --s1:       #A8462A;
+    --s1-tint:  #FBF0EC;
+    --s2:       #1F3D6B;
+    --s2-tint:  #EDF1F8;
+    --s3:       #1B6250;
+    --s3-tint:  #EAF3F0;
+
+    --warn:     #8A5A12;
+    --warn-tint:#FBF3E3;
+
+    --shadow:   0 1px 2px rgba(20, 24, 31, .05), 0 8px 24px -14px rgba(20, 24, 31, .22);
+
+    --sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    --serif: "Newsreader", Georgia, "Times New Roman", serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+
+      --ground:   #0E1116;
+      --surface:  #161A20;
+      --sunk:     #1D222A;
+      --ink:      #E6EAEF;
+      --ink-2:    #A3ADBA;
+      --ink-3:    #6E7886;
+      --rule:     #282E37;
+      --rule-2:   #39414C;
+
+      --s1:       #E28F6B;
+      --s1-tint:  #241A16;
+      --s2:       #85AAE0;
+      --s2-tint:  #151C27;
+      --s3:       #58B497;
+      --s3-tint:  #12211D;
+
+      --warn:     #D9A757;
+      --warn-tint:#221C10;
+
+      --shadow:   0 1px 2px rgba(0,0,0,.4), 0 10px 26px -16px rgba(0,0,0,.7);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+
+    --ground:   #0E1116;
+    --surface:  #161A20;
+    --sunk:     #1D222A;
+    --ink:      #E6EAEF;
+    --ink-2:    #A3ADBA;
+    --ink-3:    #6E7886;
+    --rule:     #282E37;
+    --rule-2:   #39414C;
+
+    --s1:       #E28F6B;
+    --s1-tint:  #241A16;
+    --s2:       #85AAE0;
+    --s2-tint:  #151C27;
+    --s3:       #58B497;
+    --s3-tint:  #12211D;
+
+    --warn:     #D9A757;
+    --warn-tint:#221C10;
+
+    --shadow:   0 1px 2px rgba(0,0,0,.4), 0 10px 26px -16px rgba(0,0,0,.7);
+  }
+
+  * { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 40px 22px 96px;
+    display: flex;
+    flex-direction: column;
+    gap: 46px;
+  }
+
+  /* ---------- masthead ---------- */
+
+  .masthead { display: flex; flex-direction: column; gap: 14px; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+  }
+
+  h1 {
+    font-family: var(--serif);
+    font-size: clamp(34px, 6vw, 48px);
+    font-weight: 500;
+    line-height: 1.06;
+    letter-spacing: -.015em;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  .standfirst {
+    font-family: var(--serif);
+    font-size: 19px;
+    line-height: 1.55;
+    color: var(--ink-2);
+    max-width: 58ch;
+    margin: 0;
+  }
+
+  /* ---------- run sheet ---------- */
+
+  .runsheet {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 12px;
+  }
+
+  .slot {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-top: 3px solid var(--slot-hue);
+    border-radius: 3px;
+    padding: 14px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .slot[data-s="1"] { --slot-hue: var(--s1); }
+  .slot[data-s="2"] { --slot-hue: var(--s2); }
+  .slot[data-s="3"] { --slot-hue: var(--s3); }
+
+  .slot-time {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--slot-hue);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: .02em;
+  }
+  .slot-who {
+    font-family: var(--serif);
+    font-size: 21px;
+    font-weight: 500;
+    line-height: 1.15;
+  }
+  .slot-what { font-size: 13.5px; color: var(--ink-2); line-height: 1.45; }
+
+  /* ---------- generic section ---------- */
+
+  section { display: flex; flex-direction: column; gap: 18px; }
+
+  .sec-head { display: flex; flex-direction: column; gap: 6px; }
+
+  h2 {
+    font-family: var(--serif);
+    font-size: 27px;
+    font-weight: 500;
+    letter-spacing: -.01em;
+    line-height: 1.2;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  .kicker {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  h3 {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    margin: 0;
+  }
+
+  /* ---------- speaker block ---------- */
+
+  .speaker { --hue: var(--ink-2); --hue-tint: var(--sunk); }
+  .speaker[data-s="1"] { --hue: var(--s1); --hue-tint: var(--s1-tint); }
+  .speaker[data-s="2"] { --hue: var(--s2); --hue-tint: var(--s2-tint); }
+  .speaker[data-s="3"] { --hue: var(--s3); --hue-tint: var(--s3-tint); }
+
+  .speaker-bar {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--hue);
+  }
+  .speaker-bar .num {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--hue);
+  }
+  .speaker-bar h2 { flex: 1 1 auto; }
+  .speaker-bar .clock {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--hue);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .beats { display: flex; flex-direction: column; gap: 22px; }
+
+  .beat { display: flex; flex-direction: column; gap: 9px; }
+
+  /* spoken lines */
+  .say {
+    font-family: var(--serif);
+    font-size: 20px;
+    line-height: 1.58;
+    color: var(--ink);
+    margin: 0;
+    padding-left: 16px;
+    border-left: 2px solid var(--rule-2);
+    max-width: 64ch;
+  }
+  .say em { font-style: italic; color: var(--hue); font-weight: 500; }
+  .say strong { font-weight: 600; }
+
+  /* stage direction */
+  .do {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: var(--hue-tint);
+    border-left: 3px solid var(--hue);
+    border-radius: 0 3px 3px 0;
+    padding: 9px 13px;
+    font-size: 14px;
+    color: var(--ink-2);
+    line-height: 1.45;
+  }
+  .do .tag {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: .11em;
+    text-transform: uppercase;
+    color: var(--hue);
+    padding-top: 2px;
+    flex: 0 0 auto;
+  }
+  .do b { color: var(--ink); font-weight: 600; }
+
+  /* margin note */
+  .note {
+    display: flex;
+    gap: 10px;
+    font-size: 13.5px;
+    color: var(--ink-3);
+    line-height: 1.45;
+    padding-left: 18px;
+  }
+  .note .tag {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: .11em;
+    text-transform: uppercase;
+    flex: 0 0 auto;
+    padding-top: 2px;
+  }
+  .note[data-kind="cut"] { color: var(--warn); }
+  .note[data-kind="cut"] .tag { color: var(--warn); }
+
+  /* ---------- panels ---------- */
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 20px 22px;
+    box-shadow: var(--shadow);
+  }
+
+  .checklist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 11px; }
+  .checklist li {
+    display: flex;
+    gap: 11px;
+    align-items: flex-start;
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: var(--ink-2);
+  }
+  .checklist li::before {
+    content: "";
+    flex: 0 0 auto;
+    width: 13px; height: 13px;
+    margin-top: 5px;
+    border: 1.5px solid var(--rule-2);
+    border-radius: 2px;
+  }
+  .checklist b { color: var(--ink); font-weight: 600; }
+  code {
+    font-family: var(--mono);
+    font-size: .87em;
+    background: var(--sunk);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 1px 5px;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .scroller { overflow-x: auto; }
+  .scroller code { white-space: pre; display: inline-block; }
+
+  /* ---------- Q&A ---------- */
+
+  .qa { display: flex; flex-direction: column; gap: 0; }
+  .qa-item {
+    padding: 16px 0;
+    border-top: 1px solid var(--rule);
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .qa-item:first-child { border-top: none; padding-top: 0; }
+  .qa-q {
+    font-family: var(--serif);
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.4;
+    margin: 0;
+    color: var(--ink);
+  }
+  .qa-a { margin: 0; font-size: 14.5px; line-height: 1.55; color: var(--ink-2); max-width: 68ch; }
+  .qa-a b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- guardrails ---------- */
+
+  .guard {
+    background: var(--warn-tint);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--warn);
+    border-radius: 0 3px 3px 0;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+  }
+  .guard h3 { color: var(--warn); }
+  .guard ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 9px; }
+  .guard li { font-size: 14.5px; line-height: 1.5; color: var(--ink-2); }
+  .guard b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- diagram ---------- */
+
+  figure { margin: 0; display: flex; flex-direction: column; gap: 11px; }
+  .figbox {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 18px 16px;
+    overflow-x: auto;
+  }
+  .figbox svg { display: block; width: 100%; min-width: 660px; height: auto; }
+  figcaption { font-size: 13.5px; line-height: 1.5; color: var(--ink-3); max-width: 68ch; }
+
+  .dg-box   { fill: var(--surface); stroke: var(--rule-2); stroke-width: 1.25; }
+  .dg-box.k { fill: var(--s3-tint); stroke: var(--s3); }
+  .dg-t     { fill: var(--ink); font-family: var(--sans); font-size: 15px; font-weight: 600; }
+  .dg-s     { fill: var(--ink-3); font-family: var(--sans); font-size: 12.5px; }
+  .dg-k     { fill: var(--s3); font-family: var(--mono); font-size: 12.5px; font-weight: 500; }
+  .dg-l     { stroke: var(--ink-3); stroke-width: 1.4; fill: none; }
+  .dg-head  { fill: var(--ink-3); }
+
+  hr.rule { border: none; border-top: 1px solid var(--rule); margin: 0; }
+
+  a { color: var(--s2); }
+  :focus-visible { outline: 2px solid var(--s2); outline-offset: 2px; border-radius: 2px; }
+
+  @media (max-width: 560px) {
+    .say { font-size: 18px; }
+    h1 { font-size: 32px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="eyebrow">
+      <span>Run of show</span><span>3 speakers</span><span>5 minutes</span><span>Manager review</span>
+    </div>
+    <h1>ProspectIQ Run of Show</h1>
+    <p class="standfirst">
+      Everything in a <strong>&ldquo;say this&rdquo;</strong> box is meant to be spoken. Everything in a
+      tinted box is something you <strong>do</strong> &mdash; a click, a screen, a pause. Nobody needs to
+      memorize it; read it, then say it your way.
+    </p>
+  </header>
+
+  <div class="runsheet">
+    <div class="slot" data-s="1">
+      <span class="slot-time">0:00 &ndash; 1:20</span>
+      <span class="slot-who">Speaker 1</span>
+      <span class="slot-what">The problem. Why chasing rich people doesn&rsquo;t work, and what we look for instead.</span>
+    </div>
+    <div class="slot" data-s="2">
+      <span class="slot-time">1:20 &ndash; 3:20</span>
+      <span class="slot-who">Speaker 2</span>
+      <span class="slot-what">The demo. Live screen, five clicks, one moment that lands the whole idea.</span>
+    </div>
+    <div class="slot" data-s="3">
+      <span class="slot-time">3:20 &ndash; 5:00</span>
+      <span class="slot-who">Speaker 3</span>
+      <span class="slot-what">How it works underneath, the two rules we don&rsquo;t bend, and where it goes next.</span>
+    </div>
+  </div>
+
+  <!-- ============ PRE-FLIGHT ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="kicker">Before the room is watching</span>
+      <h2>Pre-flight</h2>
+    </div>
+    <div class="panel">
+      <ul class="checklist">
+        <li><b>Start the backend on the completed live run</b> &mdash; not the default database, which still holds old sample rows.
+          <div class="scroller"><code>DATABASE_URL=sqlite:///./prospects_live.db .venv/bin/uvicorn app.main:app --port 8000</code></div>
+        </li>
+        <li><b>Start the frontend</b> &mdash; <code>cd frontend &amp;&amp; npm run dev</code>, then open <code>localhost:3000</code>.</li>
+        <li><b>Do not run a live ingest on stage.</b> It calls four government APIs and takes a minute or two. Run it beforehand if you want fresh data.</li>
+        <li><b>Load the four screens in tabs ahead of time</b> so no click waits on a spinner: the board, Beth Ann Adams, Jamal Ahmad, and a score breakdown.</li>
+        <li><b>Sanity check</b> &mdash; <code>curl localhost:8000/health</code> returns ok, and <code>pytest tests/ -q</code> shows 60 passed. Worth having that terminal open if the manager asks.</li>
+        <li><b>Agree the handoff line.</b> Each speaker ends by naming the next person. It sounds rehearsed because it is.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ SPEAKER 1 ============ -->
+  <section class="speaker" data-s="1">
+    <div class="speaker-bar">
+      <span class="num">Speaker 1</span>
+      <h2>The problem</h2>
+      <span class="clock">0:00 &ndash; 1:20</span>
+    </div>
+
+    <div class="beats">
+
+      <div class="beat">
+        <div class="do"><span class="tag">Do</span><span>Open on a plain slide or the scoreboard, not yet clicked. Talk to the room, not the screen.</span></div>
+        <p class="say">
+          Every advisor in the country is chasing the same people &mdash; the ones who are already rich.
+          And by the time somebody shows up on a wealth list, they&rsquo;ve had an advisor for ten years.
+          You&rsquo;re not pitching at that point. You&rsquo;re trying to break up a marriage.
+        </p>
+      </div>
+
+      <div class="beat">
+        <p class="say">
+          So we asked a different question. Can we find people in the year <em>before</em> they get wealthy?
+        </p>
+      </div>
+
+      <div class="beat">
+        <p class="say">
+          Take a doctor. They finish training. They get licensed. They open their own practice.
+          They buy a house. Somewhere inside those eighteen months they go from a salary to real money &mdash;
+          and most of them still don&rsquo;t have anybody managing it.
+        </p>
+        <div class="note"><span class="tag">Note</span><span>Slow down here. This chain is the whole thesis, and it&rsquo;s the part a manager will repeat to someone else.</span></div>
+      </div>
+
+      <div class="beat">
+        <p class="say">
+          And here&rsquo;s the part that made us build this. Every one of those steps is public record.
+          The license is public. The practice is public. The deed is public. They were just sitting in
+          four different government databases that nobody had put together.
+        </p>
+      </div>
+
+      <div class="beat">
+        <p class="say">
+          So we put them together. <strong>[Speaker 2]</strong> will show you what that looks like.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ SPEAKER 2 ============ -->
+  <section class="speaker" data-s="2">
+    <div class="speaker-bar">
+      <span class="num">Speaker 2</span>
+      <h2>The demo</h2>
+      <span class="clock">1:20 &ndash; 3:20</span>
+    </div>
+
+    <div class="beats">
+
+      <div class="beat">
+        <div class="do"><span class="tag">Do</span><span>Share the screen. Land on the <b>scoreboard</b>.</span></div>
+        <p class="say">
+          This is ProspectIQ. What you&rsquo;re looking at is a hundred and ninety-four real Illinois doctors,
+          pulled from federal and state registries. Ranked, best fit first. This is an advisor&rsquo;s Monday morning.
+        </p>
+      </div>
+
+      <div class="beat">
+        <div class="do"><span class="tag">Do</span><span>Point at the score ring on the featured panel.</span></div>
+        <p class="say">
+          Everyone gets a score out of a hundred, and it&rsquo;s really two questions.
+          Should we care about this person &mdash; that&rsquo;s sixty percent of it.
+          And why now &mdash; that&rsquo;s the other forty.
+        </p>
+      </div>
+
+      <div class="beat">
+        <div class="do"><span class="tag">Do</span><span>Open <b>Beth Ann Adams</b>. Point at the ownership card.</span></div>
+        <p class="say">
+          She bills Medicare under a company called &ldquo;Beth Adams Medical Services PLLC.&rdquo;
+          We didn&rsquo;t buy that from a data vendor. We worked it out &mdash; the company has her own name on it,
+          so she almost certainly owns it. That&rsquo;s a doctor who just became a business owner.
+        </p>
+      </div>
+
+      <div class="beat">
+        <div class="do"><span class="tag">Do</span><span>Open <b>Jamal Ahmad</b>. Point at the property card.</span></div>
+        <p class="say">
+          Him &mdash; a one-point-six million dollar house in Cook County.
+          Real address, real price, real date, straight from the county recorder.
+        </p>
+      </div>
+
+      <div class="beat">
+        <div class="do"><span class="tag">Do</span><span>Put <b>Smita Aggarwal</b> and <b>James Abraham</b> side by side. This is the moment &mdash; pause after it.</span></div>
+        <p class="say">
+          Now this is the one I&rsquo;d remember. She bought a two-point-four-five million dollar house.
+          He bought a six-hundred-seventy-thousand dollar house. <strong>He scores higher.</strong>
+          Because hers was more than two years ago, and his was ten months ago.
+          That&rsquo;s the whole product. This isn&rsquo;t a rich list &mdash; it&rsquo;s a <em>timing</em> engine.
+        </p>
+        <div class="note"><span class="tag">Note</span><span>If you only get one beat in, get this one in. It kills the &ldquo;so it&rsquo;s just a wealthy-people filter&rdquo; assumption before anyone says it out loud.</span></div>
+      </div>
+
+      <div class="beat">
+        <div class="do"><span class="tag">Do</span><span>Open the <b>score breakdown</b> and expand one component.</span></div>
+        <p class="say">
+          And there&rsquo;s no black box. Every single point traces back to a specific government record.
+          If compliance asks why this person is on the list, we can show them the row.
+        </p>
+        <div class="note" data-kind="cut"><span class="tag">Cut first</span><span>If you&rsquo;re running long, drop this beat &mdash; Speaker 3 covers traceability anyway.</span></div>
+      </div>
+
+      <div class="beat">
+        <div class="do"><span class="tag">Do</span><span>Open the <b>contact kit</b> on the same profile.</span></div>
+        <p class="say">
+          Last thing &mdash; it drafts the first letter for you. And notice what the letter doesn&rsquo;t mention:
+          the house. The property tells us <em>when</em> to reach out. We&rsquo;d never write about it.
+        </p>
+      </div>
+
+      <div class="beat">
+        <p class="say">
+          <strong>[Speaker 3]</strong> can tell you how it actually gets built.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ SPEAKER 3 ============ -->
+  <section class="speaker" data-s="3">
+    <div class="speaker-bar">
+      <span class="num">Speaker 3</span>
+      <h2>How it works underneath</h2>
+      <span class="clock">3:20 &ndash; 5:00</span>
+    </div>
+
+    <div class="beats">
+
+      <div class="beat">
+        <p class="say">
+          Underneath, it&rsquo;s one pipeline. Python and FastAPI. One command runs the whole thing end to end.
+        </p>
+      </div>
+
+      <div class="beat">
+        <div class="do"><span class="tag">Do</span><span>Put this diagram up and trace it left to right with your cursor while you talk.</span></div>
+
+        <figure>
+          <div class="figbox">
+            <svg viewBox="0 0 972 336" role="img" aria-label="Pipeline diagram. The NPI Registry supplies name, specialty and license number. Its license number queries the Illinois licensing board, its NPI queries Medicare enrollment, and its name plus state queries Cook County deeds. All four feed identity resolution, which merges on exact keys and drops near-misses, then a score out of one hundred weighted sixty percent fit and forty percent timing.">
+              <defs>
+                <marker id="ah" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="7" orient="auto-start-reverse">
+                  <polygon class="dg-head" points="0,0 10,4 0,8"></polygon>
+                </marker>
+              </defs>
+
+              <!-- start -->
+              <rect class="dg-box k" x="8" y="134" width="140" height="60" rx="3"></rect>
+              <text class="dg-t" x="22" y="159">NPI Registry</text>
+              <text class="dg-s" x="22" y="177">every US doctor</text>
+
+              <!-- fan out -->
+              <path class="dg-l" d="M148,164 H182 V46 H278" marker-end="url(#ah)"></path>
+              <path class="dg-l" d="M148,164 H278" marker-end="url(#ah)"></path>
+              <path class="dg-l" d="M148,164 H182 V282 H278" marker-end="url(#ah)"></path>
+
+              <text class="dg-k" x="233" y="38" text-anchor="middle">license #</text>
+              <text class="dg-k" x="233" y="156" text-anchor="middle">NPI</text>
+              <text class="dg-k" x="233" y="274" text-anchor="middle">name + state</text>
+
+              <!-- three sources -->
+              <rect class="dg-box" x="290" y="16" width="190" height="60" rx="3"></rect>
+              <text class="dg-t" x="304" y="41">IL licensing board</text>
+              <text class="dg-s" x="304" y="59">licensed when? still active?</text>
+
+              <rect class="dg-box" x="290" y="134" width="190" height="60" rx="3"></rect>
+              <text class="dg-t" x="304" y="159">Medicare enrollment</text>
+              <text class="dg-s" x="304" y="177">what company do they bill under?</text>
+
+              <rect class="dg-box" x="290" y="252" width="190" height="60" rx="3"></rect>
+              <text class="dg-t" x="304" y="277">Cook County deeds</text>
+              <text class="dg-s" x="304" y="295">bought a house? when? how much?</text>
+
+              <!-- fan in -->
+              <path class="dg-l" d="M480,46 H516 V164 H544" marker-end="url(#ah)"></path>
+              <path class="dg-l" d="M480,164 H544" marker-end="url(#ah)"></path>
+              <path class="dg-l" d="M480,282 H516 V164 H544" marker-end="url(#ah)"></path>
+
+              <!-- resolve -->
+              <rect class="dg-box" x="550" y="134" width="170" height="60" rx="3"></rect>
+              <text class="dg-t" x="564" y="159">Same person?</text>
+              <text class="dg-s" x="564" y="177">exact keys, or dropped</text>
+
+              <path class="dg-l" d="M720,164 H774" marker-end="url(#ah)"></path>
+              <text class="dg-k" x="747" y="156" text-anchor="middle">signals</text>
+
+              <!-- score -->
+              <rect class="dg-box k" x="780" y="134" width="182" height="60" rx="3"></rect>
+              <text class="dg-t" x="794" y="159">Score out of 100</text>
+              <text class="dg-s" x="794" y="177">60% fit &#183; 40% timing</text>
+            </svg>
+          </div>
+          <figcaption>
+            Each source is queried using the key the source before it handed over &mdash; so the system only ever asks
+            about doctors it already has, and never bulk-downloads anyone.
+          </figcaption>
+        </figure>
+      </div>
+
+      <div class="beat">
+        <p class="say">
+          We start with the national doctor registry. That gives us who they are, their specialty,
+          and their state license number. We take those license numbers to the Illinois licensing board,
+          which tells us when they were licensed and whether it&rsquo;s still active. We take their NPI to Medicare,
+          which tells us what company they bill under. And we take their names to Cook County deed records.
+        </p>
+      </div>
+
+      <div class="beat">
+        <p class="say">
+          The important bit is that each source is queried using the answer from the one before it.
+          We never bulk-download anything. We only ever ask about people we&rsquo;re already tracking.
+        </p>
+      </div>
+
+      <div class="beat">
+        <p class="say">
+          Then three things happen. We work out which records belong to the same human.
+          We turn the facts into signals. And we weigh the signals into a score.
+        </p>
+      </div>
+
+      <div class="beat">
+        <div class="do"><span class="tag">Do</span><span>These two rules are the answer to most objections. Say them slowly.</span></div>
+        <p class="say">
+          Two rules we don&rsquo;t bend. One: the scoring is completely deterministic &mdash; there is no AI
+          anywhere inside it. Same data in, same number out. That&rsquo;s what makes it defensible.
+          Two: a wrong match is worse than a missed one. If we can&rsquo;t prove two records are the same person,
+          we throw it away rather than guess.
+        </p>
+      </div>
+
+      <div class="beat">
+        <p class="say">
+          Sixty automated tests, all passing. Four government APIs, all free.
+          Our data cost today is zero.
+        </p>
+        <div class="note" data-kind="cut"><span class="tag">Cut first</span><span>Drop this if you&rsquo;re over time &mdash; but keep &ldquo;our data cost today is zero,&rdquo; managers remember that one.</span></div>
+      </div>
+
+      <div class="beat">
+        <p class="say">
+          Where it goes next: more states and more professions &mdash; lawyers, dentists, the same pattern.
+          That&rsquo;s one new connector each; the scoring engine doesn&rsquo;t change. And we&rsquo;re already storing
+          every advisor&rsquo;s good-fit or not-a-fit verdict, so eventually we tune the weights against
+          real outcomes instead of our own guesses.
+        </p>
+      </div>
+
+      <div class="beat">
+        <p class="say">
+          Happy to take questions.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- ============ Q&A ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="kicker">Whoever knows it best answers &mdash; don&rsquo;t all jump in</span>
+      <h2>Questions you will get</h2>
+    </div>
+    <div class="panel">
+      <div class="qa">
+
+        <div class="qa-item">
+          <p class="qa-q">&ldquo;Is any of this a privacy problem?&rdquo;</p>
+          <p class="qa-a">All four sources are <b>public government datasets</b> &mdash; the same records anyone can look up. Nothing is scraped, nothing is bought, no personal data is inferred beyond what the records say. Worth adding plainly: <b>this is research output, not an approved outreach list.</b> A human reviews before anyone gets contacted.</p>
+        </div>
+
+        <div class="qa-item">
+          <p class="qa-q">&ldquo;Why is nobody scoring above sixty-something?&rdquo;</p>
+          <p class="qa-a">Missing inputs, not missing logic. Two things fill that in: paid business-registry data, which proves practice ownership instead of us inferring it, and career moves, which need a second monthly sync to compare against. <b>Ninety-one is the day-one ceiling by design</b> &mdash; anything above that has to be earned by watching someone over time.</p>
+        </div>
+
+        <div class="qa-item">
+          <p class="qa-q">&ldquo;Where&rsquo;s the AI?&rdquo;</p>
+          <p class="qa-a">Deliberately outside the scoring. The score has to survive a compliance conversation, so it stays rules-based. Where AI helps is <b>around</b> it &mdash; suggesting matches on ambiguous names, where the rules still make the final call, and writing the plain-English summary an advisor reads.</p>
+        </div>
+
+        <div class="qa-item">
+          <p class="qa-q">&ldquo;How do you know two records are the same person?&rdquo;</p>
+          <p class="qa-a">Mostly we don&rsquo;t have to guess. The license number and the NPI are <b>exact government IDs</b> shared across datasets. Only the property match is name-based, and there we require an exact first and last name in the same state &mdash; anything less gets dropped, and there are tests that exist purely to prove near-misses still get rejected.</p>
+        </div>
+
+        <div class="qa-item">
+          <p class="qa-q">&ldquo;Why doctors?&rdquo;</p>
+          <p class="qa-a">Because it&rsquo;s the cleanest public data in the country &mdash; a national registry, state licensing boards, and a federal database that names who each doctor bills. It&rsquo;s the easiest place to prove the idea works. <b>Lawyers and dentists are the same pattern with a different connector.</b></p>
+        </div>
+
+        <div class="qa-item">
+          <p class="qa-q">&ldquo;What would it take to run this for real?&rdquo;</p>
+          <p class="qa-a">Three things: lift the demo cap so we pull whole specialties instead of a sample, buy the business-registry feed, and run it on a nightly schedule so the score history builds up. None of that changes the engine.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ GUARDRAILS ============ -->
+  <section>
+    <div class="guard">
+      <h3>Say it this way, not that way</h3>
+      <ul>
+        <li>It&rsquo;s a <b>research tool</b>, not a lead list. If someone hears &ldquo;call list,&rdquo; you&rsquo;ll spend the rest of the meeting on compliance.</li>
+        <li>Ownership is <b>inferred</b> from Medicare billing, not read off a filing. Say &ldquo;we worked it out,&rdquo; never &ldquo;we know.&rdquo; The screen labels it as an inference &mdash; let it.</li>
+        <li>Don&rsquo;t apologize for the scores being in the fifties. <b>Ninety-one is the day-one ceiling</b>, on purpose, and that&rsquo;s a better story than a system handing out perfect hundreds on its first run.</li>
+        <li>If someone notices nearly every surname starts with &ldquo;A&rdquo;: that&rsquo;s a <b>demo page limit</b>, one parameter. Say it before they find it if you can.</li>
+        <li>These are <b>real named people</b> from public records. Keep the tone factual on screen &mdash; no speculating about anyone.</li>
+      </ul>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>
