@@ -201,7 +201,26 @@ const SIGNAL_LABELS: [string, string][] = [
  *  A 62 built on three signals is not the same claim as a 62 built on five,
  *  and the score alone cannot say which. Bands follow the spread on the real
  *  board, where most prospects sit at three or four of seven. */
-function toEvidence(signalTypes: string[]): Candidate["evidence"] {
+/** Rows whose wording changes with recency.
+ *
+ *  Holding a license date is evidence either way, so the tick — and the
+ *  evidence count with it — stays put. What moves is the claim: a two-month
+ *  registration earns "Newly licensed", a seventeen-year one is just a date
+ *  we hold. Same threshold the trigger chip uses. */
+const RECENCY_LABELS: Record<string, { fresh: string; stale: string }> = {
+  NEW_LICENSE: { fresh: "Newly licensed", stale: "License date" },
+};
+
+function labelFor(type: string, base: string, strength: number | undefined) {
+  const pair = RECENCY_LABELS[type];
+  if (!pair) return base;
+  return (strength ?? 0) >= (RECENCY_GATED[type] ?? 0.6) ? pair.fresh : pair.stale;
+}
+
+function toEvidence(
+  signalTypes: string[],
+  strengths: Record<string, number> = {},
+): Candidate["evidence"] {
   const present = new Set(signalTypes);
   const found = SIGNAL_LABELS.filter(([type]) => present.has(type));
   const level: Candidate["evidence"]["level"] =
@@ -212,7 +231,7 @@ function toEvidence(signalTypes: string[]): Candidate["evidence"] {
     found: found.length,
     total: SIGNAL_LABELS.length,
     signals: SIGNAL_LABELS.map(([type, label]) => ({
-      label,
+      label: labelFor(type, label, strengths[type]),
       present: present.has(type),
     })),
   };
@@ -317,6 +336,11 @@ function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
       detail
         ? detail.signals.map((sig) => sig.signal_type)
         : (p.signal_types ?? []),
+      detail
+        ? Object.fromEntries(
+            detail.signals.map((sig) => [sig.signal_type, sig.strength]),
+          )
+        : (p.signal_strengths ?? {}),
     ),
     scoreChange: p.score_change ?? null,
     isNew: p.is_new ?? false,
