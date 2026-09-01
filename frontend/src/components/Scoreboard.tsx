@@ -13,6 +13,14 @@ import type { Candidate, OutreachEntry } from "@/lib/data";
 
 type DetailData = NonNullable<Awaited<ReturnType<typeof fetchCandidateDetail>>>;
 
+/* Virtualized list geometry. Cards are structurally identical, so one
+ * measured height positions every row; the estimate only covers the
+ * server render and the first client frame. */
+const CARD_GAP = 12;
+const CARD_ESTIMATE = 150;
+const OVERSCAN = 8;
+const INITIAL_WINDOW = 30;
+
 /** Everything the featured panel needs for one prospect, fetched together. */
 type Dossier = {
   detail?: DetailData;
@@ -82,6 +90,43 @@ export default function Scoreboard({
     return () => window.removeEventListener("popstate", onPopState);
   }, [ranked, defaultId]);
 
+  // ── List virtualization ─────────────────────────────────
+  // Only the cards near the viewport exist in the DOM; server-rendering
+  // all ~1,200 made the first load a multi-megabyte page.
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const [cardHeight, setCardHeight] = useState(CARD_ESTIMATE);
+  const [range, setRange] = useState({ start: 0, end: INITIAL_WINDOW });
+  const rowHeight = cardHeight + CARD_GAP;
+
+  useEffect(() => {
+    const measured = listRef.current?.querySelector("a");
+    if (measured) {
+      const h = measured.getBoundingClientRect().height;
+      if (h > 0 && Math.abs(h - cardHeight) > 1) setCardHeight(h);
+    }
+    // getBoundingClientRect is viewport-relative, so the same math works
+    // whether the aside scrolls (desktop) or the whole page does (mobile).
+    function update() {
+      const list = listRef.current;
+      if (!list) return;
+      const top = list.getBoundingClientRect().top;
+      const start = Math.max(0, Math.floor(-top / rowHeight) - OVERSCAN);
+      const end = Math.min(
+        ranked.length,
+        Math.ceil((window.innerHeight - top) / rowHeight) + OVERSCAN,
+      );
+      setRange((r) => (r.start === start && r.end === end ? r : { start, end }));
+    }
+    update();
+    // capture:true hears the aside's own scroll as well as the page's
+    window.addEventListener("scroll", update, true);
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update, true);
+      window.removeEventListener("resize", update);
+    };
+  }, [rowHeight, cardHeight, ranked.length]);
+
   // Fall back to the ranked row for the selected id while its dossier loads.
   const featured =
     dossier?.detail?.candidate ??
@@ -133,16 +178,28 @@ export default function Scoreboard({
           </div>
         ) : null}
 
-        <div className="mt-3 flex flex-col gap-3">
-          {ranked.map((candidate, i) => (
-            <CandidateCard
-              key={candidate.id}
-              candidate={candidate}
-              rank={i + 1}
-              active={candidate.id === featured.id}
-              onSelect={() => void show(candidate.id, true)}
-            />
-          ))}
+        <div
+          ref={listRef}
+          className="relative mt-3"
+          style={{ height: ranked.length * rowHeight - CARD_GAP }}
+        >
+          {ranked.slice(range.start, range.end).map((candidate, i) => {
+            const index = range.start + i;
+            return (
+              <div
+                key={candidate.id}
+                className="absolute inset-x-0"
+                style={{ top: index * rowHeight }}
+              >
+                <CandidateCard
+                  candidate={candidate}
+                  rank={index + 1}
+                  active={candidate.id === featured.id}
+                  onSelect={() => void show(candidate.id, true)}
+                />
+              </div>
+            );
+          })}
         </div>
       </aside>
     </div>
