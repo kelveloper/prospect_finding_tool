@@ -2,8 +2,10 @@
 
 What each source is, how we query it, and exactly which fields we capture.
 All four are free public government APIs, no keys. Every ingest
-(`POST /ingest/run`) pulls them in this order — NPPES first, because the
-other three are queried using what NPPES returns.
+(`POST /ingest/run`) pulls NPPES first, because the other three are queried
+using what NPPES returns — licence numbers, NPI numbers and names. Once it
+has finished, those three run **concurrently**: the sweep costs NPPES plus
+the slowest single source, not the sum of all four.
 
 | # | Source | Endpoint | Queried by | Feeds |
 |---|---|---|---|---|

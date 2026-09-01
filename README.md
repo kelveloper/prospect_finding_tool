@@ -53,7 +53,8 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 Then:
 
 ```bash
-curl -X POST localhost:8000/ingest/run        # LIVE ingest: real IL physicians (~30-90s)
+curl -X POST localhost:8000/ingest/run        # LIVE ingest, in the background (~2 min)
+curl localhost:8000/ingest/status             # watch `running` until it finishes
 curl localhost:8000/prospects/ranked          # ranked lead list
 ```
 
@@ -70,7 +71,7 @@ curl -X POST localhost:8000/ingest/run
 
 | Method | Path | Purpose |
 |---|---|---|
-| POST | `/ingest/run` | Run the live pipeline (default): real physicians from NPPES per scored specialty, licenses verified against IDFPR by license number, PECOS billing groups + career snapshots, Cook County deed matches. `?state=IL&limit=25` tunes the pull. |
+| POST | `/ingest/run` | Run the live pipeline (default): real physicians from NPPES per scored specialty, then — concurrently — licenses verified against IDFPR by license number, PECOS billing groups + career snapshots, Cook County deed matches. Returns immediately and runs in the background; `?wait=true` blocks and returns the result, a second start gets 409. `?state=IL&limit=25` tunes the pull. |
 | GET | `/prospects/ranked?limit=50` | Ranked leads, highest score first |
 | GET | `/prospects/{id}` | Full profile: scores, signals, identity confidence |
 | POST | `/feedback` | Advisor verdict: `good_fit` \| `revisit_later` \| `not_fit` |

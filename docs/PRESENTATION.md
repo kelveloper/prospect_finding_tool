@@ -136,10 +136,15 @@ Data Sources — all live, free, no API keys
 
 ### 2.3 What actually happens when you press the button
 
-Everything above is triggered by a single call — `POST /ingest/run`. The
-sources are chained, not parallel: each one is queried *using the output of
-the one before it*, so we only ever pull data about physicians we already
-have.
+Everything above is triggered by a single call — `POST /ingest/run`, which
+returns `{"status": "started"}` straight away and runs the sweep in the
+background; the Refresh button watches `/ingest/status` until it lands.
+
+**NPPES goes first and alone**, because the other three are queried *using
+what it returns* — so we only ever pull data about physicians we already
+have. Steps 2, 3 and 4 depend on step 1 but not on each other, so they then
+run **side by side**: the sweep costs NPPES plus the slowest single source
+rather than the sum of all four.
 
 | Step | What it does | Where |
 |---|---|---|
@@ -163,7 +168,7 @@ scores, not row counts, and movement becomes visible.
 
 | Method | Endpoint | What an advisor product would use it for |
 |---|---|---|
-| `POST` | `/ingest/run?state=IL&limit=25` | Refresh the prospect pool. `limit` is per specialty, max 200 |
+| `POST` | `/ingest/run?state=IL&limit=25` | Refresh the prospect pool, in the background. `limit` is per specialty, max 200; `wait=true` blocks and returns the full result; a second start while one runs gets 409 |
 | `GET` | `/prospects/ranked?limit=50` | The lead list — highest score first, with `score_change` since the previous run |
 | `GET` | `/prospects/{id}` | Full dossier: scores, per-component breakdown, every signal, identity match evidence, practice address |
 | `GET` | `/prospects/{id}/contact-kit` | Mail address, practice phone, the primary trigger, and a trigger-matched letter draft |

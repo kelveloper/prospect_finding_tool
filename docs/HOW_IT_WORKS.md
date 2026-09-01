@@ -38,9 +38,16 @@ prospect is, confidence says how sure we are it's the right person.
 
 ## The flow (what happens on POST /ingest/run)
 
+The call returns `{"status": "started"}` immediately and the sweep runs on a
+background thread; watch `/ingest/status` for `running` and `last_error`.
+Pass `?wait=true` to run it inside the request and get the full result back
+(tests and the empty-database bootstrap do this). A second start while one
+is running gets a 409.
+
 ```
 1. FETCH      Each data-source adapter returns normalized records — all
-              LIVE, free government APIs, no keys:
+              LIVE, free government APIs, no keys. NPPES goes first and
+              seeds the rest; the other three then run side by side:
               ├─ NPI registry (NPPES) ..... who they are, specialty
               ├─ IL licensing (IDFPR) ..... license issue date, active status
               ├─ CMS PECOS ................ billing groups & facilities
@@ -98,7 +105,8 @@ records that produced it.
 ## Live only — no mock data anywhere
 
 `POST /ingest/run` pulls real data (the UI's auto-ingest does too; the
-first load takes a minute or two while four government APIs are queried).
+first load takes a couple of minutes in the background while four
+government APIs are queried).
 There is no sample mode and no fixture data in the product — the sample
 adapters and their JSON cohorts were deleted. The automated tests build
 their own in-memory records and stub the sources at the route boundary,

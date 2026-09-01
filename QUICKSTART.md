@@ -78,7 +78,8 @@ itself. You should see 9 physicians ranked, John A Smith on top at 77.2.
 Poke the API directly:
 
 ```bash
-curl -X POST localhost:8000/ingest/run     # load + score sample data
+curl -X POST localhost:8000/ingest/run     # start the live sweep (runs in the background)
+curl localhost:8000/ingest/status          # `running` flips false when it lands
 curl localhost:8000/prospects/ranked       # ranked lead list
 open http://localhost:8000/docs            # interactive API docs
 ```
