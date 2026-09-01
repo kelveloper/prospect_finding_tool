@@ -92,15 +92,15 @@ only be worth more or less.
 
 | Gate layer | Where it lives | The question it answers |
 |---|---|---|
-| **1. Entry** | inside each adapter | *Are you even eligible?* Physician taxonomy (code starts `20`), target state, individual (not business) licence, deed ≥ $100k and ≤ 36 months old, PECOS `Reassignment` rows only |
-| **2. Identity** | `resolver.py` + `enrichment.py` | *Do these records belong to the same person?* Licence-number match = 1.0; name tiers must reach ≥ 0.80 to merge. Enrichment attaches on exact NPI, or exact first + last name + state — else it is dropped |
+| **1. Entry** | inside each adapter | *Are you even eligible?* Physician taxonomy (code starts `20`), target state, individual (not business) license, deed ≥ $100k and ≤ 36 months old, PECOS `Reassignment` rows only |
+| **2. Identity** | `resolver.py` + `enrichment.py` | *Do these records belong to the same person?* License-number match = 1.0; name tiers must reach ≥ 0.80 to merge. Enrichment attaches on exact NPI, or exact first + last name + state — else it is dropped |
 | **3. Derivation** | `detector.py` | *What is this fact allowed to claim?* Own-name-in-entity for OWNERSHIP; snapshot diff for a career move; strength ≥ 0.3 to appear in the narrated summary |
 
 Two consequences worth saying out loud:
 
 - **A fact that fails any gate doesn't exist downstream.** A failed IDFPR
-  merge isn't a penalty — it's a missing row, and licence recency scores
-  0 / 40 because there is no licence date, not because we docked anyone.
+  merge isn't a penalty — it's a missing row, and license recency scores
+  0 / 40 because there is no license date, not because we docked anyone.
 - **A match score opens a door; it never adds a point.** Identity confidence
   is reported *beside* the score, never multiplied into it. The score says
   how good the prospect is; confidence says how sure we are it's the right
@@ -110,8 +110,8 @@ Two consequences worth saying out loud:
 
 ```
 Data Sources — all live, free, no API keys
-   ├─ NPI Registry (NPPES)      ─ who they are, specialty, NPI date, licence #
-   ├─ IL licensing (IDFPR)      ─ licence issue date, ACTIVE status
+   ├─ NPI Registry (NPPES)      ─ who they are, specialty, NPI date, license #
+   ├─ IL licensing (IDFPR)      ─ license issue date, ACTIVE status
    ├─ CMS PECOS                 ─ billing group + facility affiliations
    └─ Cook County Assessor      ─ deed transfers with buyer names & prices
         │
@@ -144,10 +144,10 @@ have.
 | Step | What it does | Where |
 |---|---|---|
 | **1. NPPES** | Pull physicians by state and specialty (8 specialty sweeps by default). Non-physician taxonomies and out-of-state records are dropped at the adapter | `app/adapters/npi/live.py` |
-| **2. IDFPR** | Take the licence numbers NPPES returned, normalise them (`036.057912` → `036057912`), and query the Illinois open-data portal *by those numbers*. Verifies exactly the physicians we found | `app/adapters/idfpr/live.py` |
+| **2. IDFPR** | Take the license numbers NPPES returned, normalise them (`036.057912` → `036057912`), and query the Illinois open-data portal *by those numbers*. Verifies exactly the physicians we found | `app/adapters/idfpr/live.py` |
 | **3. PECOS** | Query CMS by NPI for billing-group reassignments and facility affiliations. Diff against the stored snapshot → career events; detect self-named billing groups → ownership inference | `app/services/pecos_sync.py` |
 | **4. Cook County** | Query the Assessor's parcel-sales dataset *by buyer name* for the physicians we now hold, within the 36-month decay window and above a $100k price floor | `app/adapters/cook_county/live.py` |
-| **5. Resolve** | Records describing the same human are clustered. Tier 1: identical licence number → confidence 1.0. Tier 2: deterministic name + state rules → 0.85–0.95. Merge threshold 0.80 | `app/identity/resolver.py` |
+| **5. Resolve** | Records describing the same human are clustered. Tier 1: identical license number → confidence 1.0. Tier 2: deterministic name + state rules → 0.85–0.95. Merge threshold 0.80 | `app/identity/resolver.py` |
 | **6. Attach** | A billing entity, a deed, or a career event attaches only on exact NPI or exact normalised first + last name in the same state. Near-misses are rejected on purpose | `app/identity/enrichment.py` |
 | **7. Detect** | The merged profile becomes signals: `PHYSICIAN`, `SPECIALTY`, `NEW_LICENSE`, `OWNERSHIP`, `PROPERTY_EVENT`, `CAREER_ADVANCEMENT` — each with a strength (0–1) and a confidence (0–1) | `app/scoring/detector.py` |
 | **8. Score** | Signals become points; points become the two sub-scores and the total | `app/scoring/engine.py` |
@@ -189,7 +189,7 @@ State these out loud — they are the reason a bank could adopt this.
 - **Tunable without code changes.** The 60/40 weights and the merge threshold
   are environment settings, not constants buried in logic.
 - **Targeted, not scraped.** Every source after NPPES is queried *by key* —
-  licence number, NPI, buyer name — so we never bulk-download data about
+  license number, NPI, buyer name — so we never bulk-download data about
   people we aren't already tracking.
 - **Extensible.** A new data source is a new adapter class emitting one of two
   record shapes. The identity resolver and scoring engine do not change.
@@ -203,8 +203,8 @@ State these out loud — they are the reason a bank could adopt this.
 
 | Source | What it contributes | Access | Signals it feeds |
 |---|---|---|---|
-| **NPPES NPI Registry** (CMS) | Identity, specialty, NPI enumeration date, state licence number, practice address and phone | Free public API, no key | `PHYSICIAN`, `SPECIALTY`, `NEW_LICENSE` (npi) |
-| **IDFPR** via data.illinois.gov (Socrata) | Original licence issue date, licence status, city/zip — 1.2M+ Illinois licences | Free open data, no key | `PHYSICIAN`, `NEW_LICENSE` (idfpr) |
+| **NPPES NPI Registry** (CMS) | Identity, specialty, NPI enumeration date, state license number, practice address and phone | Free public API, no key | `PHYSICIAN`, `SPECIALTY`, `NEW_LICENSE` (npi) |
+| **IDFPR** via data.illinois.gov (Socrata) | Original license issue date, license status, city/zip — 1.2M+ Illinois licenses | Free open data, no key | `PHYSICIAN`, `NEW_LICENSE` (idfpr) |
 | **CMS PECOS** — group reassignment + facility affiliation | Who each physician bills under, and which facilities they're affiliated with | Free public API, no key | `OWNERSHIP` (inference), `CAREER_ADVANCEMENT` |
 | **Cook County Assessor — Parcel Sales** (Socrata) | Real deed transfers **with buyer names**, prices, and dates | Free open data, no key | `PROPERTY_EVENT` |
 
@@ -223,12 +223,12 @@ NPPES record by a specific key:
           ▼              ▼                    ▼
        IDFPR           PECOS             Cook County
    (same person,   (same person,      (same person, by
-   by licence #)      by NPI)          name + state)
+   by license #)      by NPI)          name + state)
 ```
 
 | Connection | Key | Rule | Certainty |
 |---|---|---|---|
-| NPPES ↔ IDFPR | **state licence number**, normalised | exact match = 1.0 merge; else name + state tiers ≥ 0.80 | strongest — a shared government ID |
+| NPPES ↔ IDFPR | **state license number**, normalised | exact match = 1.0 merge; else name + state tiers ≥ 0.80 | strongest — a shared government ID |
 | NPPES ↔ PECOS | **NPI** | exact NPI = attach; no NPI = no attach | zero name-match risk |
 | NPPES ↔ Cook County | **buyer name** "FIRST LAST" + state IL | exact normalised first + last + state = 0.9 attach; anything less is dropped | weakest link — mitigated by the $100k floor and drop-don't-guess matching |
 | PECOS ↔ itself over time | **NPI** | current pull diffed against `affiliation_snapshots` → `career_events` | exact |
@@ -278,7 +278,7 @@ owner can retune them without an engineering ticket.
 
 | Component | Max points | How strength (0–1) is decided |
 |---|---:|---|
-| **Physician standing** | 40 | Active IDFPR-verified licence = 1.0 · NPI only, licence unverified = 0.7 · licence present but not active = 0.5 |
+| **Physician standing** | 40 | Active IDFPR-verified license = 1.0 · NPI only, license unverified = 0.7 · license present but not active = 0.5 |
 | **Specialty earning tier** | 35 | Orthopaedic / neurological / plastic surgery = 1.0 · cardiovascular disease = 0.95 · dermatology, gastroenterology = 0.9 · anesthesiology, radiology = 0.85 · urology = 0.8 · oncology = 0.75 · emergency medicine = 0.6 · internal medicine = 0.45 · family medicine, pediatrics, unknown = 0.4 |
 | **Practice ownership** | 25 | Bills under own PLLC / PC / SC = 0.8 · own generic LLC = 0.55 · × 0.6 if the entity is inactive · none found = 0 |
 
@@ -305,11 +305,11 @@ Components, in career chronology:
 | Component | Max points | The date that drives it |
 |---|---:|---|
 | **Practice entry** (NPI enumeration) | 15 | NPPES enumeration date |
-| **Licence recency** | 40 | IDFPR original licence issue date |
+| **License recency** | 40 | IDFPR original license issue date |
 | **Property purchase** | 30 | Deed transfer date |
 | **Career advancement** | 15 | Detection date of a new billing group or facility, × 0.8 role weight |
 
-**Why licences dominate timing:** a new licence is the cleanest public marker
+**Why licenses dominate timing:** a new license is the cleanest public marker
 of "this person's physician income starts now." Licensed 8 months ago →
 40 × 0.85 = 34 points. Licensed in 2018 → 40 × 0.1 = 4 points.
 
@@ -322,7 +322,7 @@ example, not a name from the board.
 ```
 QUALIFICATION                              TIMING
 Physician standing  40 × 1.0  = 40.0       NPI entry (7 mo ago)   15 × 0.85 = 12.8
-Ortho surgery       35 × 1.0  = 35.0       Licence (8 mo ago)     40 × 0.85 = 34.0
+Ortho surgery       35 × 1.0  = 35.0       License (8 mo ago)     40 × 0.85 = 34.0
 Own PLLC (billing)  25 × 0.8  = 20.0       Property (2 mo ago)    30 × 1.00 = 30.0
                               -------      Career advancement     15 × 0    =  0.0
                                  95.0                                       -------
@@ -335,7 +335,7 @@ TOTAL = 95.0 × 0.60 + 76.8 × 0.40 = 57.0 + 30.7 = 87.7
 
 ```
 QUALIFICATION                              TIMING
-Physician (unverified) 40 × 0.7 = 28.0     Licence date: none     40 × 0    =  0.0
+Physician (unverified) 40 × 0.7 = 28.0     License date: none     40 × 0    =  0.0
 Pediatrics             35 × 0.4 = 14.0     Property: none         30 × 0    =  0.0
 Ownership: none        25 × 0   =  0.0     NPI entry (2017)       15 × 0.1  =  1.5
                                 -------    Career (old, minor)    15 × 0.15 ≈  2.3
@@ -422,7 +422,7 @@ a *monitoring* system rather than a one-shot report.
 
 | Signal | Meaning | Source | Confidence |
 |---|---|---|---|
-| `PHYSICIAN` | Licensed physician; active licence strengthens it | NPPES + IDFPR | 0.95 corroborated / 0.75 single-source |
+| `PHYSICIAN` | Licensed physician; active license strengthens it | NPPES + IDFPR | 0.95 corroborated / 0.75 single-source |
 | `SPECIALTY` | How lucrative the specialty is | NPPES | 0.95 / 0.75 |
 | `NEW_LICENSE` | How recently licensed / entered practice | IDFPR (0.95) + NPPES (0.9) | 0.9–0.95 |
 | `OWNERSHIP` | Bills Medicare under a self-named practice entity | CMS PECOS | 0.7 — labelled as inference |
@@ -442,9 +442,9 @@ at the default `limit=25` per specialty across 8 specialties.
 | Metric | Value |
 |---|---:|
 | Physicians resolved | **194** |
-| Joined to IDFPR by licence number | **130 matches**, giving **121 prospects at identity confidence 1.0** |
+| Joined to IDFPR by license number | **130 matches**, giving **121 prospects at identity confidence 1.0** |
 | Single-source (NPPES only, confidence 0.6) | **73** — the ~38% gap |
-| Licences verified **ACTIVE** against the state board | **108** |
+| Licenses verified **ACTIVE** against the state board | **108** |
 | Other statuses caught | 8 not renewed · 3 suspended · 1 probation · 1 inactive |
 | PECOS affiliations captured | **673** across the cohort |
 | Ownership inferences (self-named billing entity) | **7** |
@@ -533,13 +533,13 @@ strictness levels on purpose.
 **Person records (NPPES ↔ IDFPR)** — these describe the same *kind* of thing,
 so they *merge*, tiered by evidence quality:
 
-1. Exact licence-number join → score 1.0. Perfect evidence.
+1. Exact license-number join → score 1.0. Perfect evidence.
 2. Same last name + state, first names equal ignoring middle initials → 0.95.
    ("John Smith MD" ≡ "John A Smith MD".)
 3. First initial + same specialty + same state → 0.85.
 4. Merge threshold: 0.80. Below that, they stay two people.
 
-Records that share a *typed* licence number but differ are treated as
+Records that share a *typed* license number but differ are treated as
 different people, not merged optimistically.
 
 **Enrichment records (billing entities, deeds, career events)** — these would
@@ -558,13 +558,13 @@ never fuzzy-match:
 **Identity confidence** rides along on the prospect and is shown *beside* the
 score, never folded into it: a single-source person carries 0.6, a
 corroborated one carries 1.0. The UI says "Identity verified across NPI + IL
-Licence" or "Single-source identity — not yet corroborated." The advisor is
+License" or "Single-source identity — not yet corroborated." The advisor is
 never misled about how solid the person is.
 
 **Everything is written down.** Every merge and every attach writes a row to
-`identity_matches` with a score and a human-readable reason — *"licence
+`identity_matches` with a score and a human-readable reason — *"license
 number match"*, *"NPI match"*, *"exact first and last name, same state"*. In
-the live run those reasons break down as 130 licence-number matches, 8
+the live run those reasons break down as 130 license-number matches, 8
 name+state attaches, and 7 NPI attaches. Any claim on any dossier can be
 walked back to the records that produced it.
 
@@ -575,7 +575,7 @@ walked back to the records that produced it.
 **Screen 1 — The Scoreboard (`/`)**
 
 The ranked lead list, highest fit first. A featured panel holds the selected
-prospect: score ring, tier badge, qualification and timing sub-scores, licence
+prospect: score ring, tier badge, qualification and timing sub-scores, license
 tenure, the plain-English summary, and signal tags. Every other candidate sits
 in the list beside it, one click to feature.
 
@@ -591,8 +591,8 @@ prospect is missing.
 
 One card per dimension of evidence:
 
-- **Career Signal** — licence status and issue date, licence tenure,
-  specialty, NPI enumeration date, recent advancement, raw NPI and licence
+- **Career Signal** — license status and issue date, license tenure,
+  specialty, NPI enumeration date, recent advancement, raw NPI and license
   numbers.
 - **Ownership & Practice** — the detected entity, what it was inferred from,
   and signal strength; plus practice address and phone.
@@ -686,7 +686,7 @@ call personal numbers.*
 
 There are four letter templates — ownership (congratulatory, tax and
 entity-structure angle), career move (retirement-plan decisions on a
-deadline), new licence (disability coverage, loans, first contract), and a
+deadline), new license (disability coverage, loans, first contract), and a
 generic fallback. **No LLM.** Same signals in, same letter out, auditable like
 the score. Direct mail is v1 because it is the top research-ranked channel and
 the only one fully powered by data we already capture; an email draft joins
@@ -804,10 +804,10 @@ moving."
   feedback round-trip, near-miss ownership rejections, the contact kit, and
   all four live adapters stubbed at the source boundary.
 - **194 real Illinois physicians** resolved in one run; **130** joined to the
-  state licensing board by licence number; **108 verified as actively
+  state licensing board by license number; **108 verified as actively
   licensed**.
-- **100% licence-number capture** on that NPPES pull — which is what makes the
-  licence-number join viable as the primary matching tier.
+- **100% license-number capture** on that NPPES pull — which is what makes the
+  license-number join viable as the primary matching tier.
 - **673 Medicare affiliations** captured across the cohort, yielding **7
   ownership inferences** on first pull.
 - **8 real property purchases** matched, $672,500 – $2,450,000, from a free
@@ -865,11 +865,11 @@ Because the demo pull is capped at 25 per specialty and NPPES returns its
 first page. It's a cap, not a ranking artefact. NPPES pages to roughly 1,200
 per query; lifting it is a parameter, and it's on the list.
 
-**"What about the 38% who didn't match the licence board?"**
+**"What about the 38% who didn't match the license board?"**
 They're still in the system, scored on NPPES evidence alone, flagged at
 identity confidence 0.6, and shown as "single-source — not yet corroborated."
-They score lower because licence recency is worth 40 timing points and we
-don't have their licence date — not because we penalised them. A name+state
+They score lower because license recency is worth 40 timing points and we
+don't have their license date — not because we penalised them. A name+state
 fallback tier for that gap is the next matching change.
 
 **"How many prospects could this actually produce?"**
@@ -926,7 +926,7 @@ added *around* it, in two places, with guardrails:
 
 ### 14.3 Matching and coverage
 
-- Name+state fallback tier for the ~38% of physicians whose NPPES licence
+- Name+state fallback tier for the ~38% of physicians whose NPPES license
   number didn't join IDFPR.
 - Ownership match hardening — address cross-check and
   specialty-in-entity-name corroboration, needed *before* real registry data
@@ -965,7 +965,7 @@ development — start it early.
 app/
 ├── adapters/        one folder per data source — all live
 │   ├── npi/live.py          NPPES registry API
-│   ├── idfpr/live.py        data.illinois.gov licence dataset
+│   ├── idfpr/live.py        data.illinois.gov license dataset
 │   ├── cook_county/live.py  Assessor parcel-sales deeds
 │   ├── pecos/client.py      CMS reassignment + facility affiliation
 │   └── base.py              RawProviderRecord · EnrichmentRecord contracts

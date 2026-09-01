@@ -28,7 +28,7 @@ async function loadStatus(): Promise<IngestStatus | null> {
 // Kept to one short line per source — this is a tooltip, not a doc
 const SOURCE_CADENCE: { name: string; cadence: string }[] = [
   { name: "NPPES (NPI)", cadence: "weekly" },
-  { name: "IDFPR licences", cadence: "continuous" },
+  { name: "IDFPR licenses", cadence: "continuous" },
   { name: "PECOS (Medicare)", cadence: "~monthly" },
   { name: "Cook County deeds", cadence: "continuous (lag)" },
 ];
@@ -178,7 +178,7 @@ export default function RefreshData({
         </dl>
         <p className="mt-2 text-[10px] leading-[14px] text-ink-muted">
           Weekly refresh recommended — existing prospects update in place (no
-          duplicates); only fresh entrants (&lt;6 mo NPI or licence) join.
+          duplicates); only fresh entrants (&lt;6 mo NPI or license) join.
         </p>
 
         {/* Dev/test escape hatch: same sweep, bypasses the weekly lock. Lives

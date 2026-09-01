@@ -142,7 +142,7 @@ No deck in this repo, so these are tracked but unverified here.
 - [ ] **4 ·** Slide 5 — wrap "a missing goal is safer than attaching another
       person's evidence" in its why: confident validated recommendations beat a
       higher count of loose ones
-- [ ] **5 ·** Slide 6 — concrete examples for specialty earning, active licence
+- [ ] **5 ·** Slide 6 — concrete examples for specialty earning, active license
       and standing, and a one-line reason a PLLC outranks an LLC
 - [ ] **6 ·** Slide 7 — kill the eye chart; blow up one image or drop the slide
       (Yash's recommendation) since the demo covers it

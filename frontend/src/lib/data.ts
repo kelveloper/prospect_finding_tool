@@ -14,8 +14,8 @@ export type Candidate = {
   tierLabel: string;
   qualificationScore: number;
   timingScore: number;
-  /** Human-readable licence tenure, e.g. "8 Months" — "—" when unknown. */
-  licenceHeld: string;
+  /** Human-readable license tenure, e.g. "8 Months" — "—" when unknown. */
+  licenseHeld: string;
   strength: string;
   summary: string;
   tags: string[];
@@ -56,7 +56,7 @@ export type CandidateProfile = {
   address: string;
   practice: string;
   portrait: string;
-  /** Plain-English trust line, e.g. "Identity verified across NPI + IL Licence — 100% match confidence" */
+  /** Plain-English trust line, e.g. "Identity verified across NPI + IL License — 100% match confidence" */
   identityLine: string;
   /** True when 2+ independent sources corroborated this person */
   identityVerified: boolean;

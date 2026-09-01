@@ -30,20 +30,20 @@ const RECENCY_LADDER: Rule[] = [
 
 const RULEBOOK: Record<string, Rule[]> = {
   "Physician standing": [
-    { label: "Licence confirmed with the state", value: 1.0 },
-    { label: "Only in the national register, licence unconfirmed", value: 0.7 },
-    { label: "Licence is not active", value: 0.5 },
+    { label: "License confirmed with the state", value: 1.0 },
+    { label: "Only in the national register, license unconfirmed", value: 0.7 },
+    { label: "License is not active", value: 0.5 },
   ],
   "Specialty earning tier": [
     { label: "Orthopaedic, neurological or plastic surgery", value: 1.0 },
     { label: "Cardiology", value: 0.95 },
     { label: "Dermatology or gastroenterology", value: 0.9 },
-    { label: "Anaesthesiology or radiology", value: 0.85 },
+    { label: "Anesthesiology or radiology", value: 0.85 },
     { label: "Urology", value: 0.8 },
     { label: "Oncology", value: 0.75 },
     { label: "Emergency medicine", value: 0.6 },
     { label: "Internal medicine", value: 0.45 },
-    { label: "Family medicine, paediatrics or other", value: 0.4 },
+    { label: "Family medicine, pediatrics or other", value: 0.4 },
   ],
   "Practice ownership": [
     { label: "Bills through his own practice", value: 0.8 },
@@ -84,7 +84,7 @@ const QUESTIONS: Record<string, string> = {
   "Specialty earning tier": "How well does his specialty pay?",
   "Practice ownership": "Does he own his practice?",
   "Practice entry (NPI enumeration)": "How long has he been practising?",
-  "License recency": "How new is his Illinois licence?",
+  "License recency": "How new is his Illinois license?",
   "Property purchase recency": "How recently did he buy a home?",
   "Career advancement": "Has he changed jobs?",
 };
@@ -319,7 +319,7 @@ export default function SourcesDocument({
           <ul className="flex list-disc flex-col gap-1 pl-5 text-[13px] leading-[20px] text-ink-muted marker:text-ink-muted">
             <li>Doctors only</li>
             <li>Licensed or working in Illinois</li>
-            <li>Individual doctor licences — not clinics or businesses</li>
+            <li>Individual doctor licenses — not clinics or businesses</li>
             <li>Home purchases over $100k in the last three years</li>
             <li>Medicare billing records only</li>
           </ul>

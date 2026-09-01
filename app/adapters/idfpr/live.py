@@ -72,7 +72,7 @@ class IDFPRLiveDataSource(BaseDataSource):
                     yield record
 
     def _to_record(self, row: dict) -> RawProviderRecord | None:
-        # Individuals only, and only the physician licence itself
+        # Individuals only, and only the physician license itself
         if row.get("business") == "Y":
             return None
         if "PHYSICIAN AND SURGEON" not in (row.get("description") or "").upper():

@@ -69,7 +69,7 @@ export default function CandidateDetail({
       {/* ── WHO — name, identity, score. The whole block opens the record. ── */}
       <details className="group -mx-3 -mt-2">
         <summary
-          title="Show the licence, practice and property records behind this prospect"
+          title="Show the license, practice and property records behind this prospect"
           className="flex cursor-pointer list-none items-start justify-between gap-8 rounded-[12px] px-3 py-2 transition-colors hover:bg-canvas [&::-webkit-details-marker]:hidden"
         >
           <div className="min-w-0">

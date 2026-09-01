@@ -614,7 +614,7 @@ export default function BookView({ ranked, selectedId }: Props) {
                       <ColumnMenu
                         sortKey="trigger"
                         heading="Why now"
-                        hint="The most recent event worth calling about — a new licence, a practice, a property purchase."
+                        hint="The most recent event worth calling about — a new license, a practice, a property purchase."
                         activeSort={sort}
                         fromBack={fromBack}
                         onSort={setOrder}

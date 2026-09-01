@@ -206,7 +206,7 @@ const CATEGORY_SIGNALS: { label: string; types: string[] }[] = [
 /** Advisor-facing name for each signal, in the order the detector lists them.
  *  Keep in step with SIGNAL_TYPES in app/scoring/detector.py. */
 const SIGNAL_LABELS: [string, string][] = [
-  ["PHYSICIAN", "Active licence"],
+  ["PHYSICIAN", "Active license"],
   ["SPECIALTY", "Specialty tier"],
   ["NEW_LICENSE", "Newly licensed"],
   ["PRACTICE_ENTRY", "Entered practice"],
@@ -264,7 +264,7 @@ const TRIGGERS: { type: string; label: string; hint: string; hot?: boolean }[] =
     },
     {
       type: "NEW_LICENSE",
-      label: "New licence",
+      label: "New license",
       hint: "Recently licensed in Illinois — the first attending years.",
     },
   ];
@@ -298,7 +298,7 @@ function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
   const tags: string[] = [];
   if (detail) {
     if ((detail.license_status ?? "").toUpperCase() === "ACTIVE")
-      tags.push("Active Licence");
+      tags.push("Active License");
     if (
       detail.signals.some(
         (s) => s.signal_type === "NEW_LICENSE" && s.strength >= 0.85,
@@ -326,7 +326,7 @@ function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
     )
       tags.push("Career Advancement");
     if (detail.identity_confidence >= 0.9) tags.push("Identity Verified");
-    if (detail.npi && !detail.license_number) tags.push("Licence Unverified");
+    if (detail.npi && !detail.license_number) tags.push("License Unverified");
   } else {
     if (p.qualification_score >= 80) tags.push("Well Qualified");
     if (p.timing_score >= 70) tags.push("Strong Timing");
@@ -345,7 +345,7 @@ function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
     tierLabel: label,
     qualificationScore: p.qualification_score,
     timingScore: p.timing_score,
-    licenceHeld: tenure(detail?.license_issue_date ?? null),
+    licenseHeld: tenure(detail?.license_issue_date ?? null),
     strength: strengthWord(p.qualification_score),
     summary:
       p.advisor_summary ?? p.reason_summary ?? "No signals recorded yet.",
@@ -413,14 +413,14 @@ function toProfile(d: ApiDetail): CandidateProfile {
       accent: "var(--color-tier-strong)",
       rows: [
         {
-          label: "Active Medical Licence",
+          label: "Active Medical License",
           value: active
             ? "Yes — Verified"
             : (d.license_status ?? "Not on record"),
           pill: active ? "positive" : "neutral",
         },
-        { label: "Licence Issued", value: fmtDate(d.license_issue_date) },
-        { label: "Licence Held", value: tenure(d.license_issue_date) },
+        { label: "License Issued", value: fmtDate(d.license_issue_date) },
+        { label: "License Held", value: tenure(d.license_issue_date) },
         { label: "Speciality", value: d.specialty ?? "Unknown" },
         { label: "NPI Enumerated", value: fmtDate(d.enumeration_date) },
         {
@@ -429,7 +429,7 @@ function toProfile(d: ApiDetail): CandidateProfile {
           pill: career ? "positive" : "neutral",
         },
         { label: "NPI", value: d.npi ?? "—" },
-        { label: "Licence Number", value: d.license_number ?? "—" },
+        { label: "License Number", value: d.license_number ?? "—" },
       ],
     },
     {
@@ -508,8 +508,8 @@ function toProfile(d: ApiDetail): CandidateProfile {
     .join(", ");
   const confidencePct = Math.round(d.identity_confidence * 100);
   const identityLine = corroborated
-    ? `Identity verified across NPI + IL Licence — ${confidencePct}% match confidence`
-    : `Single-source identity (${d.npi ? "NPI only" : "licence only"}) — ${confidencePct}% confidence, not yet corroborated`;
+    ? `Identity verified across NPI + IL License — ${confidencePct}% match confidence`
+    : `Single-source identity (${d.npi ? "NPI only" : "license only"}) — ${confidencePct}% confidence, not yet corroborated`;
 
   return {
     candidateId: d.id,
@@ -520,7 +520,7 @@ function toProfile(d: ApiDetail): CandidateProfile {
     practice: `${d.specialty ?? "Physician"} — ${location}`,
     portrait: "",
     stats: [
-      { label: "Licence Held", value: tenure(d.license_issue_date) },
+      { label: "License Held", value: tenure(d.license_issue_date) },
       { label: "Qualification", value: `${d.qualification_score}` },
       { label: "Timing", value: `${d.timing_score}` },
     ],

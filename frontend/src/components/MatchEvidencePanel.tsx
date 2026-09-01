@@ -29,15 +29,15 @@ type Join = {
 
 const JOINS: Join[] = [
   {
-    key: "licence",
-    where: "State licence",
+    key: "license",
+    where: "State license",
     whereSub: "Illinois medical board",
     tiers: [
       {
         key: "license",
-        label: "Same licence number",
+        label: "Same license number",
         score: "1.0",
-        note: "Both records carry the same licence number, so it is the same person.",
+        note: "Both records carry the same license number, so it is the same person.",
       },
       {
         key: "name",
@@ -60,16 +60,16 @@ const JOINS: Join[] = [
     ],
     openers: ["license", "name", "initial"],
     matched: {
-      found: "Licence confirmed in the state register",
+      found: "License confirmed in the state register",
       effect:
-        "Because we confirmed his licence, he can earn the full 40 points for being a licensed doctor, and his licence date counts toward timing — up to another 40.",
+        "Because we confirmed his license, he can earn the full 40 points for being a licensed doctor, and his license date counts toward timing — up to another 40.",
     },
     missed: {
       found: "Not found in the state register",
       effect:
-        "Without a confirmed licence he would top out at 28 points instead of 40, and his licence date would not count at all.",
+        "Without a confirmed license he would top out at 28 points instead of 40, and his license date would not count at all.",
     },
-    inSentence: "the state licence register",
+    inSentence: "the state license register",
     footnote:
       "We only treat two records as the same person if the match scores 0.80 or better. Below that, they stay two separate people.",
   },

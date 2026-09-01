@@ -89,7 +89,7 @@ export default async function SourcesPage({
                   label: "Right time now",
                   value: `${candidate.timingScore}/100`,
                 },
-                { label: "Licence held", value: candidate.licenceHeld },
+                { label: "License held", value: candidate.licenseHeld },
               ].map((stat) => (
                 <div
                   key={stat.label}

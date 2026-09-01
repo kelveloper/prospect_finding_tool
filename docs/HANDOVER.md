@@ -249,10 +249,10 @@ Each component contributes `weight × strongest matching signal of that type`.
 **Worked example — John A Smith (verified live output):**
 
 ```
-qualification = 40×1.0 (active licence)
+qualification = 40×1.0 (active license)
               + 35×1.0 (orthopaedic surgery, top tier)
               + 25×0.9 (active PLLC)          = 97.5
-timing        = 40×0.85 (IL licence, 8 mo)
+timing        = 40×0.85 (IL license, 8 mo)
               + 15×0.85 (NPI, 7 mo)            = 46.8
 total         = 97.5×0.60 + 46.75×0.40         = 77.2
 ```
@@ -345,8 +345,8 @@ curl the ingest endpoint manually.
 - **Tiers** — `≥80 strong` / `≥60 promising` / `≥50 neutral` / `≥35 weak` / else `poor`
 - **Tags** — "Practice Owner" (has OWNERSHIP), "Recently Licensed"
   (NEW_LICENSE ≥ 0.85), "High-Earning Specialty" (SPECIALTY ≥ 0.75), "Identity
-  Verified" (confidence ≥ 0.9), "Licence Unverified" (NPI but no licence)
-- **Licence tenure** — "8 Months" / "3 Years", computed browser-side
+  Verified" (confidence ≥ 0.9), "License Unverified" (NPI but no license)
+- **License tenure** — "8 Months" / "3 Years", computed browser-side
 
 ### Two environment variables, and they are not interchangeable
 
