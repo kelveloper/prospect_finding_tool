@@ -50,13 +50,15 @@ so nesting them into folders would break roughly two dozen links for no gain.
 ## Visuals
 
 Standalone HTML pages — open them in a browser. The first two explain how
-the pipeline works; the third is the script for presenting it live.
+the pipeline works; the third is the script for presenting it live; the
+last surveys how the market presents prospects, and where we sit.
 
 | | |
 |---|---|
 | [`visuals/pipeline-end-to-end.html`](visuals/pipeline-end-to-end.html) | Sourcing to ranked prospect in plain English — the whole engine, hand-drawn |
 | [`visuals/one-doctor-trace.html`](visuals/one-doctor-trace.html) | One invented physician's five rows traced from the first query to her score |
 | [`visuals/presentation-run-of-show.html`](visuals/presentation-run-of-show.html) | The five-minute, three-speaker script: timings, stage directions, Q&A prep |
+| [`visuals/prospecting-ux-teardown.html`](visuals/prospecting-ux-teardown.html) | How the market presents prospects, and where we sit against it |
 
 ## Historical
 

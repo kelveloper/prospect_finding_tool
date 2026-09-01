@@ -1,0 +1,743 @@
+<title>Prospecting UX Teardown</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ground:#fbfaf8;
+    --raised:#ffffff;
+    --sunken:#f4f1ec;
+    --ink:#1a1d23;
+    --ink-2:#4c5563;
+    --ink-3:#7b8494;
+    --rule:#e2ddd4;
+    --rule-2:#cfc8bb;
+    --us:#1d6fa4;          /* ProspectIQ's own brand blue */
+    --us-soft:#e4f0f8;
+    --them:#8a7b6b;        /* competitors */
+    --them-soft:#efe9e1;
+    --gap:#b4472e;
+    --gap-soft:#f8e5e0;
+    --have:#3f7a5e;
+    --have-soft:#e2efe8;
+    --shadow:0 1px 2px rgba(26,29,35,.05), 0 8px 24px -16px rgba(26,29,35,.22);
+    --display:'Fraunces', Georgia, 'Times New Roman', serif;
+    --body:'IBM Plex Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --mono:'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ground:#141619;
+      --raised:#1c1f24;
+      --sunken:#212429;
+      --ink:#eceae6;
+      --ink-2:#a8b0bc;
+      --ink-3:#767e8b;
+      --rule:#2c3037;
+      --rule-2:#3a3f48;
+      --us:#5aa9dc;
+      --us-soft:#16293a;
+      --them:#b8a894;
+      --them-soft:#2b2620;
+      --gap:#e08063;
+      --gap-soft:#33201a;
+      --have:#6cb392;
+      --have-soft:#17291f;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#141619;
+    --raised:#1c1f24;
+    --sunken:#212429;
+    --ink:#eceae6;
+    --ink-2:#a8b0bc;
+    --ink-3:#767e8b;
+    --rule:#2c3037;
+    --rule-2:#3a3f48;
+    --us:#5aa9dc;
+    --us-soft:#16293a;
+    --them:#b8a894;
+    --them-soft:#2b2620;
+    --gap:#e08063;
+    --gap-soft:#33201a;
+    --have:#6cb392;
+    --have-soft:#17291f;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.7);
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--ground); color:var(--ink);
+    font-family:var(--body); font-size:16px; line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px; margin:0 auto; padding:56px 28px 100px}
+  .col{max-width:660px}
+  h1,h2,h3{font-family:var(--display); text-wrap:balance; margin:0}
+  h1{font-size:clamp(38px,5.4vw,60px); font-weight:600; line-height:1.04; letter-spacing:-.022em}
+  h2{font-size:clamp(24px,3vw,31px); font-weight:600; line-height:1.15; letter-spacing:-.015em}
+  h3{font-size:18px; font-weight:600; letter-spacing:-.008em}
+  p{margin:0}
+  .lede{font-size:19px; line-height:1.55; color:var(--ink-2)}
+  .eyebrow{
+    font-family:var(--mono); font-size:11px; font-weight:600;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); margin:0;
+  }
+  section{margin-top:76px}
+  .stack{display:flex; flex-direction:column; gap:16px}
+  .stack-s{display:flex; flex-direction:column; gap:10px}
+
+  /* header */
+  header .meta{
+    display:flex; flex-wrap:wrap; gap:8px 18px; margin-top:26px;
+    font-family:var(--mono); font-size:12px; color:var(--ink-3);
+  }
+  .hr{height:1px; background:var(--rule); border:0; margin:0}
+
+  /* finding callout */
+  .finding{
+    background:var(--raised); border:1px solid var(--rule);
+    border-left:3px solid var(--gap);
+    border-radius:3px; padding:26px 28px; box-shadow:var(--shadow);
+  }
+  .finding .tag{
+    display:inline-block; font-family:var(--mono); font-size:10px; font-weight:600;
+    letter-spacing:.12em; text-transform:uppercase;
+    background:var(--gap-soft); color:var(--gap);
+    padding:4px 8px; border-radius:2px; margin-bottom:14px;
+  }
+  .quote{
+    font-family:var(--mono); font-size:13px; line-height:1.65;
+    background:var(--sunken); border-radius:3px; padding:14px 16px;
+    color:var(--ink-2); margin-top:16px; overflow-x:auto;
+  }
+  .quote b{color:var(--ink); font-weight:600}
+
+  /* tool cards */
+  .tools{display:grid; grid-template-columns:repeat(auto-fit,minmax(258px,1fr)); gap:16px; margin-top:26px}
+  .tool{
+    background:var(--raised); border:1px solid var(--rule); border-radius:3px;
+    padding:20px 20px 22px; box-shadow:var(--shadow);
+    display:flex; flex-direction:column; gap:11px;
+  }
+  .tool.self{border-color:var(--us); background:var(--us-soft)}
+  .tool .name{display:flex; align-items:baseline; justify-content:space-between; gap:10px}
+  .tool .who{font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3)}
+  .tool ul{margin:0; padding-left:17px; display:flex; flex-direction:column; gap:6px}
+  .tool li{font-size:14px; line-height:1.5; color:var(--ink-2)}
+  .tool li b{color:var(--ink); font-weight:600}
+
+  /* matrix */
+  .scroll{overflow-x:auto; margin-top:26px; border:1px solid var(--rule); border-radius:3px; background:var(--raised)}
+  table{border-collapse:collapse; width:100%; min-width:720px; font-size:14px}
+  th,td{text-align:left; padding:13px 16px; border-bottom:1px solid var(--rule); vertical-align:top}
+  thead th{
+    font-family:var(--mono); font-size:10px; font-weight:600; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--ink-3); background:var(--sunken);
+    position:sticky; top:0;
+  }
+  thead th.mine{color:var(--us)}
+  tbody tr:last-child td{border-bottom:0}
+  td.cap{font-weight:500; color:var(--ink)}
+  .chip{
+    display:inline-block; font-family:var(--mono); font-size:11px; font-weight:600;
+    padding:3px 8px; border-radius:2px; white-space:nowrap;
+  }
+  .chip.y{background:var(--have-soft); color:var(--have)}
+  .chip.p{background:var(--them-soft); color:var(--them)}
+  .chip.n{background:var(--gap-soft); color:var(--gap)}
+  .note{font-size:13px; color:var(--ink-3); margin-top:12px}
+
+  /* recommendations */
+  .recs{display:flex; flex-direction:column; gap:14px; margin-top:26px}
+  .rec{
+    background:var(--raised); border:1px solid var(--rule); border-radius:3px;
+    box-shadow:var(--shadow); display:grid; grid-template-columns:52px 1fr; overflow:hidden;
+  }
+  .rec .rank{
+    display:flex; align-items:flex-start; justify-content:center; padding-top:21px;
+    font-family:var(--mono); font-size:13px; font-weight:600; color:var(--ink-3);
+    background:var(--sunken); border-right:1px solid var(--rule);
+  }
+  .rec .body{padding:19px 22px 21px; display:flex; flex-direction:column; gap:9px}
+  .rec .top{display:flex; flex-wrap:wrap; align-items:baseline; gap:10px}
+  .rec p{font-size:14.5px; line-height:1.55; color:var(--ink-2); max-width:62ch}
+  .rec p b{color:var(--ink); font-weight:600}
+  .swap{
+    display:grid; grid-template-columns:1fr auto 1fr; gap:12px; align-items:center;
+    background:var(--sunken); border-radius:3px; padding:12px 14px; margin-top:3px;
+  }
+  .swap .side{font-family:var(--mono); font-size:12px; line-height:1.5; color:var(--ink-2)}
+  .swap .arrow{color:var(--ink-3); font-size:15px}
+  .swap .side.to{color:var(--ink); font-weight:600}
+  @media(max-width:560px){
+    .swap{grid-template-columns:1fr; gap:6px}
+    .swap .arrow{transform:rotate(90deg); width:1em}
+  }
+
+  /* wireframes — reconstructions, deliberately drawn as diagrams not fake screenshots */
+  .wf{
+    background:var(--raised); border:1px solid var(--rule); border-radius:3px;
+    box-shadow:var(--shadow); overflow:hidden; margin-top:18px;
+  }
+  .wf-head{
+    display:flex; flex-wrap:wrap; align-items:baseline; gap:10px;
+    padding:16px 20px; border-bottom:1px solid var(--rule); background:var(--sunken);
+  }
+  .wf-head .src{font-family:var(--mono); font-size:11px; color:var(--ink-3); margin-left:auto}
+  .wf-body{padding:18px 20px 20px; overflow-x:auto}
+  .fake{min-width:600px; font-family:var(--mono); font-size:11px; line-height:1.45}
+  .fake .bar{
+    display:flex; align-items:center; gap:8px; padding:7px 10px;
+    background:var(--sunken); border:1px solid var(--rule); border-radius:2px 2px 0 0;
+    color:var(--ink-3);
+  }
+  .fake .split{display:grid; grid-template-columns:150px 1fr 168px; border:1px solid var(--rule); border-top:0}
+  .fake .split.two{grid-template-columns:150px 1fr}
+  .fake .rail{border-right:1px solid var(--rule); padding:10px; background:var(--sunken)}
+  .fake .rail .grp{margin-bottom:9px}
+  .fake .rail .grp b{display:block; color:var(--ink); font-weight:600; font-size:10px; letter-spacing:.06em; text-transform:uppercase; margin-bottom:4px}
+  .fake .rail .pill{
+    display:block; background:var(--raised); border:1px solid var(--rule);
+    border-radius:2px; padding:3px 6px; margin-bottom:3px; color:var(--ink-2);
+  }
+  .fake .grid{padding:0}
+  .fake .row{display:grid; align-items:center; gap:8px; padding:7px 10px; border-bottom:1px solid var(--rule); color:var(--ink-2)}
+  .fake .row.head{background:var(--sunken); color:var(--ink-3); font-size:10px; letter-spacing:.06em; text-transform:uppercase}
+  .fake .row:last-child{border-bottom:0}
+  .fake .row.sel{background:var(--us-soft)}
+  .fake .panel{border-left:1px solid var(--rule); padding:10px; background:var(--sunken)}
+  .fake .panel .k{color:var(--ink-3); font-size:10px; text-transform:uppercase; letter-spacing:.06em}
+  .fake .panel .v{color:var(--ink); margin-bottom:7px}
+  .fake .cta{display:inline-block; background:var(--us); color:#fff; border-radius:2px; padding:3px 8px; margin-top:4px}
+  .fake .chipx{display:inline-block; border:1px solid var(--rule-2); border-radius:2px; padding:1px 5px; color:var(--ink-2); margin-right:3px}
+  .fake .score{color:var(--ink); font-weight:600}
+  .fake .ok{color:var(--have); font-weight:600}
+  .fake .tree{padding:12px 10px; color:var(--ink-2)}
+  .fake .tree .lvl{padding-left:0}
+  .fake .tree .lvl2{padding-left:22px}
+  .fake .tree .lvl3{padding-left:44px}
+  .steal{
+    display:flex; gap:10px; align-items:flex-start;
+    padding:14px 20px; border-top:1px solid var(--rule); background:var(--sunken);
+  }
+  .steal .lbl{
+    font-family:var(--mono); font-size:10px; font-weight:600; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--us); flex-shrink:0; padding-top:2px;
+  }
+  .steal p{font-size:14px; line-height:1.5; color:var(--ink-2); max-width:60ch}
+
+  /* evidence */
+  .evidence{background:var(--sunken); border-radius:3px; padding:24px 26px; margin-top:26px}
+  .evidence ul{margin:12px 0 0; padding-left:18px; display:flex; flex-direction:column; gap:7px}
+  .evidence li{font-size:14px; color:var(--ink-2); line-height:1.5}
+  a{color:var(--us); text-underline-offset:2px}
+  a:focus-visible, .tool:focus-visible{outline:2px solid var(--us); outline-offset:2px}
+  @media (prefers-reduced-motion:no-preference){
+    .tool,.rec{transition:border-color .15s ease}
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="col">
+    <p class="eyebrow">Competitive review · August 2026</p>
+    <h1>Prospecting UX Teardown</h1>
+    <p class="lede" style="margin-top:20px">
+      What Catchlight, Aidentified, Apollo and ZoomInfo actually put on screen —
+      and the six things worth changing in ProspectIQ because of it.
+    </p>
+    <div class="meta">
+      <span>5 searches · 3 sources read</span>
+      <span>·</span>
+      <span>Evidence quality noted at the end</span>
+    </div>
+  </header>
+
+  <section class="col">
+    <p class="eyebrow">The finding that matters most</p>
+    <h2 style="margin-top:12px">The market shows its work. You just hid yours.</h2>
+    <div class="stack" style="margin-top:22px">
+      <p style="color:var(--ink-2)">
+        Every source on lead scoring lands in the same place: reps don't trust a
+        number they can't unpack. The pattern the tools converge on is a
+        <b style="color:var(--ink)">per-signal contribution list</b> shown right next to the score.
+      </p>
+
+      <div class="finding">
+        <span class="tag">Direct tension with feedback #10</span>
+        <p style="font-size:15px; line-height:1.6">
+          Demandbase's guidance is blunt — if reps can't see <i>why</i> a lead scored 87,
+          they won't use it. HubSpot shipped exactly this in 2025: which signals
+          contributed most, per score.
+        </p>
+        <div class="quote">
+          VP title <b>+15</b> &nbsp;·&nbsp; pricing page 3× this week <b>+25</b><br>
+          Bombora surge <b>+20</b> &nbsp;·&nbsp; 2 buying-committee members <b>+15</b><br>
+          ICP Tier 1 <b>+12</b>
+        </div>
+        <p style="font-size:14px; margin-top:16px; color:var(--ink-2)">
+          That is structurally the same thing as your
+          <span style="font-family:var(--mono); font-size:13px">0.85 × 25 = 21</span> —
+          which your manager asked you to hide, and which we moved behind a footnote.
+        </p>
+      </div>
+
+      <p style="color:var(--ink-2)">
+        Both can be right. The industry writes contributions in plain points
+        (<span style="font-family:var(--mono); font-size:13.5px">+25</span>), not as
+        exposed arithmetic. Your manager objected to the multiplication, not to the
+        transparency. <b style="color:var(--ink)">Keep the explanation, drop the algebra.</b>
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <div class="col">
+      <p class="eyebrow">The field</p>
+      <h2 style="margin-top:12px">Who you're being compared to</h2>
+    </div>
+    <div class="tools">
+      <div class="tool self">
+        <div class="name"><h3 style="color:var(--us)">ProspectIQ</h3><span class="who">you</span></div>
+        <ul>
+          <li><b>7 signals</b> from 4 public sources</li>
+          <li>Qualification / timing split, <b>60/40</b></li>
+          <li>Board + book views, outcome logging</li>
+          <li>Compliance rules on every contact</li>
+        </ul>
+      </div>
+      <div class="tool">
+        <div class="name"><h3>Catchlight</h3><span class="who">closest rival</span></div>
+        <ul>
+          <li>Score from <b>100k+ real conversions</b></li>
+          <li>Estimated <b>investable assets</b>, income, age</li>
+          <li><b>AI-written outreach copy</b></li>
+          <li>Pushes into Wealthbox / Redtail / Salesforce</li>
+        </ul>
+      </div>
+      <div class="tool">
+        <div class="name"><h3>Aidentified</h3><span class="who">advisor-native</span></div>
+        <ul>
+          <li><b>16 event types</b> monitored live</li>
+          <li><b>Relationship mapping</b> — which client knows them</li>
+          <li>CRM push with context attached</li>
+        </ul>
+      </div>
+      <div class="tool">
+        <div class="name"><h3>Apollo · ZoomInfo</h3><span class="who">B2B, adjacent</span></div>
+        <ul>
+          <li><b>65+ filters</b> on a 270M contact base</li>
+          <li>Saved lists and segments as the core object</li>
+          <li>Apollo rated <b>9.1/10</b> ease of use on G2</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="col">
+      <p class="eyebrow">Their screens</p>
+      <h2 style="margin-top:12px">What the interfaces actually look like</h2>
+      <p style="margin-top:16px; color:var(--ink-2)">
+        These are <b style="color:var(--ink)">reconstructions from documentation</b>, not
+        screenshots — none of these vendors publish annotated captures, and Apollo's
+        support pages block automated reading. Every element below traces to something
+        written down; nothing is invented to fill space.
+      </p>
+    </div>
+
+    <!-- Apollo -->
+    <div class="wf">
+      <div class="wf-head">
+        <h3>Apollo — People Search</h3>
+        <span class="src">from Apollo support &amp; knowledge base</span>
+      </div>
+      <div class="wf-body">
+        <div class="fake">
+          <div class="bar">
+            <span class="chipx">Search</span><span class="chipx">Lists</span><span class="chipx">Sequences</span>
+            <span style="margin-left:auto" class="chipx">Save Search</span>
+            <span class="chipx">Columns</span><span class="chipx">Export</span>
+          </div>
+          <div class="split">
+            <div class="rail">
+              <div class="grp"><b>Job titles</b>
+                <span class="pill">VP Marketing</span>
+                <span class="pill">Head of Growth</span>
+                <span class="pill">is not · intern</span>
+              </div>
+              <div class="grp"><b>Location</b><span class="pill">Chicago, IL</span></div>
+              <div class="grp"><b>Employees</b><span class="pill">50–200</span></div>
+              <div class="grp"><b>Technologies</b><span class="pill">HubSpot</span></div>
+              <div class="grp"><b>Buying intent</b><span class="pill">surging</span></div>
+            </div>
+            <div class="grid">
+              <div class="row head" style="grid-template-columns:18px 1.4fr 1.2fr 1fr">
+                <span>☐</span><span>Name</span><span>Title</span><span>Company</span>
+              </div>
+              <div class="row sel" style="grid-template-columns:18px 1.4fr 1.2fr 1fr">
+                <span>☑</span><span class="score">Dana Whitfield</span><span>VP Marketing</span><span>Northwind</span>
+              </div>
+              <div class="row" style="grid-template-columns:18px 1.4fr 1.2fr 1fr">
+                <span>☐</span><span>Marcus Reed</span><span>Head of Growth</span><span>Latchkey</span>
+              </div>
+              <div class="row" style="grid-template-columns:18px 1.4fr 1.2fr 1fr">
+                <span>☐</span><span>Priya Raman</span><span>Director, Demand</span><span>Cobalt</span>
+              </div>
+              <div class="row" style="grid-template-columns:18px 1.4fr 1.2fr 1fr; color:var(--ink-3)">
+                <span>☐</span><span>3 selected · bulk actions</span><span></span><span></span>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="k">Preview</div>
+              <div class="v">Dana Whitfield</div>
+              <div class="k">Email</div><div class="v">verified ✓</div>
+              <div class="k">Intent</div><div class="v"><span class="chipx">surging</span></div>
+              <div class="k">Sequence</div>
+              <span class="cta">Add to sequence</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="steal">
+        <span class="lbl">Steal</span>
+        <p>
+          The <b>side panel</b>. You review a record without leaving the list —
+          exactly the problem your board view solves with a split screen, but
+          Apollo keeps the table intact underneath. Also note <b>Save Search</b>
+          sitting in the top bar as a first-class control, not a settings menu.
+        </p>
+      </div>
+    </div>
+
+    <!-- Catchlight -->
+    <div class="wf">
+      <div class="wf-head">
+        <h3>Catchlight — ranked leads, inside the CRM</h3>
+        <span class="src">from Catchlight FAQ, Schwab &amp; Wealthbox pages</span>
+      </div>
+      <div class="wf-body">
+        <div class="fake">
+          <div class="bar"><span class="chipx">Leads</span><span class="chipx">Segments</span>
+            <span style="margin-left:auto" class="chipx">Business owners</span>
+            <span class="chipx">Pre-retirees</span><span class="chipx">HENRYs</span>
+          </div>
+          <div class="split two">
+            <div class="rail">
+              <div class="grp"><b>Ranked</b>
+                <span class="pill">1 · R. Aggarwal <span class="ok">92 ✓</span></span>
+                <span class="pill">2 · T. Nakamura <span class="ok">88 ✓</span></span>
+                <span class="pill">3 · L. Osei <span style="color:var(--ink-3)">81</span></span>
+                <span class="pill">4 · M. Byrne <span class="ok">77 ✓</span></span>
+              </div>
+            </div>
+            <div class="grid">
+              <div class="row head" style="grid-template-columns:1fr"><span>Lead profile</span></div>
+              <div class="row" style="grid-template-columns:150px 1fr">
+                <span>Catchlight Score</span>
+                <span><span class="score">92</span> <span class="ok">✓ high confidence</span></span>
+              </div>
+              <div class="row" style="grid-template-columns:150px 1fr">
+                <span>Investable assets</span><span class="score">$1.4M – $2.1M (est.)</span>
+              </div>
+              <div class="row" style="grid-template-columns:150px 1fr">
+                <span>Income range</span><span>$400k – $600k</span>
+              </div>
+              <div class="row" style="grid-template-columns:150px 1fr">
+                <span>Age range</span><span>45 – 54</span>
+              </div>
+              <div class="row" style="grid-template-columns:150px 1fr">
+                <span>Predicted life event</span><span><span class="chipx">home purchase</span><span class="chipx">job change</span></span>
+              </div>
+              <div class="row" style="grid-template-columns:150px 1fr">
+                <span>Engagement idea</span><span style="color:var(--ink)">AI-drafted opener →</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="steal">
+        <span class="lbl">Steal</span>
+        <p>
+          Two things. The <b>green check beside the score</b> — it means "we had
+          enough attributes to be confident", and its <i>absence</i> is the warning.
+          That is a better honesty signal than a number alone. And they lead with
+          <b>money</b>: an estimated range, not a precise figure.
+        </p>
+      </div>
+    </div>
+
+    <!-- ZoomInfo -->
+    <div class="wf">
+      <div class="wf-head">
+        <h3>ZoomInfo — GTM Workspace</h3>
+        <span class="src">from ZoomInfo pipeline blog &amp; G2 listing</span>
+      </div>
+      <div class="wf-body">
+        <div class="fake">
+          <div class="bar"><span class="chipx">Spreadsheet view</span><span class="chipx">Org chart</span><span class="chipx">Intent</span></div>
+          <div class="split two">
+            <div class="rail">
+              <div class="grp"><b>Signals</b>
+                <span class="pill">researching category</span>
+                <span class="pill">hiring in dept</span>
+                <span class="pill">funding round</span>
+              </div>
+            </div>
+            <div class="tree">
+              <div class="lvl">▸ <span class="score">CFO</span> — Ellen Park <span class="chipx">champion</span></div>
+              <div class="lvl2">▸ VP Finance — Josh Adeyemi</div>
+              <div class="lvl3">▸ Controller — Sam Liu</div>
+              <div class="lvl3">▸ FP&amp;A Lead — Nina Costa <span class="chipx">buying cttee</span></div>
+              <div class="lvl2">▸ VP Ops — Dara Singh</div>
+              <div style="margin-top:10px; color:var(--ink-3)">CRM history · intent · news — merged into one row per account</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="steal">
+        <span class="lbl">Steal</span>
+        <p>
+          Not the org chart — you sell to one physician, not a committee. What
+          transfers is the <b>merge</b>: CRM history, intent and news collapsed
+          into a single row so nothing needs a second screen. Your equivalent is
+          signals, outreach log and score movement on one line.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="col">
+      <p class="eyebrow">Capability matrix</p>
+      <h2 style="margin-top:12px">Where you stand</h2>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Capability</th>
+            <th class="mine">ProspectIQ</th>
+            <th>Catchlight</th>
+            <th>Aidentified</th>
+            <th>Apollo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="cap">Score with a number</td>
+            <td><span class="chip y">have</span></td>
+            <td><span class="chip y">yes</span></td>
+            <td><span class="chip y">yes</span></td>
+            <td><span class="chip y">yes</span></td>
+          </tr>
+          <tr>
+            <td class="cap">Per-signal contributions shown</td>
+            <td><span class="chip p">behind a footnote</span></td>
+            <td><span class="chip p">partial</span></td>
+            <td><span class="chip p">partial</span></td>
+            <td><span class="chip y">yes</span></td>
+          </tr>
+          <tr>
+            <td class="cap">Trigger events as the hook</td>
+            <td><span class="chip y">have</span></td>
+            <td><span class="chip p">partial</span></td>
+            <td><span class="chip y">16 types</span></td>
+            <td><span class="chip y">intent</span></td>
+          </tr>
+          <tr>
+            <td class="cap">Filterable table / saved views</td>
+            <td><span class="chip p">filters, no saving</span></td>
+            <td><span class="chip p">via CRM</span></td>
+            <td><span class="chip p">via CRM</span></td>
+            <td><span class="chip y">core object</span></td>
+          </tr>
+          <tr>
+            <td class="cap">Generated outreach copy</td>
+            <td><span class="chip n">removed</span></td>
+            <td><span class="chip y">yes</span></td>
+            <td><span class="chip p">partial</span></td>
+            <td><span class="chip y">sequences</span></td>
+          </tr>
+          <tr>
+            <td class="cap">Outcome capture → recalibration</td>
+            <td><span class="chip y">have</span></td>
+            <td><span class="chip y">yes</span></td>
+            <td><span class="chip p">partial</span></td>
+            <td><span class="chip y">yes</span></td>
+          </tr>
+          <tr>
+            <td class="cap">Wealth estimate on the prospect</td>
+            <td><span class="chip n">missing</span></td>
+            <td><span class="chip y">yes</span></td>
+            <td><span class="chip y">yes</span></td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td class="cap">Relationship mapping</td>
+            <td><span class="chip n">missing</span></td>
+            <td><span class="chip n">no</span></td>
+            <td><span class="chip y">16B edges</span></td>
+            <td><span class="chip p">partial</span></td>
+          </tr>
+          <tr>
+            <td class="cap">Compliance rules per contact</td>
+            <td><span class="chip y">have</span></td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note col">
+      The last row is the one nobody else advertises. Your DNC and
+      practice-address-only rules are a genuine differentiator in a regulated
+      market — worth a slide, not a footnote.
+    </p>
+  </section>
+
+  <section>
+    <div class="col">
+      <p class="eyebrow">Recommendations</p>
+      <h2 style="margin-top:12px">Six changes, cheapest first</h2>
+    </div>
+
+    <div class="recs">
+
+      <article class="rec">
+        <div class="rank">01</div>
+        <div class="body">
+          <div class="top">
+            <h3>Rewrite the math as contributions</h3>
+            <span class="chip y">1 file</span>
+          </div>
+          <p>
+            Same numbers, industry phrasing. This resolves the tension above —
+            your manager gets the algebra gone, the market gets its glass box.
+          </p>
+          <div class="swap">
+            <span class="side">Specialty tier<br>0.90 × 35 = 31.5</span>
+            <span class="arrow">→</span>
+            <span class="side to">High-earning specialty<br>+32 of 35</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="rec">
+        <div class="rank">02</div>
+        <div class="body">
+          <div class="top">
+            <h3>Save the filters as named views</h3>
+            <span class="chip y">state already in the URL</span>
+          </div>
+          <p>
+            Saved lists are the <b>core object</b> in Apollo, not a convenience.
+            Your book filters already serialize to the URL — naming and storing
+            them is the remaining step. <i>"My Chicago derms"</i>, <i>"Score 55+"</i>.
+          </p>
+        </div>
+      </article>
+
+      <article class="rec">
+        <div class="rank">03</div>
+        <div class="body">
+          <div class="top">
+            <h3>Lead with the trigger, not the specialty</h3>
+            <span class="chip y">copy change</span>
+          </div>
+          <p>
+            Aidentified sells on <b>event monitoring</b>; you already detect the same
+            class of events. Your card's second line spends itself on specialty and
+            city — data the name already implies.
+          </p>
+          <div class="swap">
+            <span class="side">Dermatology · Chicago, IL</span>
+            <span class="arrow">→</span>
+            <span class="side to">Licensed 2 months ago · bought a home</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="rec">
+        <div class="rank">04</div>
+        <div class="body">
+          <div class="top">
+            <h3>Put the outreach draft back</h3>
+            <span class="chip p">team decision</span>
+          </div>
+          <p>
+            Catchlight leads with AI-written copy; Apollo ships sequences. Your
+            deterministic templates still exist in git —
+            <span style="font-family:var(--mono);font-size:13px">88 lines, no LLM</span>.
+            Your teammate removed them on purpose, so this is a conversation, not a commit.
+          </p>
+        </div>
+      </article>
+
+      <article class="rec">
+        <div class="rank">05</div>
+        <div class="body">
+          <div class="top">
+            <h3>Name the compliance layer</h3>
+            <span class="chip y">positioning</span>
+          </div>
+          <p>
+            No competitor surfaces DNC exposure or routes every touch to a practice
+            address. You do both, and it's currently styled as gray footnotes.
+            In a regulated market that's the strongest thing you own.
+          </p>
+        </div>
+      </article>
+
+      <article class="rec">
+        <div class="rank">06</div>
+        <div class="body">
+          <div class="top">
+            <h3>Estimate the money</h3>
+            <span class="chip n">new data</span>
+          </div>
+          <p>
+            Both advisor-native rivals lead with <b>estimated investable assets</b>.
+            You infer wealth from specialty and property events but never state a
+            figure. The honest version is a band with its basis shown, not a
+            fabricated precise number.
+          </p>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <section class="col">
+    <p class="eyebrow">On the evidence</p>
+    <h2 style="margin-top:12px">What this is and isn't</h2>
+    <div class="evidence">
+      <p style="font-size:14.5px; color:var(--ink-2)">
+        Five web searches and three pages read. Worth knowing before you quote any of it:
+      </p>
+      <ul>
+        <li>Most results were <b>comparison and marketing content</b>, not primary UX teardowns. Nobody publishes annotated screenshots of these products.</li>
+        <li>The explainability finding is the best-supported — it recurs across independent sources and names a shipped HubSpot feature.</li>
+        <li>Feature claims come from <b>vendor pages</b>. Catchlight's "100k conversions" and Aidentified's "16B connections" are their own numbers.</li>
+        <li>I could not see any of these interfaces directly. Layout claims are inferred from descriptions.</li>
+      </ul>
+      <p style="font-size:14.5px; color:var(--ink-2); margin-top:14px">
+        If this feeds a slide, the safest citations are the explainability pattern
+        and the named integrations. Treat scale figures as vendor-reported.
+      </p>
+    </div>
+    <p style="font-size:13.5px; color:var(--ink-3); margin-top:22px; line-height:1.6">
+      Sources:
+      <a href="https://www.demandbase.com/blog/ai-lead-scoring/">Demandbase</a> ·
+      <a href="https://catchlight.ai/advisor-resources/catchlight-integrates-with-wealthbox-to-deliver-rich-profiles-to-advisors">Catchlight</a> ·
+      <a href="https://www.aidentified.com/resources/prospecting-tools-for-financial-advisors">Aidentified</a> ·
+      <a href="https://coommit.com/blog/ai-sales-prospecting-tools-2026">Apollo / Clay / ZoomInfo</a> ·
+      <a href="https://www.onething.design/post/b2b-saas-ux-design">B2B SaaS patterns</a>
+    </p>
+  </section>
+
+</div>
