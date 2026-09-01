@@ -155,6 +155,11 @@
     font-family: var(--mono); font-size: 12px; color: var(--faint);
   }
   code { font-family: var(--mono); font-size: 12px; }
+  .diagram-offline {
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.6;
+    color: #8A5C1E; background: #F7F1E6; border: 1px dashed #B98A4A;
+    border-radius: 3px; padding: 14px 16px; margin: 0;
+  }
 </style>
 
 <div class="wrap">
@@ -347,9 +352,26 @@ flowchart TB
 
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.17.2/mermaid.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.15.0/mermaid.min.js"></script>
 <script>
-  // Published as an Artifact these blocks render themselves; opened from
-  // disk they need mermaid loaded here.
-  mermaid.initialize({ startOnLoad: true, securityLevel: "loose" });
+  // Published as an Artifact these blocks render themselves; opened from disk
+  // they need mermaid loaded here. If the CDN is unreachable, say so plainly
+  // rather than leaving a wall of chart source on the page.
+  (function () {
+    var blocks = document.querySelectorAll("pre.mermaid");
+    if (window.mermaid) {
+      mermaid.initialize({ startOnLoad: false, securityLevel: "loose" });
+      mermaid.run({ querySelector: "pre.mermaid" });
+      return;
+    }
+    blocks.forEach(function (el) {
+      var note = document.createElement("p");
+      note.className = "diagram-offline";
+      note.textContent =
+        "This diagram needs an internet connection to load its renderer. " +
+        "Reconnect and reload the page to see it.";
+      el.hidden = true;
+      el.parentNode.insertBefore(note, el);
+    });
+  })();
 </script>
