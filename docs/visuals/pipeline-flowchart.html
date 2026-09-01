@@ -170,7 +170,7 @@
         <p class="sheet-meta">8 steps · 3 gate layers</p>
       </div>
       <p class="scroll-hint">
-        <b>One line down the page.</b> The four sources are pulled <b>one after another, never at the same time</b> — each is looked up using IDs the step before it returned, so step 1 must finish before step 3 can even be asked a question.<br>
+        <b>Read top to bottom.</b> The NPI Registry <b>must finish first</b> — it hands the other three the IDs they are looked up by. Once it has, <b>those three run side by side</b>, so the sweep costs step 1 plus the slowest single source rather than the sum of all four.<br>
         <b>Amber diamonds are gates</b>, and the number on each says which layer it belongs to. Gate 1 asks <i>are you eligible</i>, gate 2 asks <i>who are you</i>, gate 3 asks <i>what may we claim</i>.
       </p>
 
@@ -180,20 +180,32 @@ flowchart TB
 
   S1["STEP 1 · NPI Registry — asked for every Illinois physician in the target specialties"]
   S1 --> E1{"GATE 1 · ENTRY — a physician, in Illinois?"}
-  E1 -->|"pass"| S2["STEP 2 · IL Licensing — asked using the licence numbers step 1 returned"]
   E1 -.->|"fail"| X1(["discarded"])
+  E1 -->|"pass"| SEED["Step 1 now holds the three lookup keys — licence numbers, NPI numbers, names"]
+
+  subgraph PAR ["STEPS 2, 3 and 4 · these three run side by side"]
+    direction LR
+    S2["IL Licensing"]
+    S3["Medicare Billing"]
+    S4["County Deeds"]
+  end
+
+  SEED -->|"STEP 2 · by licence number"| S2
+  SEED -->|"STEP 3 · by NPI number"| S3
+  SEED -->|"STEP 4 · by name"| S4
 
   S2 --> E2{"GATE 1 · ENTRY — an active individual licence?"}
-  E2 -->|"pass"| S3["STEP 3 · Medicare Billing — asked using the NPI numbers step 1 returned"]
-  E2 -.->|"fail"| X2(["discarded"])
-
   S3 --> E3{"GATE 1 · ENTRY — a payment reassignment row?"}
-  E3 -->|"pass"| S4["STEP 4 · County Deeds — asked using the names step 1 returned"]
-  E3 -.->|"fail"| X3(["discarded"])
-
   S4 --> E4{"GATE 1 · ENTRY — over 100k dollars, under 3 years old?"}
-  E4 -->|"pass"| S5["STEP 5 · One format — every surviving row becomes one of two record shapes"]
+
+  E2 -.->|"fail"| X2(["discarded"])
+  E3 -.->|"fail"| X3(["discarded"])
   E4 -.->|"fail"| X4(["discarded"])
+
+  E2 -->|"pass"| S5
+  E3 -->|"pass"| S5
+  E4 -->|"pass"| S5
+  S5["STEP 5 · One format — every surviving row becomes one of two record shapes"]
 
   S5 -->|"person records"| E5{"GATE 2 · IDENTITY — same human?"}
   S5 -->|"event records"| E6{"GATE 2 · IDENTITY — whose event is this?"}
@@ -226,7 +238,8 @@ flowchart TB
   classDef core fill:#DDECEC,stroke:#0B6B70,stroke-width:2.2px,color:#08383B
   classDef out fill:#0B6B70,stroke:#0B6B70,stroke-width:2.2px,color:#FFFFFF
 
-  class S1,S2,S3,S4 source
+  class S1,S2,S3,S4,SEED source
+  style PAR fill:#EEF4F4,stroke:#0B6B70,stroke-width:1.4px,color:#08383B
   class E1,E2,E3,E4,E5,E6,E7 gate
   class X1,X2,X3,X4,X5,X6,X7 reject
   class Q1,Q2,O1,O2,O3 shape
@@ -450,7 +463,7 @@ flowchart LR
   </ol>
 
   <div class="rulebox">
-    <p><strong>Why the sources cannot run at once.</strong> Steps 2, 3 and 4 are each looked up using an ID that step 1 hands over — licence numbers, NPI numbers, names. You cannot ask &ldquo;did this person buy a house?&rdquo; until you already know who the people are. Three of the four joins are therefore exact-ID matches; only the deeds force a name match.</p>
+    <p><strong>Why step 1 stands alone.</strong> Steps 2, 3 and 4 are each looked up using an ID that step 1 hands over — licence numbers, NPI numbers, names. You cannot ask &ldquo;did this person buy a house?&rdquo; until you already know who the people are. But those three do not depend on <em>each other</em>, so they run concurrently. Three of the four joins are exact-ID matches; only the deeds force a name match.</p>
   </div>
 
   <footer>

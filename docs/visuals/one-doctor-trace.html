@@ -188,7 +188,7 @@
   </div>
 
   <h2>The one query we invent, and the four that follow</h2>
-  <p class="sub">Only row 1 comes from a question we made up. Every other row is fetched using an identifier that row 1 handed over &mdash; which is why the sources cannot run at the same time.</p>
+  <p class="sub">Only row 1 comes from a question we made up. Every other row is fetched using an identifier that row 1 handed over &mdash; so row 1 has to land first. The other three are then asked at the same time, because none of them needs the others.</p>
   <div class="table-scroll">
     <table>
       <thead>
@@ -239,7 +239,7 @@
         <p class="sheet-meta">8 steps &middot; 3 gate layers</p>
       </div>
       <p class="scroll-hint">
-        <b>Read straight down.</b> Every box is a thing that now exists. Every arrow is the action that produced the next one &mdash; including the step numbers, because fetching a database is something you <i>do</i>.<br>
+        <b>Read straight down.</b> Every box is a thing that now exists. Every arrow is the action that produced the next one &mdash; including the step numbers, because fetching a database is something you <i>do</i>. Steps 2 to 4 sit in one box together: they are asked concurrently, not in turn.<br>
         <b>Dashed arrows leave the pipeline.</b> Alongside her one real drop-out at gate 2, they name the kind of record each gate would have caught.
       </p>
 
@@ -252,22 +252,35 @@ flowchart TB
 
   R1 --> E1{"GATE 1 · ENTRY — a physician, in Illinois?"}
   E1 -.->|"fail"| X1(["a Wisconsin dermatologist stops here"])
-  E1 -->|"STEP 2 · ask IL Licensing — using licence number 036-104271, which row 1 carried"| R2["ROW 2 · licence issued 8 months ago, status active"]
+  E1 -->|"pass — row 1 now supplies all three lookup keys"| SEED["Her licence number 036-104271, her NPI 1538291746, her surname REYES"]
+
+  subgraph PAR ["STEPS 2, 3 and 4 · asked at the same time, because none needs the others"]
+    direction LR
+    R2["ROW 2 · licence issued 8 months ago, status active"]
+    R3["ROW 3 · payments go to Reyes Orthopaedic Group PLLC"]
+    D0["Two deeds come back under that surname"]
+  end
+
+  SEED -->|"STEP 2 · ask IL Licensing by licence number"| R2
+  SEED -->|"STEP 3 · ask Medicare Billing by NPI"| R3
+  SEED -->|"STEP 4 · ask County Deeds by surname"| D0
 
   R2 --> E2{"GATE 1 · ENTRY — an active individual licence?"}
   E2 -.->|"fail"| X2(["a lapsed or business licence stops here"])
-  E2 -->|"STEP 3 · ask Medicare Billing — using NPI 1538291746, which row 1 carried"| R3["ROW 3 · payments go to Reyes Orthopaedic Group PLLC"]
 
   R3 --> E3{"GATE 1 · ENTRY — a payment reassignment row?"}
   E3 -.->|"fail"| X3(["a plain facility affiliation stops here"])
-  E3 -->|"STEP 4 · ask County Deeds — using the surname REYES, which row 1 carried"| D0["Two deeds come back under that surname"]
 
   D0 --> R4["ROW 4 · A. Reyes bought a house, 840,000 dollars, 2 months ago"]
   D0 --> R5["ROW 5 · A. Reyes-Martin bought a different house"]
   R4 --> E4{"GATE 1 · ENTRY — over 100,000 dollars and under 3 years old?"}
   R5 --> E4
   E4 -.->|"fail"| X4(["a 40,000 dollar token transfer stops here"])
-  E4 -->|"both deeds pass"| S5["STEP 5 · Five rows, sorted into two shapes"]
+
+  E2 -->|"pass"| S5
+  E3 -->|"pass"| S5
+  E4 -->|"both deeds pass"| S5
+  S5["STEP 5 · Five rows, sorted into two shapes"]
 
   S5 -->|"rows 1 and 2 say who she is"| E5{"GATE 2 · IDENTITY — same human?"}
   S5 -->|"rows 3, 4 and 5 say what happened to her"| E6{"GATE 2 · IDENTITY — whose event is this?"}
@@ -301,7 +314,8 @@ flowchart TB
   classDef core fill:#DDECEC,stroke:#0B6B70,stroke-width:2.2px,color:#08383B
   classDef out fill:#0B6B70,stroke:#0B6B70,stroke-width:2.2px,color:#FFFFFF
 
-  class A0,R1,R2,R3,D0,R4,R5 source
+  class A0,R1,R2,R3,D0,R4,R5,SEED source
+  style PAR fill:#EEF4F4,stroke:#0B6B70,stroke-width:1.4px,color:#08383B
   class E1,E2,E3,E4,E5,E6,E7 gate
   class X1,X2,X3,X4,X5,X6,X7 reject
   class Q1,Q2,O1,O2,O3 shape
@@ -317,7 +331,7 @@ flowchart TB
       </div>
     </div>
 
-    <figcaption><strong>Steps 1 to 4 sit on the arrows, not in the boxes.</strong> Fetching a database is an action, and each one names the identifier it used &mdash; so you can see that nothing after row 1 is ever searched for by guesswork. Step 5 is the only fork: the left side <em>merges</em> two records into one person, the right side <em>attaches</em> events to her, and row 5 fails to find an owner.</figcaption>
+    <figcaption><strong>Steps 1 to 4 sit on the arrows, not in the boxes.</strong> Fetching a database is an action, and each one names the identifier it used &mdash; so you can see that nothing after row 1 is ever searched for by guesswork. Only row 1 blocks the others; steps 2 to 4 then run together. Step 5 is the only fork: the left side <em>merges</em> two records into one person, the right side <em>attaches</em> events to her, and row 5 fails to find an owner.</figcaption>
   </figure>
 
   <h2>Where the 87.7 comes from</h2>
