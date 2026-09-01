@@ -143,6 +143,23 @@
   }
   figcaption strong { color: var(--ink); font-weight: 500; }
 
+  /* ---------- saying it out loud ---------- */
+  .talk { margin: 24px 0 0; display: flex; flex-direction: column; gap: 16px; }
+  .talk-step { display: grid; grid-template-columns: 92px 1fr; gap: 16px; align-items: start; }
+  .talk-cue {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--accent); padding-top: 5px; line-height: 1.5;
+  }
+  .talk-say {
+    font-size: 17px; line-height: 1.6; margin: 0; max-width: 60ch;
+    border-left: 2px solid var(--rule); padding-left: 16px;
+  }
+  .talk-say em { color: var(--ink); font-style: normal; font-weight: 600; }
+  .talk-aside {
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.6; color: var(--warn);
+    margin: 8px 0 0; padding-left: 16px; max-width: 60ch;
+  }
+
   .rulebox {
     border-left: 3px solid var(--accent); background: var(--card);
     padding: 18px 22px; margin: 30px 0 0; border-radius: 0 3px 3px 0;
@@ -333,6 +350,103 @@ flowchart TB
 
     <figcaption><strong>Steps 1 to 4 sit on the arrows, not in the boxes.</strong> Fetching a database is an action, and each one names the identifier it used &mdash; so you can see that nothing after row 1 is ever searched for by guesswork. Only row 1 blocks the others; steps 2 to 4 then run together. Step 5 is the only fork: the left side <em>merges</em> two records into one person, the right side <em>attaches</em> events to her, and row 5 fails to find an owner.</figcaption>
   </figure>
+
+  <h2>Saying it out loud</h2>
+  <p class="sub">For walking a colleague through the chart above, one to one. Point at each box as you go.</p>
+
+  <div class="talk">
+    <div class="talk-step">
+      <div class="talk-cue">Set up</div>
+      <div>
+        <p class="talk-say">So this is one doctor going through the whole pipeline. She&rsquo;s made up
+        &mdash; the person isn&rsquo;t real &mdash; but every rule and every number here is the real one
+        from the system. Five rows come in about her, and I&rsquo;ll show you what happens to each.</p>
+      </div>
+    </div>
+
+    <div class="talk-step">
+      <div class="talk-cue">Row 1</div>
+      <div>
+        <p class="talk-say">Everything starts here. This is the only question we make up ourselves
+        &mdash; give me every orthopaedic surgeon in Illinois. That comes back with her NPI, her
+        specialty, and her license number. And those three IDs are what everything else is looked up
+        with.</p>
+      </div>
+    </div>
+
+    <div class="talk-step">
+      <div class="talk-cue">Rows 2&ndash;4</div>
+      <div>
+        <p class="talk-say">So then we go and ask the other three sources, all at the same time. Her
+        license number goes to state licensing, which tells us it was issued eight months ago. Her NPI
+        goes to Medicare, which tells us she bills through her own company. And her surname goes to
+        county property records.</p>
+        <p class="talk-aside">Point out that only the last one uses a name. The first two are exact ID
+        joins, so there&rsquo;s nothing to get wrong.</p>
+      </div>
+    </div>
+
+    <div class="talk-step">
+      <div class="talk-cue">The fork</div>
+      <div>
+        <p class="talk-say">Now this is the only place the chart splits, and it&rsquo;s worth
+        understanding why. Two of those rows describe <em>who she is</em>. Three of them describe
+        <em>something that happened to her</em>. And those two kinds need opposite things done to
+        them.</p>
+      </div>
+    </div>
+
+    <div class="talk-step">
+      <div class="talk-cue">Left side</div>
+      <div>
+        <p class="talk-say">On the left, the two person records get <em>merged</em>. Both of them carry
+        the same license number, so we know for certain it&rsquo;s one human, not two. Two records go in,
+        one person comes out.</p>
+      </div>
+    </div>
+
+    <div class="talk-step">
+      <div class="talk-cue">Right side</div>
+      <div>
+        <p class="talk-say">On the right, the event records <em>attach</em>. They can&rsquo;t create
+        anybody &mdash; each one has to go and find a person who already exists. The Medicare row
+        attaches on her NPI, so no risk there. The first house attaches because the name and state match
+        exactly.</p>
+      </div>
+    </div>
+
+    <div class="talk-step">
+      <div class="talk-cue">Row 5</div>
+      <div>
+        <p class="talk-say">And this is the row I&rsquo;d actually point at. A second deed comes back
+        under Reyes-Martin. Close, but not exact &mdash; so we drop it. It attaches to nobody. Because if
+        we&rsquo;d guessed, we&rsquo;d have put someone else&rsquo;s house on her file and quietly
+        inflated her score, and nobody would ever have caught it.</p>
+        <p class="talk-aside">This is the whole philosophy in one row: a missed signal is safer than a
+        wrong one.</p>
+      </div>
+    </div>
+
+    <div class="talk-step">
+      <div class="talk-cue">The score</div>
+      <div>
+        <p class="talk-say">So four rows survive, they become signals, and the signals become a score.
+        Eighty-seven point seven &mdash; sixty percent from &ldquo;should we care about her&rdquo;, forty
+        percent from &ldquo;why now&rdquo;. And every single point traces back to one of those rows, with
+        the reason it was accepted stored alongside it.</p>
+      </div>
+    </div>
+
+    <div class="talk-step">
+      <div class="talk-cue">If pushed</div>
+      <div>
+        <p class="talk-say">One thing worth saying yourself before anyone asks: she can&rsquo;t reach a
+        hundred, and that&rsquo;s deliberate. Proving somebody <em>moved</em> takes comparing two months
+        of data, so on a first run those points simply can&rsquo;t be earned. Anything above ninety-one
+        means we watched a person change over time.</p>
+      </div>
+    </div>
+  </div>
 
   <h2>Where the 87.7 comes from</h2>
   <p class="sub">Points = the maximum for that row, multiplied by how strong the signal is.</p>
