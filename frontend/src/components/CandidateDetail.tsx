@@ -83,33 +83,37 @@ export default function CandidateDetail({
 
             {/* Trust line: how sure we are these records are one person. */}
             {profile ? (
-              <p className="mt-3 flex flex-wrap items-center gap-2">
-                <span
-                  className={
-                    "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-display text-[12px] font-semibold " +
-                    (profile.identityVerified
-                      ? "bg-tier-strong-bg text-tier-strong-fg"
-                      : "bg-tier-neutral-bg text-tier-neutral-fg")
-                  }
-                >
-                  {profile.identityVerified ? "✓" : "◌"} {profile.identityLine}
-                </span>
+              <>
+                <p className="mt-3">
+                  <span
+                    className={
+                      "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-display text-[12px] font-semibold " +
+                      (profile.identityVerified
+                        ? "bg-tier-strong-bg text-tier-strong-fg"
+                        : "bg-tier-neutral-bg text-tier-neutral-fg")
+                    }
+                  >
+                    {profile.identityVerified ? "✓" : "◌"} {profile.identityLine}
+                  </span>
+                </p>
 
                 {/* The affordance for the whole block, not a control of its own —
-                  it sits inside the summary, so the click is already handled. */}
-                <span className="inline-flex items-center gap-1 font-display text-[12px] font-semibold text-brand opacity-80 transition-opacity group-hover:opacity-100">
+                  it sits inside the summary, so the click is already handled.
+                  On its own line under the pill so it reads as the invitation
+                  to open the record rather than a second badge. */}
+                <p className="mt-3 mb-1 flex w-fit items-center gap-1.5 font-display text-[13px] font-semibold text-brand opacity-80 transition-opacity group-hover:opacity-100">
                   <span className="group-open:hidden">See the records</span>
                   <span className="hidden group-open:inline">
                     Hide the records
                   </span>
                   <span
                     aria-hidden
-                    className="text-[9px] transition-transform group-open:rotate-180"
+                    className="text-[10px] transition-transform group-open:rotate-180"
                   >
                     ▼
                   </span>
-                </span>
-              </p>
+                </p>
+              </>
             ) : null}
           </div>
 
@@ -162,7 +166,6 @@ export default function CandidateDetail({
       {/* ── What changed, and how the score has moved ─── */}
       {dossier && profile ? (
         <CandidateDossier
-          candidate={candidate}
           fieldChanges={dossier.fieldChanges}
           scoreHistory={dossier.scoreHistory}
         />
