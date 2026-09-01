@@ -465,7 +465,7 @@
       <li><b>Start the frontend</b> &mdash; <code>cd frontend &amp;&amp; npm run dev</code>, then open <code>localhost:3000</code>.</li>
       <li><b>Do not run a live ingest on stage.</b> It returns immediately and runs in the background now, but it still calls four government APIs and takes about two minutes; a second start returns 409, and the weekly gate returns 429 unless you pass <code>force=true</code>. Run it beforehand if you want fresh data.</li>
       <li><b>Load the screens in tabs ahead of time</b> so no click waits on a spinner: the board, Rahul Aggarwal, Beth Ann Adams, Smita Aggarwal, and a score breakdown.</li>
-      <li><b>Sanity check</b> &mdash; <code>curl localhost:8000/health</code> returns ok, and <code>pytest -q</code> shows <b>74 passed</b>. Worth having that terminal open if the manager asks.</li>
+      <li><b>Sanity check</b> &mdash; <code>curl localhost:8000/health</code> returns ok, and <code>pytest -q</code> shows <b>76 passed</b>. Worth having that terminal open if the manager asks.</li>
       <li><b>Know your top name.</b> Rahul Aggarwal is rank 1 and carries the whole thesis: Illinois license two months ago, a $1,100,000 house two months ago. If the board has been re-ingested, check who is on top before you walk in.</li>
       <li><b>Agree the handoff line.</b> Each speaker ends by naming the next person. It sounds rehearsed because it is.</li>
     </ul>
@@ -566,7 +566,7 @@
           carries her own name, so she almost certainly owns it. Nobody routes their income through a
           stranger&rsquo;s company that happens to be named after them.
         </p>
-        <div class="guard"><span class="tag">Careful</span><span>She is a strong <b>ownership</b> example and a weak <b>timing</b> one &mdash; licensed seventeen years ago, timing score 5.5. Do not present her as somebody about to become wealthy. If you need a line: &ldquo;high fit, no recent trigger &mdash; which is exactly why she sits at eleven and not at one.&rdquo;</span></div>
+        <div class="guard"><span class="tag">Careful</span><span>She is a strong <b>ownership</b> example and a weak <b>timing</b> one &mdash; licensed seventeen years ago, timing score 5.5. Do not present her as somebody about to become wealthy; her chip reads &ldquo;Owns practice&rdquo;, not &ldquo;new&rdquo;, because we have no date for it. If you need a line: &ldquo;high fit, no recent trigger &mdash; which is exactly why she sits at eleven and not at one.&rdquo;</span></div>
       </div>
 
       <div class="beat">
@@ -580,7 +580,7 @@
           That is the whole product &mdash; this isn&rsquo;t a rich list, it&rsquo;s a timing engine.
         </p>
         <div class="note"><span class="tag">Note</span><span>If you only land one beat, land this one. It kills &ldquo;so it&rsquo;s just a wealthy-people filter&rdquo; before anyone says it out loud.</span></div>
-        <div class="guard"><span class="tag">Numbers</span><span>Rahul 62.0 total, 71.5 timing. Smita 48.7 total, 14.5 timing. If you would rather contrast timing alone, James Abraham&rsquo;s $672,500 ten months ago scores 31.0 timing against Smita&rsquo;s 14.5 &mdash; but his <b>total</b> is lower than hers, so never say &ldquo;he scores higher&rdquo; about those two.</span></div>
+        <div class="guard"><span class="tag">Numbers</span><span>Rahul 62.0 total, 71.5 timing. Smita 48.7 total, 14.5 timing. If you would rather contrast timing alone, James Mathai Abraham&rsquo;s $672,500 ten months ago scores 31.0 timing against Smita&rsquo;s 14.5 &mdash; but his <b>total</b> is lower than hers, so never say &ldquo;he scores higher&rdquo; about those two.</span></div>
       </div>
 
       <div class="beat">
@@ -695,7 +695,7 @@
         </p>
         <div class="note"><span class="tag">Note</span><span>Pause after that second rule. It should sound like a design principle, not a technical limitation.</span></div>
         <p class="say">
-          Seventy-four automated tests, all passing. Four government APIs, all free. Our data cost today is
+          Seventy-six automated tests, all passing. Four government APIs, all free. Our data cost today is
           zero.
         </p>
         <div class="note" data-kind="cut"><span class="tag">Cut first</span><span>Drop the test count if you are over &mdash; but keep &ldquo;our data cost today is zero.&rdquo; Managers remember that one.</span></div>
@@ -753,6 +753,10 @@
     <div class="qa-item">
       <p class="qa-q">&ldquo;Why sixty-forty?&rdquo;</p>
       <p class="qa-a">Say this on slide 7 before it gets asked. They are transparent prototype weights, set so fit outranks timing &mdash; a strong prospect at an average moment still matters more than a weak one at a perfect moment. In production they would be calibrated against advisor outcomes, which is why we already store every good-fit and not-a-fit verdict.</p>
+    </div>
+    <div class="qa-item">
+      <p class="qa-q">&ldquo;That dermatologist is nineteen years in and owns her practice &mdash; surely she already has an advisor?&rdquo;</p>
+      <p class="qa-a">Probably, yes &mdash; and the tool agrees with you: her timing score is 5.5 out of 100. She ranks on <b>fit</b>, not on timing. The honest limitation underneath it is that the ownership signal comes from Medicare billing, which records who is paid today and carries <b>no formation date</b>, so we cannot yet tell a practice formed last month from one formed in 2006. That is a known gap with a written-up fix &mdash; the state business registry supplies formation dates. Meanwhile the <em>top</em> of the board is driven by timing, which is why Rahul Aggarwal is first and she is eleventh.</p>
     </div>
     <div class="qa-item">
       <p class="qa-q">&ldquo;Why is nobody scoring above sixty-something?&rdquo;</p>

@@ -247,8 +247,11 @@ const TRIGGERS: { type: string; label: string; hint: string; hot?: boolean }[] =
   [
     {
       type: "OWNERSHIP",
-      label: "New practice",
-      hint: "Bills Medicare under their own entity — they went independent.",
+      label: "Owns practice",
+      // "New practice" and "went independent" both asserted a recent switch.
+      // PECOS records who is paid today and carries no formation date, so we
+      // cannot date this — see docs/OWNERSHIP_TENURE_BIAS.md.
+      hint: "Bills Medicare under their own entity. The billing record carries no formation date, so we cannot say when.",
       hot: true,
     },
     {
