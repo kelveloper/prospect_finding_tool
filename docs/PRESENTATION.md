@@ -123,7 +123,7 @@ Data Sources — all live, free, no API keys
 3. ATTACH ENRICHMENT    billing entities / deeds / career events bind to a
                         person, on exact NPI or exact-name-and-state only
         ▼
-4. DETECT SIGNALS       six signal types, each with a strength and a confidence
+4. DETECT SIGNALS       seven signal types, each with a strength and a confidence
         ▼
 5. SCORE                Qualification (60%) + Timing (40%)
         ▼
@@ -423,7 +423,7 @@ a *monitoring* system rather than a one-shot report.
 | `DetectedSignal` | A signal before persistence: type, source, description, strength, confidence, event date |
 | `ScoreBreakdown` / component list | The two sub-scores and total; and the per-component contribution list the UI renders as bars |
 
-### 5.2 The six signal types — all six live
+### 5.2 The seven signal types — all seven live
 
 | Signal | Meaning | Source | Confidence |
 |---|---|---|---|

@@ -269,7 +269,7 @@
         <!-- BAND 5: SIGNALS -->
         <text class="t-band" x="12" y="464">5 · SIGNALS</text>
         <rect class="node" x="12" y="474" width="628" height="70" rx="2"></rect>
-        <text class="t"    x="26" y="498">Turn facts into six scoreable signals</text>
+        <text class="t"    x="26" y="498">Turn facts into seven scoreable signals</text>
         <text class="t-sm" x="26" y="517">physician · specialty · new license</text>
         <text class="t-sm" x="26" y="532">owns a practice · bought property · career move</text>
         <text class="t-lbl" x="470" y="517">each rated 0 to 1</text>
@@ -448,21 +448,22 @@
         <div class="stage-num">05</div>
         <div class="stage-body">
           <h3><span class="verb">Signals</span> — turning facts into things you can score</h3>
-          <p>The merged profile is read for six specific signals, each rated from 0 to 1 on how strong it is. No signal means no points — the system never guesses at a missing fact.</p>
+          <p>The merged profile is read for seven specific signals, each rated from 0 to 1 on how strong it is. No signal means no points — the system never guesses at a missing fact.</p>
         </div>
       </li>
     </ol>
 
     <div class="table-scroll">
       <table>
-        <caption>The six signals</caption>
+        <caption>The seven signals</caption>
         <thead>
           <tr><th scope="col">Signal</th><th scope="col">In plain English</th><th scope="col">Comes from</th></tr>
         </thead>
         <tbody>
           <tr><td>Physician</td><td>They really are a licensed doctor</td><td>NPI + IL licensing</td></tr>
           <tr><td>Specialty</td><td>How well their specialty pays</td><td>NPI Registry</td></tr>
-          <tr><td>New license</td><td>How recently they started practising</td><td>IL licensing + NPI</td></tr>
+          <tr><td>New license</td><td>How recently they were licensed in Illinois</td><td>IL licensing</td></tr>
+          <tr><td>Practice entry</td><td>How recently they entered practice at all</td><td>NPI Registry (enumeration date)</td></tr>
           <tr><td>Owns a practice</td><td>They bill Medicare through their own company</td><td>Medicare billing</td></tr>
           <tr><td>Bought property</td><td>They just made a large purchase</td><td>County deeds</td></tr>
           <tr><td>Career move</td><td>They changed employer or went independent</td><td>Comparing this month's billing data to last month's</td></tr>

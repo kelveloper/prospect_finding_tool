@@ -309,12 +309,12 @@ flowchart TB
   E6 -->|"row 3 by NPI, row 4 by exact name, so ATTACH"| S6
 
   M1 --> S6["STEP 6 · One profile — 4 rows kept, each logged with its match reason"]
-  S6 --> S7["STEP 7 · Signals — physician, orthopaedics, new license, owns practice, bought property"]
+  S6 --> S7["STEP 7 · Signals — physician, orthopaedics, new license, practice entry, owns practice, bought property"]
 
   S7 --> E7{"GATE 3 · DERIVATION — strong enough to claim?"}
   E7 -.->|"career move needs a second monthly snapshot"| X7(["not claimed on her dossier"])
-  E7 -->|"5 of 6 signals pass"| Q1["Should we care? · physician 40 + orthopaedics 35 + own PLLC 20 = 95"]
-  E7 -->|"5 of 6 signals pass"| Q2["Why now? · license 34 + property 30 + practice entry 12.8 = 76.8"]
+  E7 -->|"6 of 7 signals pass"| Q1["Should we care? · physician 40 + orthopaedics 35 + own PLLC 20 = 95"]
+  E7 -->|"6 of 7 signals pass"| Q2["Why now? · license 34 + property 30 + practice entry 12.8 = 76.8"]
 
   Q1 -->|"95 × 0.60 = 57.0"| T1
   Q2 -->|"76.8 × 0.40 = 30.7"| T1
