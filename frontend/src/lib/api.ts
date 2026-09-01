@@ -31,6 +31,7 @@ type ApiRanked = {
   specialty: string | null;
   state: string | null;
   city: string | null;
+  address_state: string | null;
   score: number;
   qualification_score: number;
   timing_score: number;
@@ -299,8 +300,10 @@ function toTrigger(
 function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
   const { tier, label } = tierFromScore(p.score);
   const specialty = p.specialty ?? "Physician";
+  // Prefer the practice address's own state; `p.state` is only the state we
+  // searched, so pairing it with a city from elsewhere invents a place.
   const location = p.city
-    ? `${p.city}, ${p.state ?? ""}`.replace(/, $/, "")
+    ? `${p.city}, ${p.address_state ?? p.state ?? ""}`.replace(/, $/, "")
     : p.state
       ? `${STATE_NAMES[p.state] ?? p.state}, ${p.state}`
       : "Location unknown";

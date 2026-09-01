@@ -32,6 +32,11 @@ class RankedProspect(BaseModel):
     specialty: str | None
     state: str | None
     city: str | None
+    # The practice address's own state. `state` above is the state we queried
+    # NPPES with, and a physician can be licensed in one state and practise in
+    # another — pairing their city with `state` prints a place that does not
+    # exist. See docs/KNOWN_GAPS.md.
+    address_state: str | None = None
     score: float = Field(validation_alias="total_score")
     qualification_score: float
     timing_score: float

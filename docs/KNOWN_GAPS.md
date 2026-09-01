@@ -37,16 +37,21 @@ practising in Illinois is **183**.
 to the practice address. For these 36 that address is out of state, while the
 board has just called them an Illinois prospect.
 
-**Options**
-1. Fix the display: show the practice address's own state, or show licence state
-   and practice state as separate fields. Cheapest, and stops the invented city.
-2. Decide what the book is *for*. If it is an Illinois book, filter on
-   `address_state`. If an Illinois-licensed book, say that on the board and in
-   the script instead of "Illinois doctors".
-3. Leave the rule, fix the words. Both `README.md` and the run of show currently
-   say "Illinois physicians" without qualification.
+**Status: the display half is fixed.** `RankedProspect` now carries
+`address_state`, and the board prefers it over the queried state — matching what
+the detail view already did. All 36 rows now read their real state: Boston MA,
+Lehi UT, Davis CA, Columbia SC.
 
-**Recommend 1 and 3 now, 2 as a product decision.**
+**Still open, and a product decision.** What is the book *for*?
+
+1. If it is an **Illinois book**, filter on `address_state` and it holds 183.
+2. If it is an **Illinois-licensed book**, say that on the board and in the
+   script. Both `README.md` and the run of show still say "Illinois physicians"
+   without qualification, and the demo says "two hundred and nineteen real
+   Illinois doctors" — which is loose either way.
+
+An Illinois licence is a real signal wherever someone practises, so the current
+rule is defensible. The words around it are what need to change.
 
 ---
 
