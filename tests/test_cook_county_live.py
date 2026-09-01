@@ -59,6 +59,6 @@ def test_skips_blank_buyers_and_mononyms():
 
 
 def test_batches_names():
-    src, calls = _source([], names=[(f"F{i}", f"L{i}") for i in range(60)])
+    src, calls = _source([], names=[(f"F{i}", f"L{i}") for i in range(250)])
     list(src.fetch())
-    assert len(calls) == 3  # 60 names / 25 per batch
+    assert len(calls) == 3  # 250 names / 100 per batch

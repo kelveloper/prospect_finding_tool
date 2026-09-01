@@ -11,6 +11,7 @@ EnrichmentRecords (NPI-keyed, attach at confidence 1.0):
   "Smith Orthopedics PLLC" — corroborates the business-registry signal.
 """
 import re
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import date
 
@@ -48,8 +49,12 @@ class PECOSService:
         if not npis:
             return [], PECOSSyncResult(0, 0, 0, 0)
 
-        groups = self.client.group_reassignments(npis)
-        facilities = self.client.facility_affiliations(npis)
+        # Two independent CMS datasets — fetch them side by side
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            groups_future = pool.submit(self.client.group_reassignments, npis)
+            facilities_future = pool.submit(self.client.facility_affiliations, npis)
+            groups = groups_future.result()
+            facilities = facilities_future.result()
 
         current: dict[str, list[tuple[str, str, str]]] = {}  # npi -> [(kind, key, name)]
         for g in groups:

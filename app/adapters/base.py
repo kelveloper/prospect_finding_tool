@@ -4,10 +4,35 @@ New sources (property records, entity registries, other state boards) are
 added by subclassing BaseDataSource — the identity/scoring layers never
 change (spec: extensibility NFR).
 """
+import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import date
 from typing import Iterable
+
+import httpx
+
+THROTTLE_SECONDS = 0.25
+
+
+def polite_get_json(url: str, params: dict, timeout: float) -> dict | list:
+    """The shared fetch for every keyless public API: throttled to stay
+    polite, and one retry on a timeout or 5xx so a single slow response
+    doesn't kill a whole sweep — these free endpoints hiccup routinely."""
+    last_exc: Exception | None = None
+    for attempt in range(2):
+        time.sleep(THROTTLE_SECONDS * (attempt + 1))
+        try:
+            response = httpx.get(url, params=params, timeout=timeout)
+            response.raise_for_status()
+            return response.json()
+        except (httpx.TimeoutException, httpx.TransportError) as exc:
+            last_exc = exc
+        except httpx.HTTPStatusError as exc:
+            if exc.response.status_code < 500:
+                raise
+            last_exc = exc
+    raise last_exc  # type: ignore[misc]
 
 
 @dataclass(frozen=True)

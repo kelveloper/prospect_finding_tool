@@ -15,13 +15,17 @@ from app.schemas import (
 )
 from app.models import IngestRun
 from app.services.live_ingest import (
+    ingest_is_running,
+    last_ingest_error,
     next_sweep_due_at,
     run_live_ingest,
+    start_background_ingest,
     sweep_is_due,
 )
 from app.schemas.api import (
     ContactKitOut,
     FunnelBandOut,
+    IngestStarted,
     IngestStatusOut,
     OutreachEventIn,
     OutreachEventOut,
@@ -34,7 +38,7 @@ from app.services import RankingService
 router = APIRouter()
 
 
-@router.post("/ingest/run", response_model=IngestResult)
+@router.post("/ingest/run", response_model=IngestResult | IngestStarted)
 def run_ingestion(
     state: str = Query(default="IL", min_length=2, max_length=2),
     limit: int = Query(default=25, ge=1, le=200, description="per specialty"),
@@ -52,6 +56,14 @@ def run_ingestion(
         default=False,
         description="Bypass the weekly gate (the nav's test sweep uses this)",
     ),
+    wait: bool = Query(
+        default=False,
+        description=(
+            "Run the sweep in this request and return the full result "
+            "(tests and the empty-database bootstrap); by default it runs "
+            "in the background and completion shows in /ingest/status"
+        ),
+    ),
     db: Session = Depends(get_db),
 ):
     # Weekly cadence gate — the data sources barely move faster than this,
@@ -62,13 +74,19 @@ def run_ingestion(
             status_code=429,
             detail=f"Weekly sweep already ran; next unlock {due:%Y-%m-%d %H:%M} UTC",
         )
-    try:
-        result = run_live_ingest(
-            db, state=state, limit=limit, new_within_months=new_within_months
-        )
-    except httpx.HTTPError as exc:
-        raise HTTPException(status_code=502, detail=f"External API error: {exc}")
-    return IngestResult(**result.__dict__)
+    if wait:
+        try:
+            result = run_live_ingest(
+                db, state=state, limit=limit, new_within_months=new_within_months
+            )
+        except httpx.HTTPError as exc:
+            raise HTTPException(status_code=502, detail=f"External API error: {exc}")
+        return IngestResult(**result.__dict__)
+    if not start_background_ingest(
+        state=state, limit=limit, new_within_months=new_within_months
+    ):
+        raise HTTPException(status_code=409, detail="A sweep is already running")
+    return IngestStarted()
 
 
 @router.get("/ingest/status", response_model=IngestStatusOut)
@@ -83,6 +101,8 @@ def ingest_status(db: Session = Depends(get_db)):
         prospects_created=last.prospects_created if last else None,
         prospects_updated=last.prospects_updated if last else None,
         stale_summaries=stale,
+        running=ingest_is_running(),
+        last_error=last_ingest_error(),
     )
 
 

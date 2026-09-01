@@ -183,26 +183,6 @@ function tenure(from: string | null): string {
   return `${years} Year${years === 1 ? "" : "s"}`;
 }
 
-function strengthWord(qualification: number): string {
-  return qualification >= 80 ? "High" : qualification >= 55 ? "Medium" : "Low";
-}
-
-// The three dossier categories and the signal types that feed each one
-const CATEGORY_SIGNALS: { label: string; types: string[] }[] = [
-  {
-    label: "Profession",
-    types: [
-      "PHYSICIAN",
-      "SPECIALTY",
-      "PRACTICE_ENTRY",
-      "NEW_LICENSE",
-      "CAREER_ADVANCEMENT",
-    ],
-  },
-  { label: "Ownership", types: ["OWNERSHIP"] },
-  { label: "Financial", types: ["PROPERTY_EVENT"] },
-];
-
 /** Advisor-facing name for each signal, in the order the detector lists them.
  *  Keep in step with SIGNAL_TYPES in app/scoring/detector.py. */
 const SIGNAL_LABELS: [string, string][] = [
@@ -277,15 +257,6 @@ function toTrigger(signalTypes: string[]): Candidate["trigger"] {
     : null;
 }
 
-function toCategories(signalTypes: string[]): Candidate["categories"] {
-  const present = new Set(signalTypes);
-  return CATEGORY_SIGNALS.map(({ label, types }) => ({
-    label,
-    captured: types.filter((t) => present.has(t)).length,
-    total: types.length,
-  }));
-}
-
 function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
   const { tier, label } = tierFromScore(p.score);
   const specialty = p.specialty ?? "Physician";
@@ -295,49 +266,11 @@ function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
       ? `${STATE_NAMES[p.state] ?? p.state}, ${p.state}`
       : "Location unknown";
 
-  const tags: string[] = [];
-  if (detail) {
-    if ((detail.license_status ?? "").toUpperCase() === "ACTIVE")
-      tags.push("Active License");
-    if (
-      detail.signals.some(
-        (s) => s.signal_type === "NEW_LICENSE" && s.strength >= 0.85,
-      )
-    )
-      tags.push("Recently Licensed");
-    if (
-      detail.signals.some(
-        (s) => s.signal_type === "SPECIALTY" && s.strength >= 0.75,
-      )
-    )
-      tags.push("High-Earning Specialty");
-    if (detail.signals.some((s) => s.signal_type === "OWNERSHIP"))
-      tags.push("Practice Owner");
-    if (
-      detail.signals.some(
-        (s) => s.signal_type === "PROPERTY_EVENT" && s.strength >= 0.6,
-      )
-    )
-      tags.push("Recent Property Purchase");
-    if (
-      detail.signals.some(
-        (s) => s.signal_type === "CAREER_ADVANCEMENT" && s.strength >= 0.5,
-      )
-    )
-      tags.push("Career Advancement");
-    if (detail.identity_confidence >= 0.9) tags.push("Identity Verified");
-    if (detail.npi && !detail.license_number) tags.push("License Unverified");
-  } else {
-    if (p.qualification_score >= 80) tags.push("Well Qualified");
-    if (p.timing_score >= 70) tags.push("Strong Timing");
-  }
-
   return {
     id: p.id,
     name: p.name,
     initials: initialsOf(p.name),
     specialty,
-    practiceLine: `${specialty} — ${location}`,
     category: specialty,
     location,
     score: p.score,
@@ -346,10 +279,11 @@ function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
     qualificationScore: p.qualification_score,
     timingScore: p.timing_score,
     licenseHeld: tenure(detail?.license_issue_date ?? null),
-    strength: strengthWord(p.qualification_score),
-    summary:
-      p.advisor_summary ?? p.reason_summary ?? "No signals recorded yet.",
-    tags,
+    // Ranked rows skip the summary — the detail fetch brings it when the
+    // panel actually shows it, and the board sheds ~300KB of prose.
+    summary: detail
+      ? (p.advisor_summary ?? p.reason_summary ?? "No signals recorded yet.")
+      : undefined,
     trigger: toTrigger(
       detail
         ? detail.signals.map((sig) => sig.signal_type)
@@ -358,11 +292,6 @@ function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
     evidence: toEvidence(
       detail
         ? detail.signals.map((sig) => sig.signal_type)
-        : (p.signal_types ?? []),
-    ),
-    categories: toCategories(
-      detail
-        ? detail.signals.map((s) => s.signal_type)
         : (p.signal_types ?? []),
     ),
     scoreChange: p.score_change ?? null,
@@ -599,7 +528,9 @@ export async function fetchCandidateCount(): Promise<number | undefined> {
 export async function fetchRankedCandidates(): Promise<Candidate[]> {
   let ranked = await fetchRanked();
   if (ranked.length === 0) {
-    await api("/ingest/run", { method: "POST" });
+    // wait=true: this bootstrap needs the data in hand for the refetch
+    // below — everywhere else the sweep runs in the background.
+    await api("/ingest/run?wait=true", { method: "POST" });
     // Bypass the cache here — the empty board was just cached for a minute,
     // and a render pass is not allowed to revalidate the tag itself.
     ranked = await api<ApiRanked[]>(RANKED_PATH);
@@ -683,6 +614,10 @@ export type IngestStatus = {
   prospectsCreated: number | null;
   prospectsUpdated: number | null;
   staleSummaries: number;
+  /** A background sweep is in flight right now. */
+  running: boolean;
+  /** Why the last background sweep produced no run, if it failed. */
+  lastError: string | null;
 };
 
 /** Latest ingest run + stale-summary count; null when the API is down. */
@@ -694,6 +629,8 @@ export async function fetchIngestStatus(): Promise<IngestStatus | null> {
       prospects_created: number | null;
       prospects_updated: number | null;
       stale_summaries: number;
+      running: boolean;
+      last_error: string | null;
     }>("/ingest/status");
     return {
       lastRunAt: s.last_run_at,
@@ -701,6 +638,8 @@ export async function fetchIngestStatus(): Promise<IngestStatus | null> {
       prospectsCreated: s.prospects_created,
       prospectsUpdated: s.prospects_updated,
       staleSummaries: s.stale_summaries,
+      running: s.running,
+      lastError: s.last_error,
     };
   } catch {
     return null;

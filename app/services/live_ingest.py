@@ -5,6 +5,8 @@ The weekly gate simply keeps the main Refresh Data button honest — it
 unlocks 7 days after the last recorded run (matching NPPES's weekly
 update rhythm); the test sweep bypasses the gate explicitly.
 """
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
@@ -33,22 +35,44 @@ def run_live_ingest(
     """Pull all four sources, upsert the book, record the run, and give
     every summary-less newcomer a composed narrative. Raises httpx errors
     to the caller."""
-    # Phase 1: real physicians from NPPES. Phase 2: verify their
-    # licenses against real IDFPR data, queried by license number.
+    # Phase 1: real physicians from NPPES — the seed every other source
+    # is keyed off, so it has to finish first.
     nppes = NPPESDataSource(state=state, limit_per_specialty=limit)
     records = list(nppes.fetch())
-    if state.upper() == "IL":
-        licenses = [r.license_number for r in records if r.license_number]
-        records += list(IDFPRLiveDataSource(license_numbers=licenses).fetch())
-    # PECOS: career moves + ownership inference, keyed by NPI
+    licenses = [r.license_number for r in records if r.license_number]
     npi_names = {r.npi: (r.first_name, r.last_name) for r in records if r.npi}
-    pecos_records, _ = PECOSService(db).sync(npi_names)
-    records += pecos_records
-    # Cook County deeds: property purchases by our physicians' names
-    if state.upper() == "IL":
-        records += list(
-            CookCountyLiveDataSource(buyer_names=npi_names.values()).fetch()
+
+    # Phase 2: the three enrichment sources are independent of one another,
+    # so they run side by side — the sweep now costs NPPES plus the slowest
+    # single source instead of the sum of all four. Only the PECOS branch
+    # touches the session, so the shared `db` is never used concurrently.
+    is_il = state.upper() == "IL"
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        idfpr_future = (
+            pool.submit(
+                lambda: list(IDFPRLiveDataSource(license_numbers=licenses).fetch())
+            )
+            if is_il
+            else None
         )
+        cook_future = (
+            pool.submit(
+                lambda: list(
+                    CookCountyLiveDataSource(buyer_names=npi_names.values()).fetch()
+                )
+            )
+            if is_il
+            else None
+        )
+        pecos_future = pool.submit(PECOSService(db).sync, npi_names)
+
+        # Merged in the order the serial sweep used: idfpr, pecos, cook
+        if idfpr_future:
+            records += idfpr_future.result()
+        pecos_records, _ = pecos_future.result()
+        records += pecos_records
+        if cook_future:
+            records += cook_future.result()
     result = IngestionPipeline(sources=[]).run(
         db, records=records, new_within_months=new_within_months
     )
@@ -72,6 +96,53 @@ def run_live_ingest(
             apply_summary(prospect, compose(prospect), source="composed")
     db.commit()
     return result
+
+
+# ── Background execution ─────────────────────────────────────
+# One sweep at a time, process-wide. The UI polls /ingest/status, which
+# reports `running`/`last_error` from here, and notices completion by the
+# new IngestRun row — so the POST can return the moment the sweep starts.
+_ingest_lock = threading.Lock()
+_ingest_state: dict = {"running": False, "error": None}
+
+
+def ingest_is_running() -> bool:
+    return _ingest_state["running"]
+
+
+def last_ingest_error() -> str | None:
+    return _ingest_state["error"]
+
+
+def start_background_ingest(
+    state: str = "IL",
+    limit: int = 200,
+    new_within_months: int | None = 6,
+) -> bool:
+    """Kick off a sweep on a worker thread with its own session. Returns
+    False when one is already in flight — never two sweeps at once."""
+    with _ingest_lock:
+        if _ingest_state["running"]:
+            return False
+        _ingest_state["running"] = True
+        _ingest_state["error"] = None
+
+    def _worker() -> None:
+        from app.database import SessionLocal
+
+        db = SessionLocal()
+        try:
+            run_live_ingest(
+                db, state=state, limit=limit, new_within_months=new_within_months
+            )
+        except Exception as exc:  # surfaced via /ingest/status, not a response
+            _ingest_state["error"] = f"{type(exc).__name__}: {exc}"
+        finally:
+            db.close()
+            _ingest_state["running"] = False
+
+    threading.Thread(target=_worker, name="live-ingest", daemon=True).start()
+    return True
 
 
 def next_sweep_due_at(db: Session) -> datetime | None:

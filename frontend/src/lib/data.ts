@@ -5,8 +5,6 @@ export type Candidate = {
   name: string;
   initials: string;
   specialty: string;
-  /** Longer form shown on the scoreboard detail panel. */
-  practiceLine: string;
   category: string;
   location: string;
   score: number;
@@ -16,9 +14,9 @@ export type Candidate = {
   timingScore: number;
   /** Human-readable license tenure, e.g. "8 Months" — "—" when unknown. */
   licenseHeld: string;
-  strength: string;
-  summary: string;
-  tags: string[];
+  /** Only present on detail-fetched candidates — ranked rows leave it out
+   *  so ~1,200 paragraphs don't ride along on every board load. */
+  summary?: string;
   /** The event worth calling about, if anything recent happened. */
   trigger: { label: string; hint: string; hot: boolean } | null;
   /** How many of the seven signals were found, and which. */
@@ -28,8 +26,6 @@ export type Candidate = {
     total: number;
     signals: { label: string; present: boolean }[];
   };
-  /** Signal coverage per category — the scoreboard quick overview. */
-  categories: { label: string; captured: number; total: number }[];
   /** Points moved since the previous ingest; null until two snapshots exist. */
   scoreChange: number | null;
   isNew: boolean;
