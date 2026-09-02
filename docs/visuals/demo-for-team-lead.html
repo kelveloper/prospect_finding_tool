@@ -107,6 +107,18 @@
   th,td { text-align:left; padding:8px 10px 8px 0; border-bottom:1px solid var(--rule); }
   th { font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); font-weight:600; }
   td b { font-weight:600; }
+  /* the simple diagram */
+  .simple { background:var(--surface); border:1px solid var(--rule);
+            border-radius:10px; padding:18px 14px; margin:0 0 12px; overflow-x:auto; }
+  .simple svg { display:block; width:100%; min-width:520px; height:auto; color:var(--ink); }
+  .sd-box { fill:var(--surface); stroke:currentColor; stroke-width:1.4; }
+  .sd-src { fill:none; stroke:var(--ink-3); stroke-width:1.2; }
+  .sd-key { fill:var(--say-bg); stroke:var(--say); stroke-width:1.8; }
+  .sd-out { fill:var(--ok-bg); stroke:var(--ok); stroke-width:1.8; }
+  .sd-line { stroke:var(--ink-3); stroke-width:1.4; fill:none; }
+  .sd-t { font-family:var(--sans); font-size:13px; font-weight:600; fill:var(--ink); }
+  .sd-s { font-family:var(--mono); font-size:10.5px; fill:var(--ink-3); }
+  .sd-n { font-family:var(--mono); font-size:10px; letter-spacing:.1em; fill:var(--ink-3); }
   footer { margin-top:44px; padding-top:16px; border-top:1px solid var(--rule);
            font-family:var(--mono); font-size:12px; color:var(--ink-3); }
 </style>
@@ -285,6 +297,65 @@
   </details>
 
   <h2>4 &middot; Only if he asks how it is built</h2>
+
+  <p style="font-size:15.5px;color:var(--ink-2);margin:0 0 12px;">Show <b>this</b> first, not the full diagram. Four boxes, about twenty seconds. You can draw it on a whiteboard from memory.</p>
+
+  <div class="simple">
+    <svg viewBox="0 0 780 250" role="img" aria-label="Four public data sources feed into working out who is the same person, then scoring what changed recently, producing a ranked list for the advisor.">
+      <defs>
+        <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="currentColor"></path>
+        </marker>
+      </defs>
+
+      <text class="sd-n" x="8" y="14">PUBLIC DATA</text>
+      <rect class="sd-src" x="8"  y="24" width="176" height="34" rx="5"></rect>
+      <text class="sd-t"  x="20" y="45">Doctor registry</text>
+      <rect class="sd-src" x="8"  y="66" width="176" height="34" rx="5"></rect>
+      <text class="sd-t"  x="20" y="87">State licensing</text>
+      <rect class="sd-src" x="8"  y="108" width="176" height="34" rx="5"></rect>
+      <text class="sd-t"  x="20" y="129">Medicare billing</text>
+      <rect class="sd-src" x="8"  y="150" width="176" height="34" rx="5"></rect>
+      <text class="sd-t"  x="20" y="171">Property records</text>
+
+      <path class="sd-line" d="M184 41 L214 41 L214 104 L244 104" marker-end="url(#a)"></path>
+      <path class="sd-line" d="M184 83 L214 83 L214 104 L244 104"></path>
+      <path class="sd-line" d="M184 125 L214 125 L214 104 L244 104"></path>
+      <path class="sd-line" d="M184 167 L214 167 L214 104 L244 104"></path>
+
+      <text class="sd-n" x="244" y="72">STEP 1</text>
+      <rect class="sd-key" x="244" y="82" width="164" height="46" rx="6"></rect>
+      <text class="sd-t"  x="258" y="102">Who is who?</text>
+      <text class="sd-s"  x="258" y="119">match the same person</text>
+
+      <line class="sd-line" x1="408" y1="105" x2="446" y2="105" marker-end="url(#a)"></line>
+
+      <text class="sd-n" x="446" y="72">STEP 2</text>
+      <rect class="sd-key" x="446" y="82" width="164" height="46" rx="6"></rect>
+      <text class="sd-t"  x="460" y="102">What changed?</text>
+      <text class="sd-s"  x="460" y="119">and how recently</text>
+
+      <line class="sd-line" x1="610" y1="105" x2="648" y2="105" marker-end="url(#a)"></line>
+
+      <text class="sd-n" x="612" y="72">OUT</text>
+      <rect class="sd-out" x="612" y="140" width="160" height="46" rx="6"></rect>
+      <text class="sd-t"  x="626" y="160">Ranked list</text>
+      <text class="sd-s"  x="626" y="177">best first, with reasons</text>
+      <path class="sd-line" d="M648 105 L692 105 L692 140" marker-end="url(#a)"></path>
+
+      <text class="sd-s" x="244" y="212">Two rows are the same doctor if the</text>
+      <text class="sd-s" x="244" y="228">license number or the name matches exactly.</text>
+      <text class="sd-s" x="446" y="212">A license from two months ago is</text>
+      <text class="sd-s" x="446" y="228">worth far more than one from 2008.</text>
+    </svg>
+  </div>
+
+  <div class="say">
+    <p>Four public sources go in. First we work out which records are the same human &mdash; that is the hard part, and we drop anything we cannot prove. Then we look at what changed for that person and how recently. And out comes a ranked list, with the reason attached to each name.</p>
+  </div>
+
+  <p style="font-size:15.5px;color:var(--ink-2);margin:18px 0 10px;"><b>Only if he wants more than that</b> &mdash; then open the full diagram.</p>
+
   <div class="card">
     <p style="margin:0 0 10px;font-size:15.5px;">Open <b>One Doctor, End to End</b> and use the &ldquo;Saying it out loud&rdquo; section at the bottom. Two things to say first, because both confused a reader:</p>
     <ul>
