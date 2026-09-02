@@ -1,0 +1,301 @@
+<title>Team Lead Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap">
+<style>
+  :root {
+    color-scheme: light;
+    --ground:#F4F6F8; --surface:#FFFFFF; --sunk:#ECEFF3;
+    --ink:#14181F; --ink-2:#4A5361; --ink-3:#7A8492;
+    --rule:#DDE2E9; --rule-2:#C7CED8;
+    --say:#0B5FA5; --say-bg:#EDF4FB; --say-rule:#B6D3EC;
+    --do:#6B4E12; --do-bg:#FBF4E4; --do-rule:#E3CE95;
+    --warn:#9E2F1B; --warn-bg:#FBEDEA; --warn-rule:#EFC3B8;
+    --ok:#186A47; --ok-bg:#E9F5EF;
+    --sans:"IBM Plex Sans",system-ui,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
+    --serif:"Newsreader",Georgia,serif;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --ground:#0D1117; --surface:#161B22; --sunk:#1C232C;
+    --ink:#E6EDF3; --ink-2:#AEB9C4; --ink-3:#7D8894;
+    --rule:#2A323C; --rule-2:#3A434F;
+    --say:#8FC4F0; --say-bg:#12283C; --say-rule:#2C4A67;
+    --do:#E0C177; --do-bg:#2C2513; --do-rule:#4E4326;
+    --warn:#F0A08C; --warn-bg:#33201B; --warn-rule:#5C332A;
+    --ok:#7FD3A8; --ok-bg:#14291F;
+  }}
+  :root[data-theme="dark"]{
+    --ground:#0D1117; --surface:#161B22; --sunk:#1C232C;
+    --ink:#E6EDF3; --ink-2:#AEB9C4; --ink-3:#7D8894;
+    --rule:#2A323C; --rule-2:#3A434F;
+    --say:#8FC4F0; --say-bg:#12283C; --say-rule:#2C4A67;
+    --do:#E0C177; --do-bg:#2C2513; --do-rule:#4E4326;
+    --warn:#F0A08C; --warn-bg:#33201B; --warn-rule:#5C332A;
+    --ok:#7FD3A8; --ok-bg:#14291F;
+  }
+
+  body { background:var(--ground); color:var(--ink); font-family:var(--sans);
+         font-size:16px; line-height:1.55; -webkit-text-size-adjust:100%; }
+  .wrap { max-width:680px; margin:0 auto; padding:28px 18px 80px; }
+
+  header { border-bottom:2px solid var(--ink); padding-bottom:16px; margin-bottom:8px; }
+  .eyebrow { font-family:var(--mono); font-size:11px; letter-spacing:.14em;
+             text-transform:uppercase; color:var(--ink-3); margin:0 0 8px; }
+  h1 { font-family:var(--serif); font-weight:600; font-size:clamp(28px,7vw,38px);
+       line-height:1.1; margin:0 0 10px; letter-spacing:-.01em; }
+  .shape { font-size:15.5px; color:var(--ink-2); margin:0; }
+  .shape b { color:var(--ink); font-weight:600; }
+
+  h2 { font-family:var(--sans); font-weight:600; font-size:13px; letter-spacing:.1em;
+       text-transform:uppercase; color:var(--ink-3); margin:38px 0 12px;
+       padding-bottom:8px; border-bottom:1px solid var(--rule); }
+
+  .card { background:var(--surface); border:1px solid var(--rule);
+          border-radius:10px; padding:16px 16px; margin:0 0 12px; }
+  .card ol, .card ul { margin:0; padding-left:20px; }
+  .card li { margin:0 0 7px; font-size:15.5px; }
+  .card li:last-child { margin-bottom:0; }
+  .card li b { font-weight:600; }
+  code { font-family:var(--mono); font-size:13.5px; background:var(--sunk);
+         padding:1px 5px; border-radius:4px; }
+
+  /* the two voices */
+  .say { background:var(--say-bg); border-left:4px solid var(--say-rule);
+         border-radius:0 10px 10px 0; padding:14px 16px; margin:0 0 10px; }
+  .say p { margin:0 0 12px; font-family:var(--serif); font-size:19px;
+           line-height:1.5; color:var(--ink); }
+  .say p:last-child { margin-bottom:0; }
+  .say em { font-style:normal; font-weight:600; }
+
+  .do { display:flex; gap:10px; align-items:flex-start;
+        background:var(--do-bg); border:1px solid var(--do-rule);
+        border-radius:10px; padding:11px 14px; margin:18px 0 10px; }
+  .do .tag { font-family:var(--mono); font-size:10px; letter-spacing:.1em;
+             text-transform:uppercase; color:var(--do); flex:none; padding-top:3px; }
+  .do span:last-child { font-size:15px; color:var(--ink); }
+
+  .warn { background:var(--warn-bg); border:1px solid var(--warn-rule);
+          border-radius:10px; padding:12px 14px; margin:0 0 12px; }
+  .warn p { margin:0; font-size:14.5px; color:var(--ink); }
+  .warn b { color:var(--warn); font-weight:600; }
+
+  .stop { text-align:center; background:var(--surface); border:2px solid var(--ink);
+          border-radius:12px; padding:22px 18px; margin:26px 0; }
+  .stop .big { font-family:var(--serif); font-size:26px; font-weight:600; margin:0 0 8px; }
+  .stop p { margin:0; font-size:15px; color:var(--ink-2); }
+
+  /* questions */
+  details { background:var(--surface); border:1px solid var(--rule);
+            border-radius:10px; margin:0 0 9px; overflow:hidden; }
+  details[open] { border-color:var(--rule-2); }
+  summary { cursor:pointer; padding:14px 16px; font-weight:600; font-size:15.5px;
+            list-style:none; display:flex; gap:10px; align-items:flex-start; }
+  summary::-webkit-details-marker { display:none; }
+  summary::before { content:"+"; font-family:var(--mono); color:var(--ink-3);
+                    font-weight:400; flex:none; }
+  details[open] summary::before { content:"–"; }
+  summary:focus-visible { outline:2px solid var(--say); outline-offset:-2px; }
+  .answer { padding:0 16px 15px 42px; }
+  .answer .say { margin-top:0; }
+  .answer > p { font-size:14.5px; color:var(--ink-2); margin:10px 0 0; }
+  .answer > p b { color:var(--ink); }
+
+  .keyline { font-family:var(--mono); font-size:11px; letter-spacing:.08em;
+             text-transform:uppercase; color:var(--ink-3); margin:20px 0 8px; }
+  table { border-collapse:collapse; width:100%; font-size:14.5px; margin:10px 0 0; }
+  th,td { text-align:left; padding:8px 10px 8px 0; border-bottom:1px solid var(--rule); }
+  th { font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); font-weight:600; }
+  td b { font-weight:600; }
+  footer { margin-top:44px; padding-top:16px; border-top:1px solid var(--rule);
+           font-family:var(--mono); font-size:12px; color:var(--ink-3); }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">ProspectIQ &middot; one-to-one</p>
+    <h1>Team Lead Demo</h1>
+    <p class="shape"><b>Intro, then the tool, then stop talking.</b> Blue is what you say. Yellow is what you do. Roughly two minutes before you hand it over to his questions.</p>
+  </header>
+
+  <div class="warn">
+    <p><b>Do not open the diagram.</b> Keep it in a tab. It comes out only if he asks how it is built &mdash; there is a section for that at the bottom.</p>
+  </div>
+
+  <h2>Before you start</h2>
+  <div class="card">
+    <ol>
+      <li>The <b>opening page</b>, before you press Begin</li>
+      <li>The <b>board</b></li>
+      <li><b>Rahul Aggarwal</b> &mdash; profile, sources page, contact section</li>
+      <li>The <b>book view</b></li>
+      <li>Spare tab: <b>Beth Ann Adams</b>, only if ownership comes up</li>
+    </ol>
+  </div>
+  <div class="card">
+    <ul>
+      <li>Backend on the default <code>prospects.db</code></li>
+      <li><b>Do not run an ingest live.</b> It takes about two minutes</li>
+      <li>Check who is at rank 1 before you walk in</li>
+    </ul>
+  </div>
+
+  <h2>1 &middot; The intro &mdash; 45 seconds, nothing on screen</h2>
+  <div class="say">
+    <p>Every advisor is chasing the same people. The ones who are already rich. But by the time somebody shows up on a wealth list, they have usually had an advisor for ten years. So you are not really pitching to them at that point.</p>
+    <p>So we asked a different question. Could we find people earlier, while they are still building it?</p>
+    <p>We started with doctors, because a doctor&rsquo;s career leaves a public trail. They get a license. They enter practice. Some of them open their own practice. Some of them buy a house. And every one of those is public record &mdash; they were just sitting in four separate government databases that nobody had joined up.</p>
+    <p>So we joined them up, scored the people, and ranked them. Let me show you.</p>
+  </div>
+  <div class="warn">
+    <p><b>Stop there and share your screen.</b> Do not explain the architecture yet.</p>
+  </div>
+
+  <h2>2 &middot; The demo</h2>
+
+  <div class="do"><span class="tag">Do</span><span>Share on the <b>opening page</b>, before pressing Begin.</span></div>
+  <div class="say">
+    <p>This is what an advisor sees when they open it. Three things &mdash; who they are, what came in today, and a button to start.</p>
+  </div>
+
+  <div class="do"><span class="tag">Do</span><span>Press Begin. Land on the <b>board</b>.</span></div>
+  <div class="say">
+    <p>Two hundred and nineteen real Illinois-licensed doctors, pulled from federal and state registries, ranked best first. This is an advisor&rsquo;s Monday morning.</p>
+  </div>
+  <div class="warn">
+    <p>Say <b>&ldquo;Illinois-licensed&rdquo;</b>, not &ldquo;Illinois doctors&rdquo;. 183 of the 219 actually practise there; the rest hold an Illinois license and work elsewhere. Small word, and it is the true one.</p>
+  </div>
+
+  <div class="do"><span class="tag">Do</span><span>Open <b>Rahul Aggarwal</b>, number one. Everything from here is him.</span></div>
+  <div class="say">
+    <p>Let me follow one person. He is top of the list today, and here is why.</p>
+    <p>He got his Illinois license two months ago. And two months ago he bought a house for one point one million dollars. Those are two separate government records, and they are the same person.</p>
+    <p>So both of those say the same thing: this is somebody whose money situation is changing <em>right now</em>. That is the moment we are trying to catch.</p>
+  </div>
+
+  <p class="keyline">The most important sentence in the demo</p>
+  <div class="say">
+    <p>And here is what I would pay attention to. Somebody further down this list bought a house for more than twice as much, and he still ranks above her. Because hers was two years ago and his was two months ago.</p>
+    <p><em>The bigger house scores lower.</em> That is the whole idea &mdash; this is not a rich list, it is a timing engine.</p>
+  </div>
+
+  <div class="do"><span class="tag">Do</span><span>Open his <b>contact section</b>.</span></div>
+  <div class="say">
+    <p>And this is the part that matters for an advisor. It gives them the practice address, the phone number, and the one thing to open the conversation with &mdash; which for him is the new license.</p>
+    <p>Notice what it does not give them: the house. The property tells <em>us</em> when to call. The advisor would never mention it.</p>
+  </div>
+  <div class="warn">
+    <p><b>Never say you would reference the property in the outreach.</b> The system deliberately withholds it. Saying otherwise turns a demo into a compliance conversation.</p>
+  </div>
+
+  <div class="do"><span class="tag">Do</span><span>Point at the <b>outreach buttons</b>. Do not click through them.</span></div>
+  <div class="say">
+    <p>Then once the advisor has actually reached out, they tell us what happened. Did they speak to them. Did they become a client, or were they not a fit.</p>
+    <p>Right now we just store those answers. But that is the loop we want to close &mdash; those are real outcomes we could tune the ranking against, instead of the weights we picked ourselves.</p>
+  </div>
+  <div class="warn">
+    <p>Say <b>&ldquo;we store them&rdquo;</b>. Never <b>&ldquo;it re-scores&rdquo;</b> &mdash; nothing in the scoring code reads these events yet, and he may well check.</p>
+  </div>
+
+  <div class="do"><span class="tag">Do</span><span>Switch to the <b>book view</b>.</span></div>
+  <div class="say">
+    <p>That was one person. Day to day an advisor is working a list, so it is the same data in two shapes &mdash; the board for scanning, the book for working through. And they can filter it and save that view with a name, so Monday starts where Friday stopped.</p>
+  </div>
+
+  <div class="stop">
+    <p class="big">Then stop.</p>
+    <p>&ldquo;That is the tool. Happy to go into any part of it.&rdquo;<br>
+    Now be quiet and let him ask. His questions tell you which screen to open next.</p>
+  </div>
+
+  <h2>3 &middot; The questions you will get</h2>
+
+  <details open>
+    <summary>What is the difference between the score and the evidence badge?</summary>
+    <div class="answer">
+      <div class="say">
+        <p>They answer two different questions. The <em>score</em> is how good this prospect looks. The <em>evidence</em> is how much we actually know about them.</p>
+        <p>We look for seven signals on each person. The evidence badge is just how many of the seven we found &mdash; five or more is strong, four is partial, three or fewer is thin. The score is what those signals are <em>worth</em> once they are weighted.</p>
+      </div>
+      <p><b>Then the example that makes it land:</b></p>
+      <div class="say">
+        <p>So you can have a high score built on thin evidence. Alex Brewer scores higher than Rahul on fit &mdash; seventy-five against fifty-six &mdash; but we hold fewer facts about him. That is why we show both numbers instead of blending them into one.</p>
+      </div>
+      <table>
+        <thead><tr><th>Prospect</th><th>Fit</th><th>Evidence</th></tr></thead>
+        <tbody>
+          <tr><td>Rahul Aggarwal</td><td>55.8</td><td><b>strong</b> &middot; 5 of 7</td></tr>
+          <tr><td>Alex C Brewer</td><td><b>75.0</b></td><td>partial &middot; 4 of 7</td></tr>
+          <tr><td>Beth Ann Adams</td><td><b>91.5</b></td><td><b>strong</b> &middot; 5 of 7</td></tr>
+        </tbody>
+      </table>
+      <p>The three headings on the sources page &mdash; <b>Career Signal</b>, <b>Ownership &amp; Practice</b>, <b>Financial Activity</b> &mdash; are only how that page is <b>grouped for reading</b>. They are not how the badge is calculated. Say that plainly if he asks.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Does it look up one person at a time?</summary>
+    <div class="answer">
+      <div class="say">
+        <p>No, it is a bulk sweep. One run pulls hundreds of doctors, resolves them, scores them all and ranks them &mdash; that is where the two hundred and nineteen come from. The diagram follows a single person through, but only because that is easier to read than three hundred at once.</p>
+      </div>
+      <p><b>Pre-empt this one.</b> It is exactly what confused a reader of the diagram.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>How is the score calculated?</summary>
+    <div class="answer">
+      <div class="say">
+        <p>Two questions. First, should we care about this person at all &mdash; that is sixty percent, and it is things like their specialty and whether they own a practice. Second, why now &mdash; that is forty percent, and it is all recency.</p>
+        <p>Those weights are ours, and they are not calibrated yet. In production we would tune them against what advisors actually convert.</p>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Can I filter to just the people who bought a house?</summary>
+    <div class="answer">
+      <div class="say">
+        <p>Yes, in the book view &mdash; you can filter and save the view. There are no pre-built default filters yet, which is a fair thing to add.</p>
+      </div>
+      <p>Do not oversell it. Filter, save, name &mdash; that is what exists.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Is the book split per advisor?</summary>
+    <div class="answer">
+      <div class="say">
+        <p>No. The advisor ID is shown, but nothing is scoped to it yet. Who owns which prospect is a data question we have not answered.</p>
+      </div>
+      <p><b>Never describe it as built.</b></p>
+    </div>
+  </details>
+
+  <details>
+    <summary>That dermatologist is nineteen years in &mdash; would she not already have an advisor?</summary>
+    <div class="answer">
+      <div class="say">
+        <p>Probably, yes. And the tool agrees &mdash; her timing score is five and a half out of a hundred. She ranks on fit, not on timing.</p>
+        <p>The honest gap is that our ownership signal comes from Medicare billing, which says who is paid today but carries no start date. So we cannot yet tell a practice formed last month from one formed in 2006. It is written up, and the fix is the state business registry.</p>
+      </div>
+    </div>
+  </details>
+
+  <h2>4 &middot; Only if he asks how it is built</h2>
+  <div class="card">
+    <p style="margin:0 0 10px;font-size:15.5px;">Open <b>One Doctor, End to End</b> and use the &ldquo;Saying it out loud&rdquo; section at the bottom. Two things to say first, because both confused a reader:</p>
+    <ul>
+      <li><b>&ldquo;Row&rdquo; means a record, not a person.</b> Row 1 is her registry record, row 2 her license record. Five facts about one doctor &mdash; not five doctors.</li>
+      <li><b>This follows one person, but a real run does hundreds at once.</b></li>
+    </ul>
+  </div>
+  <div class="card">
+    <p style="margin:0;font-size:15.5px;">If he starts giving architecture feedback, that is a good sign. Write it down rather than defending it. You do not have to have every answer in a one-to-one.</p>
+  </div>
+
+  <footer>ProspectIQ &middot; built from a real dry run &middot; companion: KNOWN_GAPS.md</footer>
+
+</div>

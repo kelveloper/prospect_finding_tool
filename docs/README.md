@@ -70,7 +70,8 @@ last surveys how the market presents prospects, and where we sit.
 |---|---|
 | [`visuals/pipeline-end-to-end.html`](visuals/pipeline-end-to-end.html) | Sourcing to ranked prospect in plain English — the whole engine, hand-drawn |
 | [`visuals/one-doctor-trace.html`](visuals/one-doctor-trace.html) | One invented physician's five rows traced from the first query to her score |
-| [`DEMO_FOR_TEAM_LEAD.md`](DEMO_FOR_TEAM_LEAD.md) | Intro and demo for a one-to-one, with the answers to the questions that actually get asked |
+| [`visuals/demo-for-team-lead.html`](visuals/demo-for-team-lead.html) | Intro and demo for a one-to-one, with the answers to the questions that actually get asked |
+| [`visuals/demo-for-team-lead.html`](visuals/demo-for-team-lead.html) | The one-to-one version: intro, demo, then the questions, collapsible |
 | [`visuals/presentation-run-of-show.html`](visuals/presentation-run-of-show.html) | The five-minute, three-speaker script: timings, stage directions, Q&A prep |
 | [`visuals/prospecting-ux-teardown.html`](visuals/prospecting-ux-teardown.html) | How the market presents prospects, and where we sit against it |
 
