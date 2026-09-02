@@ -204,33 +204,7 @@
   <p class="keyline">The most important sentence in the demo</p>
   <div class="say">
     <p>And here is what I would pay attention to. Somebody further down this list bought a house for more than twice as much, and he still ranks above her. Because hers was two years ago and his was two months ago.</p>
-    <p><em>The bigger house scores lower.</em> That is the whole idea &mdash; this is not a rich list, it is a timing engine.</p>
-  </div>
-
-  <div class="do"><span class="tag">Cuttable</span><span>Open his <b>score breakdown</b> only if he wants the arithmetic. The table below is your crib sheet.</span></div>
-  <div class="say">
-    <p>The sixty-two is two numbers, not one. <em>Should we care about this person</em> &mdash; he scores fifty-six, because cardiology is a middle tier for us and he does not own a practice. And <em>why now</em> &mdash; he scores seventy-two, because the license and the house are both two months old. Sixty percent of the first, forty percent of the second.</p>
-    <p>So he is first not because he is the wealthiest person here. He is not. He is first because he is the one something is happening to.</p>
-  </div>
-  <table style="margin:0 0 12px;">
-    <thead><tr><th>Rahul Aggarwal</th><th>Max</th><th>Strength</th><th>Points</th></tr></thead>
-    <tbody>
-      <tr><td colspan="4" style="padding-top:10px;"><b>Should we care? &mdash; 60%</b></td></tr>
-      <tr><td>Physician standing</td><td>40</td><td>1.00</td><td><b>40.0</b></td></tr>
-      <tr><td>Specialty earning tier</td><td>35</td><td>0.45</td><td>15.8</td></tr>
-      <tr><td>Practice ownership</td><td>25</td><td>0.00</td><td>0.0</td></tr>
-      <tr><td></td><td></td><td></td><td><b>55.8</b></td></tr>
-      <tr><td colspan="4" style="padding-top:10px;"><b>Why now? &mdash; 40%</b></td></tr>
-      <tr><td>License recency</td><td>40</td><td>1.00</td><td><b>40.0</b></td></tr>
-      <tr><td>Property purchase</td><td>30</td><td>1.00</td><td><b>30.0</b></td></tr>
-      <tr><td>Practice entry</td><td>15</td><td>0.10</td><td>1.5</td></tr>
-      <tr><td>Career move</td><td>15</td><td>0.00</td><td>0.0</td></tr>
-      <tr><td></td><td></td><td></td><td><b>71.5</b></td></tr>
-      <tr><td colspan="3"><b>55.8 &times; 0.60 &nbsp;+&nbsp; 71.5 &times; 0.40</b></td><td><b>62.0</b></td></tr>
-    </tbody>
-  </table>
-  <div class="warn">
-    <p><b>If he asks why 60/40:</b> &ldquo;They are our weights, not calibrated yet. A strong prospect at an average moment still beats a weak one at a perfect moment, so fit carries more. In production we would tune them against what advisors actually convert.&rdquo;</p>
+    <p><em>The bigger house scores lower</em>, because recency is forty percent of the score. That is the whole idea &mdash; this is not a rich list, it is a timing engine.</p>
   </div>
 
   <p class="keyline">Two &middot; everything we found</p>
@@ -276,6 +250,66 @@
 
   <div class="say">
     <p>So &mdash; who to call first, everything we know about them, and where to start. That is the tool.</p>
+  </div>
+
+  <h2>If the score comes up</h2>
+
+  <p style="font-size:15.5px;color:var(--ink-2);margin:0 0 12px;">Four layers. Start at the top and only go deeper if he keeps asking. You are allowed to stop at any of them &mdash; each one is a complete answer.</p>
+
+  <div class="card">
+    <p style="margin:0 0 6px;font-size:13px;font-weight:600;color:var(--key);">LAYER 1 &middot; the only sentence you must know cold</p>
+    <p style="margin:0;font-size:16px;">&ldquo;The score is two questions. <b>Should we care about this person</b> &mdash; that is sixty percent. And <b>why now</b> &mdash; that is the other forty.&rdquo;</p>
+  </div>
+
+  <div class="card">
+    <p style="margin:0 0 6px;font-size:13px;font-weight:600;color:var(--key);">LAYER 2 &middot; why he is first, with no arithmetic</p>
+    <p style="margin:0;font-size:16px;">&ldquo;He is first because both his signals are two months old &mdash; the license and the house. Nothing else on the board is that recent.&rdquo;</p>
+  </div>
+
+  <div class="card">
+    <p style="margin:0 0 6px;font-size:13px;font-weight:600;color:var(--key);">LAYER 3 &middot; open the screen and read it</p>
+    <p style="margin:0 0 8px;font-size:16px;">&ldquo;Let me pull it up &mdash; each row is the most that component can be worth, how strong his signal is, and what that comes to.&rdquo;</p>
+    <p style="margin:0;font-size:14.5px;color:var(--ink-2);"><b>Read the numbers off the screen. Do not recite them and do not do the multiplication out loud.</b> The table below is the same thing if the screen is slow.</p>
+  </div>
+
+  <div class="card">
+    <p style="margin:0 0 6px;font-size:13px;font-weight:600;color:var(--key);">LAYER 4 &middot; the honest stop</p>
+    <p style="margin:0;font-size:16px;">&ldquo;The weights are ours and they are not calibrated yet. That is exactly the part we would want real advisor outcomes for.&rdquo;</p>
+  </div>
+
+  <div class="warn">
+    <p><b>&ldquo;I would have to check that one&rdquo; is a good answer.</b> So is naming whoever owns that part. Guessing at a threshold in front of an engineer costs far more than not knowing it &mdash; he will remember the wrong number, not the confident delivery.</p>
+  </div>
+
+  <div class="do"><span class="tag">Cuttable</span><span>Open his <b>score breakdown</b> only if he wants the arithmetic. The table below is your crib sheet.</span></div>
+  <div class="say">
+    <p>The sixty-two is two numbers, not one. <em>Should we care about this person</em> &mdash; he scores fifty-six, because cardiology is a middle tier for us and he does not own a practice. And <em>why now</em> &mdash; he scores seventy-two, because the license and the house are both two months old. Sixty percent of the first, forty percent of the second.</p>
+    <p>So he is first not because he is the wealthiest person here. He is not. He is first because he is the one something is happening to.</p>
+  </div>
+  <table style="margin:0 0 12px;">
+    <thead><tr><th>Rahul Aggarwal</th><th>Max</th><th>Strength</th><th>Points</th></tr></thead>
+    <tbody>
+      <tr><td colspan="4" style="padding-top:10px;"><b>Should we care? &mdash; 60%</b></td></tr>
+      <tr><td>Physician standing</td><td>40</td><td>1.00</td><td><b>40.0</b></td></tr>
+      <tr><td>Specialty earning tier</td><td>35</td><td>0.45</td><td>15.8</td></tr>
+      <tr><td>Practice ownership</td><td>25</td><td>0.00</td><td>0.0</td></tr>
+      <tr><td></td><td></td><td></td><td><b>55.8</b></td></tr>
+      <tr><td colspan="4" style="padding-top:10px;"><b>Why now? &mdash; 40%</b></td></tr>
+      <tr><td>License recency</td><td>40</td><td>1.00</td><td><b>40.0</b></td></tr>
+      <tr><td>Property purchase</td><td>30</td><td>1.00</td><td><b>30.0</b></td></tr>
+      <tr><td>Practice entry</td><td>15</td><td>0.10</td><td>1.5</td></tr>
+      <tr><td>Career move</td><td>15</td><td>0.00</td><td>0.0</td></tr>
+      <tr><td></td><td></td><td></td><td><b>71.5</b></td></tr>
+      <tr><td colspan="3"><b>55.8 &times; 0.60 &nbsp;+&nbsp; 71.5 &times; 0.40</b></td><td><b>62.0</b></td></tr>
+    </tbody>
+  </table>
+  <div class="warn">
+    <p><b>If he asks why 60/40:</b> &ldquo;They are our weights, not calibrated yet. A strong prospect at an average moment still beats a weak one at a perfect moment, so fit carries more. In production we would tune them against what advisors actually convert.&rdquo;</p>
+  </div>
+
+
+  <div class="warn">
+    <p><b>Do not defend 60/40 as correct.</b> It is a starting point, and saying so is the strong answer. &ldquo;A good prospect at an average moment beats a weak one at a perfect moment, so fit carries more &mdash; but those are our weights, not tuned ones.&rdquo;</p>
   </div>
 
   <div class="stop">
