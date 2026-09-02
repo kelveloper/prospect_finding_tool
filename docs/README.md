@@ -72,6 +72,7 @@ last surveys how the market presents prospects, and where we sit.
 | [`visuals/one-doctor-trace.html`](visuals/one-doctor-trace.html) | One invented physician's five rows traced from the first query to her score |
 | [`visuals/demo-for-team-lead.html`](visuals/demo-for-team-lead.html) | Intro and demo for a one-to-one, with the answers to the questions that actually get asked |
 | [`visuals/demo-for-team-lead.html`](visuals/demo-for-team-lead.html) | The one-to-one version: intro, demo, then the questions, collapsible |
+| [`visuals/diagram-levels.html`](visuals/diagram-levels.html) | The same system drawn five ways, each adding one idea &mdash; stop at whichever level lands |
 | [`visuals/presentation-run-of-show.html`](visuals/presentation-run-of-show.html) | The five-minute, three-speaker script: timings, stage directions, Q&A prep |
 | [`visuals/prospecting-ux-teardown.html`](visuals/prospecting-ux-teardown.html) | How the market presents prospects, and where we sit against it |
 
