@@ -231,7 +231,7 @@ def run_live_ingest(
     # ever shows the raw pipeline text. Fill-empty-only: an existing (LLM)
     # summary is never overwritten — changed veterans stay flagged stale
     # until the offline LLM refresh upgrades them.
-    # The same pass counts the movers: "updated" is everyone re-scored,
+    # The same pass counts the movers: "updated" is everyone checked again,
     # which after a full sweep is everyone; "moved" is whose score actually
     # came out different — the number the board's What changed alert shows.
     moved = 0

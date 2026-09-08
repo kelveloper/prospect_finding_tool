@@ -116,10 +116,11 @@ function secondsSince(iso: string, now: number): number {
 
 /** The merge step's result line: what happened to the book.
  *
- *  "Re-scored", not "updated": the pipeline counts every existing prospect
- *  it re-fetched, which after a full sweep is everyone. "Moved" is whose
- *  score actually came out different — the honest change number, and the
- *  same one the board's What changed alert shows. */
+ *  "Checked", not "updated" or "re-scored": the pipeline counts every
+ *  existing prospect it re-fetched and re-ran, which after a full sweep is
+ *  everyone — and for most of them the score came out the same number as
+ *  before. "Moved" is whose score actually changed — the honest change
+ *  number, and the same one the board's What changed alert shows. */
 function bookChanges(
   created: number | null,
   updated: number | null,
@@ -129,7 +130,7 @@ function bookChanges(
 ): string {
   const parts = [
     `${created ?? 0} new${long ? " prospects" : ""}`,
-    `${updated ?? 0} re-scored`,
+    `${updated ?? 0} checked`,
   ];
   if (moved != null) parts.push(`${moved} moved`);
   if (skipped != null)
