@@ -395,10 +395,10 @@ export default function BookView({ ranked, selectedId }: Props) {
               was the only thing in the strip without one. */}
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
             <span
-              className="eyebrow"
-              title="Preset filters. Click one to jump to it, or set your own filters below and save them here."
+              className="eyebrow w-[104px] shrink-0"
+              title="Whole filter sets in one click. Pick one, or build your own in the columns below and keep it here."
             >
-              Views
+              Quick filters
             </span>
             <ViewChip
               label="Whole book"
@@ -442,7 +442,7 @@ export default function BookView({ ranked, selectedId }: Props) {
                 active={sameState(viewState, view.state)}
                 onClick={() => applyState(view.state)}
                 onRemove={() => removeView(view.id)}
-                title={`Saved view — ${describe(view.state)}`}
+                title={`Saved filter — ${describe(view.state)}`}
               />
             ))}
 
@@ -459,8 +459,8 @@ export default function BookView({ ranked, selectedId }: Props) {
                     if (e.key === "Enter") commitName();
                     if (e.key === "Escape") setNaming(null);
                   }}
-                  aria-label="Name for this view"
-                  placeholder="Name this view"
+                  aria-label="Name for this filter"
+                  placeholder="Name this filter"
                   maxLength={40}
                   className="w-[168px] rounded-full border border-brand bg-white px-3 py-1.5 text-[12px] text-ink placeholder:text-ink-faint focus:outline-none"
                 />
@@ -492,25 +492,31 @@ export default function BookView({ ranked, selectedId }: Props) {
                       ? saveBlockedBecause
                       : `These filters are already saved as "${saveBlockedBecause}".`
                 }
-                className="rounded-full border border-dashed border-hairline px-3 py-1.5 font-display text-[12px] font-semibold text-brand transition-colors hover:border-brand hover:bg-white disabled:cursor-not-allowed disabled:border-hairline/60 disabled:text-ink-faint disabled:hover:bg-transparent"
+                className="rounded-full border border-hairline px-3 py-1.5 font-display text-[12px] font-semibold text-brand transition-colors hover:border-brand hover:bg-white disabled:cursor-not-allowed disabled:border-hairline/60 disabled:text-ink-faint disabled:hover:bg-transparent"
               >
-                {saveBlockedBecause === null
-                  ? "+ Save these filters"
-                  : "Filter below to save a view"}
+                {/* One label at one width. It used to swap between a
+                    20-character invitation and a 27-character instruction,
+                    so the whole strip reflowed as you filtered — and the
+                    widest thing in the row was the one you could not click.
+                    Why it is disabled is a job for the tooltip. */}
+                + Save filter
               </button>
             )}
           </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-hairline/60 pt-3">
             {/* Label beside the field, not stacked above it. */}
-            <label className="flex items-center gap-2">
-              <span className="eyebrow shrink-0">Look up</span>
+            {/* Grows to fill the strip rather than sitting at a fixed 200px.
+                Matching the pill row's width instead would drift the moment
+                a saved filter is added or a count changes digits. */}
+            <label className="flex min-w-0 flex-1 items-center gap-3">
+              <span className="eyebrow w-[104px] shrink-0">Search by</span>
               <input
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Name, specialty or city"
-                className="w-[200px] rounded-[8px] border border-hairline bg-white px-3 py-1.5 text-[13px] text-ink placeholder:text-ink-faint focus:border-brand focus:outline-none"
+                className="w-full min-w-0 rounded-[8px] border border-hairline bg-white px-3 py-1.5 text-[13px] text-ink placeholder:text-ink-faint focus:border-brand focus:outline-none"
               />
             </label>
 
@@ -943,6 +949,7 @@ function ViewChip({
   onRename?: () => void;
   title: string;
 }) {
+  const empty = count === 0 && !active;
   return (
     // One rounded shape, not two. The button used to carry its own
     // rounded-full inside the wrapper's, and nested radii at slightly
@@ -960,10 +967,15 @@ function ViewChip({
         type="button"
         onClick={onClick}
         onDoubleClick={onRename}
-        title={title}
+        // A view holding nothing leads to an empty book, so it says so
+        // rather than offering the same click as the views that hold
+        // something. Still readable — it is a count worth knowing.
+        disabled={empty}
+        title={empty ? `${title} — none right now` : title}
         aria-pressed={active}
         className={
           "max-w-[210px] truncate py-1.5 font-display text-[12px] font-semibold " +
+          (empty ? "cursor-not-allowed opacity-55 " : "") +
           // Symmetric unless a remove button follows, which supplies the
           // right-hand padding itself.
           (onRemove ? "pl-3 pr-1.5" : "px-3")
@@ -979,8 +991,8 @@ function ViewChip({
         <button
           type="button"
           onClick={onRemove}
-          title={`Forget the "${label}" view`}
-          aria-label={`Forget the ${label} view`}
+          title={`Forget the "${label}" filter`}
+          aria-label={`Forget the ${label} filter`}
           className={
             "rounded-full py-1.5 pr-3 pl-1 font-display text-[13px] leading-none " +
             (active
@@ -1034,20 +1046,39 @@ function BookEntry({
       </span>
 
       <span className="min-w-0 flex-1">
-        {/* Titled because these truncate. The row's own title says "open
-            this entry", which is no help when the text you cannot read is
-            the specialty. */}
-        <span
-          title={candidate.name}
-          className="block truncate font-display text-[14px] font-semibold text-ink"
-        >
-          {candidate.name}
+        {/* Name and location share a line. The name never fills the cell —
+            the widest in the book is 175px of 269 — while the specialty
+            below it overruns by half. Pairing the two spends the slack on
+            the line that has none, and the header already sorts them as
+            separate keys, so the body now matches that promise. */}
+        <span className="flex items-baseline gap-2">
+          <span
+            title={candidate.name}
+            className="min-w-0 truncate font-display text-[14px] font-semibold text-ink"
+          >
+            {candidate.name}
+          </span>
+          {/* The license note lives in the tooltip: it is the answer to "why
+              is this one here", but not worth a column of its own. */}
+          <span
+            title={
+              candidate.licenseNote
+                ? `${candidate.location} · ${candidate.licenseNote}`
+                : candidate.location
+            }
+            className="shrink-0 whitespace-nowrap text-[11px] text-ink-faint"
+          >
+            {candidate.location}
+          </span>
         </span>
+        {/* Wraps to a second line instead of truncating. Two lines hold the
+            longest taxonomy string in the book; one held none of the worst
+            three. */}
         <span
-          title={`${candidate.specialty} · ${candidate.location}`}
-          className="block truncate text-[12px] text-ink-faint"
+          title={candidate.specialty}
+          className="mt-0.5 line-clamp-2 text-[12px] leading-[16px] text-ink-faint"
         >
-          {candidate.specialty} · {candidate.location}
+          {candidate.specialty}
         </span>
       </span>
 
