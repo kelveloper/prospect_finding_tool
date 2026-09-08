@@ -1,0 +1,693 @@
+<title>Talking Points: What We Can Actually Use</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+  :root {
+    --paper:   #EFF2F3;
+    --card:    #FFFFFF;
+    --ink:     #131A1C;
+    --mid:     #54646A;
+    --faint:   #7C8B90;
+    --rule:    #C9D4D7;
+    --rule-2:  #E1E8EA;
+    --accent:  #0B6B70;
+    --warn:    #9A5B08;
+    --stop:    #8C3428;
+    --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    --body:    "Source Serif 4", Georgia, "Times New Roman", serif;
+    --mono:    "IBM Plex Mono", "SF Mono", Menlo, monospace;
+    --shadow:  0 1px 2px rgba(19,26,28,.06), 0 12px 32px -12px rgba(19,26,28,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:  #101617;  --card:   #171F21;  --ink:    #E3EBEC;
+      --mid:    #A2B2B6;  --faint:  #7E8F94;  --rule:   #2E3B3E;
+      --rule-2: #232E30;  --accent: #5AC4C9;  --warn:   #D9A45E;  --stop: #E08A7D;
+      --shadow: 0 1px 2px rgba(0,0,0,.5), 0 18px 44px -14px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:  #101617;  --card:   #171F21;  --ink:    #E3EBEC;
+    --mid:    #A2B2B6;  --faint:  #7E8F94;  --rule:   #2E3B3E;
+    --rule-2: #232E30;  --accent: #5AC4C9;  --warn:   #D9A45E;  --stop: #E08A7D;
+    --shadow: 0 1px 2px rgba(0,0,0,.5), 0 18px 44px -14px rgba(0,0,0,.7);
+  }
+
+  body {
+    background: var(--paper); color: var(--ink); font-family: var(--body);
+    font-size: 17px; line-height: 1.62; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 56px 24px 88px; }
+
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 22px; margin-bottom: 30px; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 14px;
+  }
+  h1 {
+    font-family: var(--display); font-weight: 700; font-size: clamp(32px, 5.4vw, 48px);
+    line-height: 1.05; letter-spacing: -0.02em; margin: 0 0 14px; text-wrap: balance;
+  }
+  .standfirst { font-size: 18.5px; color: var(--mid); max-width: 64ch; margin: 0; }
+
+  .disclaimer {
+    display: flex; gap: 12px; align-items: baseline;
+    border: 1px solid var(--rule); border-left: 3px solid var(--warn);
+    background: var(--card); padding: 14px 18px; margin: 0 0 20px; border-radius: 0 3px 3px 0;
+  }
+  .disclaimer .tag {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--warn); flex: none;
+  }
+  .disclaimer p { margin: 0; font-size: 15.5px; color: var(--mid); max-width: 66ch; }
+  .disclaimer strong { color: var(--ink); font-family: var(--display); font-weight: 600; }
+
+  .howto {
+    border: 1px solid var(--rule); background: var(--card);
+    padding: 18px 22px; border-radius: 3px; margin: 0 0 8px;
+  }
+  .howto h2 { font-size: 15px; margin: 0 0 10px; letter-spacing: .01em; }
+  .howto dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; align-items: baseline; }
+  .howto dt {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--accent); white-space: nowrap;
+  }
+  .howto dd { margin: 0; font-size: 15.5px; color: var(--mid); }
+  .howto dd b { color: var(--ink); font-family: var(--display); font-weight: 600; }
+
+  h2 {
+    font-family: var(--display); font-weight: 600; font-size: 22px;
+    letter-spacing: -0.01em; margin: 52px 0 4px;
+  }
+  h3 {
+    font-family: var(--display); font-weight: 600; font-size: 16px;
+    letter-spacing: .01em; margin: 30px 0 6px;
+  }
+  .sub { color: var(--mid); font-size: 16px; margin: 0 0 20px; max-width: 66ch; }
+  p { max-width: 68ch; }
+  .table-scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 15.5px; }
+  th, td { text-align: left; padding: 12px 16px 12px 0; border-bottom: 1px solid var(--rule-2); vertical-align: top; }
+  th {
+    font-family: var(--display); font-weight: 600; font-size: 12.5px; letter-spacing: .04em;
+    color: var(--mid); border-bottom: 1px solid var(--rule); text-transform: uppercase;
+  }
+  td.key { font-family: var(--mono); font-size: 12.5px; color: var(--mid); }
+  td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 14px; }
+  td.verdict-keep { font-family: var(--mono); font-size: 13px; color: var(--accent); white-space: nowrap; }
+  td.verdict-drop { font-family: var(--mono); font-size: 13px; color: var(--stop); white-space: nowrap; }
+  td.verdict-park { font-family: var(--mono); font-size: 13px; color: var(--warn); white-space: nowrap; }
+
+  .callout {
+    border: 1px solid var(--rule); border-left: 3px solid var(--accent);
+    background: var(--card); padding: 18px 22px; margin: 22px 0; border-radius: 0 3px 3px 0;
+    box-shadow: var(--shadow);
+  }
+  .callout.stop { border-left-color: var(--stop); }
+  .callout p { margin: 0 0 10px; font-size: 16px; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout .lede {
+    font-family: var(--display); font-weight: 600; font-size: 15px;
+    letter-spacing: .01em; color: var(--ink);
+  }
+  blockquote {
+    margin: 14px 0; padding: 0 0 0 18px; border-left: 2px solid var(--rule);
+    font-size: 16px; color: var(--mid); max-width: 64ch;
+  }
+
+  .fp { list-style: none; padding: 0; margin: 18px 0 0; }
+  .fp li {
+    border: 1px solid var(--rule); background: var(--card);
+    border-radius: 3px; padding: 14px 18px; margin: 0 0 10px;
+    display: grid; grid-template-columns: 1fr auto; gap: 4px 20px; align-items: baseline;
+  }
+  .fp .q { font-family: var(--mono); font-size: 13px; color: var(--accent); }
+  .fp .src { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--faint); text-align: right; white-space: nowrap; }
+  .fp .a { grid-column: 1 / -1; font-size: 15.5px; color: var(--ink); margin: 0; }
+  .fp .a b { font-family: var(--display); font-weight: 600; color: var(--stop); }
+
+  .tier { font-family: var(--mono); font-size: 11px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 6px; }
+  ul.plain { padding-left: 20px; max-width: 68ch; }
+  ul.plain li { margin-bottom: 9px; }
+  code { font-family: var(--mono); font-size: .88em; color: var(--accent); }
+  .footnote { font-size: 15px; color: var(--mid); border-top: 1px solid var(--rule);
+    margin-top: 56px; padding-top: 20px; max-width: 68ch; }
+
+  .tldr {
+    border: 1px solid var(--ink); background: var(--card);
+    padding: 26px 28px; margin: 0 0 22px; border-radius: 3px; box-shadow: var(--shadow);
+  }
+  .tldr h2 { font-size: 17px; margin: 0 0 4px; }
+  .tldr .note { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--faint); margin: 0 0 18px; }
+  .tldr ol { margin: 0; padding-left: 22px; }
+  .tldr li { margin-bottom: 13px; font-size: 16.5px; max-width: 66ch; }
+  .tldr li:last-child { margin-bottom: 0; }
+  .tldr li b { font-family: var(--display); font-weight: 600; }
+
+  .faq { border: 1px solid var(--rule); background: var(--card);
+    padding: 22px 28px 24px; margin: 0 0 30px; border-radius: 3px; }
+  .faq h2 { font-size: 17px; margin: 0 0 4px; }
+  .faq .note { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--faint); margin: 0 0 18px; }
+  .faq dl { margin: 0; }
+  .faq dt { font-family: var(--display); font-weight: 600; font-size: 15.5px;
+    color: var(--accent); margin: 16px 0 5px; }
+  .faq dt:first-of-type { margin-top: 0; }
+  .faq dd { margin: 0; font-size: 16px; color: var(--ink); max-width: 66ch; }
+
+  .kit { color-scheme: light; background: #F7F9F9; border: 1px solid var(--rule);
+    border-radius: 3px; box-shadow: var(--shadow); padding: 0; margin: 18px 0 26px; overflow: hidden; }
+  .kit-head { background: #FFFFFF; border-bottom: 1px solid #D8E1E2; padding: 14px 20px;
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
+  .kit-head .who { font-family: var(--display); font-weight: 700; font-size: 16px; color: #131A1C; }
+  .kit-head .meta { font-family: var(--mono); font-size: 11px; letter-spacing: .08em;
+    text-transform: uppercase; color: #7C8B90; }
+  .kit-body { padding: 18px 20px 20px; }
+  .kit-label { font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em;
+    text-transform: uppercase; color: #0B6B70; margin: 0 0 8px; }
+  .kit-fact { font-family: var(--display); font-weight: 600; font-size: 16.5px;
+    color: #131A1C; margin: 0 0 6px; line-height: 1.4; }
+  .kit-detail { font-size: 15px; color: #54646A; margin: 0 0 12px; max-width: none; }
+  .kit-src { font-family: var(--mono); font-size: 11.5px; color: #7C8B90;
+    border-top: 1px dashed #D8E1E2; padding-top: 10px; margin: 12px 0 0; }
+  .kit-src a { color: #0B6B70; }
+  .kit-why { background: #EAF1F1; border-left: 3px solid #0B6B70; padding: 10px 14px;
+    margin: 12px 0 0; font-size: 15px; color: #131A1C; }
+  .kit-why b { font-family: var(--display); font-weight: 600; }
+  .kit-note { font-size: 13.5px; color: #7C8B90; margin: 12px 0 0; font-style: italic; }
+  .kit-empty { font-family: var(--display); font-weight: 600; font-size: 16px; color: #8C3428; margin: 0; }
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <p class="eyebrow">Research · September 2026</p>
+  <h1>Talking points: what we can actually use</h1>
+  <p class="standfirst">The manager asked for conversation starters an advisor can open with. This is
+  what exists, what it costs, what it is allowed to do — and the single rule that decides all of it.</p>
+</header>
+
+<div class="tldr">
+  <h2>The short version</h2>
+  <p class="note">Five things &mdash; enough to answer anyone who asks</p>
+  <ol>
+    <li><b>DuckDuckGo cannot be used, and it is not a licensing problem.</b> It has no API for
+    applications, because it does not own its search results &mdash; it licenses them from Bing. There is
+    nothing to buy and nothing to connect to.</li>
+
+    <li><b>We found a better free source: CMS Open Payments.</b> It records what drug and device companies
+    pay each physician. It matches on <b>NPI number</b>, so there is no risk of pulling the wrong person.
+    Measured on our real data: 24 of 40 prospects have a record, and 9 of 40 have something worth opening
+    a conversation with.</li>
+
+    <li><b>The rule that decides everything: match on an ID number, never on a name.</b> Every wrong match
+    we found came from name matching &mdash; including an MIT physicist and a supermarket director in North
+    Carolina, both returned for physicians in our book.</li>
+
+    <li><b>Buying data does not solve this.</b> Across about 35 vendors, the ones that can find physicians
+    carry no wealth information, and the ones with wealth information cannot find physicians. Nothing sells
+    both. Our free public-records approach is the better design, not the cheap option.</li>
+
+    <li><b>The tool must hand advisors facts and links, never a written-out message.</b> If software writes
+    the wording and it goes to many prospects, SEC rules treat it as an advertisement, with approval and
+    archiving obligations attached.</li>
+  </ol>
+</div>
+
+<div class="faq">
+  <h2>If someone asks you</h2>
+  <p class="note">Short answers, in plain words</p>
+  <dl>
+    <dt>"Why can't we just use Google or DuckDuckGo?"</dt>
+    <dd>DuckDuckGo has no API at all. Google's version is closing to new customers and shuts down in
+    January 2027. The services that scrape Google for you are being sued by Google right now.</dd>
+
+    <dt>"Why not just search the doctor's name?"</dt>
+    <dd>Because names are not unique and we would tell an advisor something false. Searching one of our
+    orthopedic surgeons returned an MRI physicist at MIT. Searching another returned a company director in
+    North Carolina. We only use sources that match on an ID number.</dd>
+
+    <dt>"Can't we just buy this from a vendor?"</dt>
+    <dd>We checked about 35. The healthcare ones cost $25,000 to $500,000 a year and only tell us who is a
+    doctor &mdash; which we already know for free. The wealth ones cannot identify physicians at all. Also,
+    no financial advisor firm we could find actually uses one; they use referrals.</dd>
+
+    <dt>"Is it legal for us to use this data?"</dt>
+    <dd>Yes. US government data is public domain &mdash; free for internal and commercial use, no licence
+    needed. It is the same legal footing as the four sources we already use.</dd>
+
+    <dt>"Why not let AI write the opening message?"</dt>
+    <dd>Because software-written outreach sent to many people counts as an advertisement under SEC rules,
+    which brings approval and record-keeping requirements. We give the advisor the facts and the source
+    link, and they write their own note.</dd>
+
+    <dt>"What about personal details &mdash; family, kids, their house?"</dt>
+    <dd>We deliberately do not. It reads as surveillance rather than preparation, and it is the category
+    regulators treat as sensitive. Our own contact kit already hides the property purchase for the same
+    reason. A professional opener works better anyway.</dd>
+
+    <dt>"If we can download the government data, why can't we download DuckDuckGo?"</dt>
+    <dd>Because CMS publishes an actual file of records and DuckDuckGo has no file to publish. It looks
+    things up live in Bing's index and shows you the answer &mdash; nothing is stored to hand over. You can
+    download the book; you cannot download the librarian.</dd>
+
+    <dt>"What would this cost?"</dt>
+    <dd>Nothing for the recommended sources. If we later wanted live web search inside the tool, it would
+    be roughly two dollars a month at our size.</dd>
+  </dl>
+</div>
+
+<div class="disclaimer">
+  <span class="tag">Scope</span>
+  <p>Five parallel research passes: web-search APIs, physician and scholarly data, government records,
+  commercial vendors, and compliance. Every number marked <strong>measured</strong> came from live API
+  calls against real prospects in <code>prospects.db</code>, not from vendor marketing.</p>
+</div>
+
+<div class="howto">
+  <h2>How to read this</h2>
+  <dl>
+    <dt>Measured</dt><dd>We ran the query and counted the result. <b>Trust it.</b></dd>
+    <dt>Verified</dt><dd>Read from a primary source — the rule text, the pricing page, the terms.</dd>
+    <dt>Unverified</dt><dd>We could not confirm it. Listed openly at the end rather than hidden.</dd>
+  </dl>
+</div>
+
+<h2>1. The original question</h2>
+<p class="sub">What the manager suggested, and why it does not exist.</p>
+
+<p>The suggestion was DuckDuckGo — search the prospect online and use whatever comes back. The concern
+raised was whether it would be licensed for our internal use.</p>
+
+<p>That concern turned out to be the wrong one. <strong>DuckDuckGo has no web-search API at all.</strong>
+It has exactly one official API, Instant Answers, and it returns nothing for ordinary people:</p>
+
+<div class="callout">
+  <p class="lede">Measured — DuckDuckGo Instant Answer API</p>
+  <blockquote>
+    Sepideh Amin-Hanjani → 0 results<br>
+    Ali Alaraj → 0 results<br>
+    Jeffrey Ackerman → 0 results
+  </blockquote>
+  <p>The endpoints the Python DuckDuckGo libraries scrape (<code>html.duckduckgo.com</code>,
+  <code>lite.duckduckgo.com</code>) both returned <strong>HTTP 202</strong> — an anti-bot soft block,
+  not results. That is why those libraries break every few months.</p>
+</div>
+
+<p>So the answer to bring back is: not available, but not for licensing reasons. DuckDuckGo simply does
+not sell or expose search results to applications. The instinct was fine; the plumbing does not exist.</p>
+
+<h3>Why there is no API — DuckDuckGo does not own its results</h3>
+
+<p>This is the part that makes the rest make sense. DuckDuckGo is mostly a <strong>metasearch engine</strong>.
+It does not run a large index of the web. When you search, it is largely passing through results licensed
+from <strong>Bing</strong>, mixed with Wikipedia and Wikidata for the instant answers and its own small
+crawler for some pages.</p>
+
+<p>So there is no API not because they never built one, but because <strong>the results are not theirs to
+resell.</strong> Their licence from Microsoft does not grant redistribution. You cannot buy from DuckDuckGo
+something DuckDuckGo does not own.</p>
+
+<h3>Could we scrape it instead?</h3>
+
+<p>We tested this properly — a request dressed as a real Chrome browser, full user-agent, hitting the same
+endpoint the Python DuckDuckGo libraries use:</p>
+
+<div class="callout stop">
+  <p class="lede">Measured — scraping attempt with a browser user-agent</p>
+  <blockquote>
+    HTTP 202 &nbsp;|&nbsp; 14,250 bytes downloaded<br>
+    results parsed out of the HTML: <strong>0</strong><br>
+    page content: the word "DuckDuckGo", and nothing else
+  </blockquote>
+  <p>An empty shell page. The block is server-side, so disguising the request does not help. Getting past it
+  would mean rotating proxies and solving challenges — a terms violation, and legally live right now:
+  <strong>Google's lawsuit against SerpApi over exactly this is unresolved.</strong> Not something to put
+  inside a regulated firm's tool.</p>
+</div>
+
+<h3>And no, a search index cannot be downloaded</h3>
+
+<p>A reasonable next thought is: could we just download the search results in bulk and query them locally?
+Not for a search engine. Google's and Bing's indexes are their entire business and are not distributed.
+The closest free thing is <strong>Common Crawl</strong>, which genuinely is a downloadable archive of the
+web — but we tested it, and it has no ranking and no search-by-person. You must already know the URL you
+want. It is raw material for building a search engine, not a search engine.</p>
+
+<div class="callout">
+  <p class="lede">The distinction that matters &mdash; and the one people get wrong</p>
+  <p><b>CMS Open Payments is a dataset.</b> A finite list of rows about physicians, which CMS publishes as
+  a file on purpose, for anyone to take. That is why we can download it and query it locally forever.</p>
+  <p><b>DuckDuckGo is not a dataset.</b> There is no file of "all DuckDuckGo results" anywhere, not even
+  inside DuckDuckGo. You type a question, it asks Bing, it shows you what comes back. There is nothing
+  stored to hand over.</p>
+  <p>Put another way: CMS is a library that will mail you a copy of the book. DuckDuckGo is a librarian who
+  looks things up in someone else's library and reads the answer out to you. <strong>You can download the
+  book. You cannot download the librarian.</strong></p>
+</div>
+
+<h2>2. The one rule that decides everything</h2>
+<p class="sub">This is the part worth understanding. Everything else follows from it.</p>
+
+<p>A data source is only usable if we can be certain the record belongs to <em>our</em> physician. There
+are two ways to make that link:</p>
+
+<ul class="plain">
+  <li><strong>Join on an identifier</strong> — an NPI number, an ORCID iD. These are unique to one person.
+  A match is a fact.</li>
+  <li><strong>Join on a name</strong> — "Jeffrey Ackerman". These are not unique. A match is a guess.</li>
+</ul>
+
+<p>The codebase already has the correct rule for this, in <code>EnrichmentMatcher</code>: attach or drop,
+never fuzzy match. A miss is acceptable; a false match is not. The research produced a pile of evidence
+for exactly why.</p>
+
+<p><strong>Every single false positive found across all five research passes came from a name join.
+Not one came from an identifier join.</strong></p>
+
+<ul class="fp">
+  <li>
+    <span class="q">Ackerman J + Chicago/orthopaedic affiliation</span>
+    <span class="src">PubMed</span>
+    <p class="a">Returned <b>Jerome L. Ackerman, an MIT MRI physicist</b>. Affiliation filters do not fix
+    this — they match any co-author's affiliation on the paper, not the target author's.</p>
+  </li>
+  <li>
+    <span class="q">Jeffrey Ackerman, insider forms</span>
+    <span class="src">SEC EDGAR</span>
+    <p class="a">Returned <b>a director of Fresh Market Inc. in North Carolina</b>. Different person, different
+    state, different profession.</p>
+  </li>
+  <li>
+    <span class="q">Ahmed Mohammed[Author]</span>
+    <span class="src">PubMed</span>
+    <p class="a">Returned <b>1,170 papers</b> spanning many different physicians with the same name.</p>
+  </li>
+  <li>
+    <span class="q">Amin-Hanjani</span>
+    <span class="src">NIH RePORTER</span>
+    <p class="a">Top-ranked hits were <b>DE HAVENON and ZIPFEL</b> — unrelated researchers. The API's own
+    relevance ranking cannot be trusted without an exact-match post-filter.</p>
+  </li>
+</ul>
+
+<p>This is why the recommendation below is not simply "the sources with the most data". It is "the sources
+we can attach without lying to an advisor".</p>
+
+<h2>3. What to build</h2>
+<p class="sub">Ranked by whether it can satisfy the attach-or-drop rule.</p>
+
+<p class="tier">Tier 1 — free, identifier-joined, ready now</p>
+<div class="table-scroll">
+<table>
+  <thead>
+    <tr><th>Source</th><th>Joins on</th><th>Measured</th><th>The talking point</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>CMS Open Payments</b></td>
+      <td class="key">NPI — clean</td>
+      <td class="num">24/40 have payments<br>9/40 usable</td>
+      <td>"Consults on orthopedic devices for Arthrex"</td>
+    </tr>
+    <tr>
+      <td><b>OpenAlex → ORCID → Crossref</b></td>
+      <td class="key">institution-verified,<br>then ORCID</td>
+      <td class="num">4/5 resolved<br>108/108 clean after</td>
+      <td>"Saw your paper published last month"</td>
+    </tr>
+    <tr>
+      <td><b>ClinicalTrials.gov</b></td>
+      <td class="key">name + affiliation<br>cross-check</td>
+      <td class="num">confirmed hit<br>w/ title + org</td>
+      <td>"Saw you are running the trial on X"</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>Open Payments is the strongest because it joins on NPI, exactly like PECOS already does — zero
+misattribution risk. ClinicalTrials.gov earns its place despite being name-based because it returns the
+investigator's <em>affiliation</em>, which we can check against the PECOS group name we already store.
+That converts a guess into a verified match.</p>
+
+<p class="tier">Tier 2 — cheap additions</p>
+<ul class="plain">
+  <li><strong>NIH RePORTER</strong> — free, but must post-filter <code>principal_investigators[]</code>
+  for an exact match, per the failure above.</li>
+  <li><strong>FEC contributions</strong> — <em>not</em> a talking point. Political donations make a bad
+  opener. But it returned <code>ACKERMAN, JEFFREY | IBJI | PHYSICIAN | Glencoe IL</code> — employer and
+  occupation, which is a free correctness check on our NPPES data.</li>
+  <li><strong>A research-links row</strong> in the contact kit — pre-built links that open DuckDuckGo, the
+  practice website and PubMed in the advisor's own browser. Zero cost, zero terms risk, and it is exactly
+  what the manager does by hand today.</li>
+</ul>
+
+<p class="tier">Tier 3 — park, do not discard</p>
+<ul class="plain">
+  <li><strong>IRS Form 990 board seats.</strong> The best talking point of anything tested — shared
+  philanthropic interest is both flattering and appropriate. But ProPublica's API does not expose officer
+  names (measured: 0 hits on person queries) and the free bulk mirror froze in December 2021. Officer names
+  exist only inside raw 990 XML, Part VII. That is a data-engineering project, not a sprint task.</li>
+  <li><strong>A paid search API</strong>, only if in-tool results are required. At our volume this is
+  genuinely cheap — roughly <strong>$2 a month</strong> for 219 prospects at $10/1,000 queries.</li>
+</ul>
+
+<h3>Download once, query locally &mdash; for the government data, not for search</h3>
+
+<p>The government sources are built to be downloaded, and Open Payments publishes the whole year as a
+single CSV. Confirmed live:</p>
+
+<blockquote><code>OP_DTL_GNRL_PGYR2024_P06302026_06032026.csv</code> &rarr; HTTP 200</blockquote>
+
+<p>So instead of calling the API once per prospect, we download the file once, filter it to our NPIs while
+streaming, and write the matches into SQLite. Four reasons that is better than the API:</p>
+
+<ul class="plain">
+  <li><strong>One download instead of 219 calls</strong> — and it covers every future prospect too, not
+  just today's list.</li>
+  <li><strong>No rate limits and no per-query cost.</strong></li>
+  <li><strong>Reproducible.</strong> The filename carries its publication date, so the audit trail can cite
+  the exact file version behind any claim — which is precisely what the Marketing Rule's substantiation
+  requirement asks for.</li>
+  <li><strong>It works offline.</strong> The demo stops depending on a live API responding.</li>
+</ul>
+
+<p>The catch is size: the full-year file is millions of rows. Stream and filter during download, keep only
+matching rows, and we store a few thousand rows rather than the whole country.</p>
+
+<h2>4. What the advisor actually sees</h2>
+<p class="sub">Real records from our own book, pulled live. This is the part that was missing.</p>
+
+<p><strong>First, a common misreading.</strong> Open Payments is not what a physician prescribes. It is
+money flowing <em>from</em> drug and device companies <em>to</em> the physician &mdash; consulting fees,
+research grants, teaching, royalties, travel, meals. Prescribing is an entirely separate dataset we do not use.</p>
+
+<p>Which category the payment falls into is what decides whether it is worth anything:</p>
+
+<div class="table-scroll">
+<table>
+  <thead><tr><th>Category</th><th>What it means about the person</th><th>Use it?</th></tr></thead>
+  <tbody>
+    <tr><td class="key">Royalty or License</td><td>They invented something. Ongoing income from it.</td><td class="verdict-keep">strongest</td></tr>
+    <tr><td class="key">Consulting Fee</td><td>A manufacturer pays for their expertise. 1099 income.</td><td class="verdict-keep">yes</td></tr>
+    <tr><td class="key">Grant</td><td>A company funds their research.</td><td class="verdict-keep">yes</td></tr>
+    <tr><td class="key">Education / Faculty</td><td>They teach other surgeons.</td><td class="verdict-keep">yes</td></tr>
+    <tr><td class="key">Travel and Lodging</td><td>Flown somewhere, usually to speak or train.</td><td class="verdict-park">weak</td></tr>
+    <tr><td class="key">Food and Beverage</td><td>A sales rep bought lunch. Most rows are this.</td><td class="verdict-drop">ignore</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Example: a strong record</h3>
+
+<div class="kit">
+  <div class="kit-head">
+    <span class="who">Ali Alaraj, MD</span>
+    <span class="meta">Neurological Surgery &middot; Chicago &middot; NPI 1568667806</span>
+  </div>
+  <div class="kit-body">
+    <p class="kit-label">Talking point &mdash; professional</p>
+    <p class="kit-fact">Paid consultant to J&amp;J MedTech on neurovascular devices</p>
+    <p class="kit-detail">$13,200 in consulting fees across 2 payments in 2024.
+    Devices named: <b>Cerepak Uniform</b>, <b>Emboguard</b> &mdash; both neurovascular embolization products.</p>
+    <div class="kit-why"><b>Why an advisor cares:</b> consulting fees are 1099 income. That means
+    self-employment retirement options and quarterly estimated taxes &mdash; a real reason to call, not small talk.</div>
+    <p class="kit-src">Source: CMS Open Payments, PY2024 general payments, published 2026-06-30 &middot;
+    matched on NPI &middot; <a href="#">view the 2 source records</a></p>
+    <p class="kit-note">A payment record does not indicate an improper relationship.</p>
+  </div>
+</div>
+
+<p><strong>Note what the panel does not do.</strong> It does not write the advisor's opening line. It gives
+them a fact, the source behind it, and why it is financially relevant. The advisor decides what to say &mdash;
+which is what keeps this out of advertisement territory under the Marketing Rule (section 6).</p>
+
+<p>What a human might do with that, in their own words: <em>"I saw you've been consulting on the
+neurovascular side with J&amp;J &mdash; is that a growing part of your practice?"</em> That sentence is the
+advisor's to write, not ours to generate.</p>
+
+<h3>Three more, straight from the book</h3>
+
+<div class="table-scroll">
+<table>
+  <thead><tr><th>Physician</th><th>What we would show</th><th>From</th></tr></thead>
+  <tbody>
+    <tr><td><b>Avinesh Agarwalla</b><br><span class="key">Ortho, Schaumburg</span></td>
+      <td>Runs industry-funded orthopedic research &mdash; <b>$22,917 in grants</b>. Also teaches on spinal and shoulder systems for four manufacturers.</td>
+      <td class="key">Arthrex,<br>Smith+Nephew</td></tr>
+    <tr><td><b>Zayed Almadidy</b><br><span class="key">Neurosurgery, Park Ridge</span></td>
+      <td><b>$20,000 research grant.</b> Travels for spine device work (Elsa, Europa pedicle screw system, XLIF).</td>
+      <td class="key">Abbott,<br>Globus Medical</td></tr>
+    <tr><td><b>Beejal Amin</b><br><span class="key">Neurosurgery, Oak Lawn</span></td>
+      <td><b>$1,170 consulting</b> on Synapse, a spine system. Thin, but real &mdash; shows up as a minor note, not a headline.</td>
+      <td class="key">J&amp;J MedTech</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Example: the empty case, which matters just as much</h3>
+
+<div class="kit">
+  <div class="kit-head">
+    <span class="who">Jeffrey Ackerman, MD</span>
+    <span class="meta">Orthopaedic Surgery &middot; Chicago &middot; NPI 1861621351</span>
+  </div>
+  <div class="kit-body">
+    <p class="kit-label">Talking point &mdash; professional</p>
+    <p class="kit-empty">No public professional record found.</p>
+    <p class="kit-detail" style="margin-top:8px">7 payment records in 2024, all Food and Beverage &mdash;
+    sales rep meals, nothing to open a conversation with. No publications, no trials, no grants.</p>
+    <div class="kit-why"><b>What the advisor gets instead:</b> the existing trigger &mdash; new licence,
+    new practice, career move &mdash; plus one-click research links to check manually.</div>
+  </div>
+</div>
+
+<p>This is deliberate. Roughly <strong>three-quarters of the book will look like this</strong>, and the tool
+must say "nothing found" rather than dress up a $26 lunch as a talking point. Inventing an opener is worse
+than offering none.</p>
+
+<h2>5. What we ruled out</h2>
+<p class="sub">Most of the market, and for good reasons.</p>
+
+<div class="table-scroll">
+<table>
+  <thead>
+    <tr><th>Option</th><th>Verdict</th><th>Why</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Definitive Healthcare, IQVIA, H1, Veeva</td><td class="verdict-drop">drop</td>
+      <td>Join cleanly on NPI, but carry <b>no wealth data at all</b> — $25K–$500K/yr to learn who is a doctor, which NPPES already tells us free.</td></tr>
+    <tr><td>WealthEngine, Wealth-X, Windfall, iWave</td><td class="verdict-drop">drop</td>
+      <td>Net-worth estimates but no NPI join and no physician data. The mirror image of the problem above.</td></tr>
+    <tr><td>Accurint, TLOxp, idiCORE, Delvepoint</td><td class="verdict-drop">drop</td>
+      <td>Gated to GLBA/DPPA permissible uses — law enforcement, collections, insurance. Prospecting is not a qualifying purpose; we likely cannot buy them at all. LexisNexis also bars archival storage, which kills our database model.</td></tr>
+    <tr><td>Spokeo, BeenVerified, Whitepages</td><td class="verdict-drop">drop</td>
+      <td>Consumer people-search. Terms disclaim FCRA status, but a disclaimer is not a defense — the test is functional, not what the vendor calls it.</td></tr>
+    <tr><td>USPTO PatentsView</td><td class="verdict-drop">drop</td>
+      <td>Free legacy API retired; new access needs a USPTO account with MFA. Inventor records carry no NPI — name and city only.</td></tr>
+    <tr><td>Google Programmable Search</td><td class="verdict-drop">drop</td>
+      <td>Closed to new customers, shuts down January 2027.</td></tr>
+    <tr><td>Google Gemini grounding</td><td class="verdict-drop">drop</td>
+      <td>Terms explicitly forbid using results to build a database.</td></tr>
+    <tr><td>SerpApi, Serper, self-hosted SearXNG</td><td class="verdict-drop">drop</td>
+      <td>Google's lawsuit against SerpApi is live and unresolved. The whole SERP-scraping category carries that exposure.</td></tr>
+    <tr><td>Seamless.ai</td><td class="verdict-drop">drop</td>
+      <td>Independent of data quality — a documented pattern of annual-contract cancellation complaints, including a BBB case over a $2,000 overcharge.</td></tr>
+    <tr><td>Google Scholar, ResearchGate, Doximity, Healthgrades</td><td class="verdict-drop">drop</td>
+      <td>Name-only joins and scraping prohibited. No compliant route exists.</td></tr>
+    <tr><td>USAspending, openFDA</td><td class="verdict-drop">drop</td>
+      <td>Measured zero useful hits. Institutions receive awards, not physicians; FDA contacts are company-level.</td></tr>
+    <tr><td>IL Secretary of State, Cook County Recorder</td><td class="verdict-park">park</td>
+      <td>Real signal, no API. SoS returned HTTP 403 — bot-protected. Manual only.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="callout">
+  <p class="lede">The finding worth telling the manager</p>
+  <p>Across roughly 35 vendors, searching Kitces, XYPN, Bogleheads, r/CFP and White Coat Investor, there was
+  <strong>no practitioner evidence that any physician-focused RIA uses a paid prospecting platform.</strong>
+  XYPN's own benchmarking shows the real lead sources are referrals, organic search and networking.</p>
+  <p>There is no vendor that does what we want. The NPI-joinable ones have no money data; the money ones
+  cannot find our physicians. Our free public-records stack is the better architecture — not a budget
+  compromise.</p>
+</div>
+
+<h2>6. The compliance constraint that shapes the build</h2>
+<p class="sub">One finding here changes the design directly.</p>
+
+<div class="callout stop">
+  <p class="lede">Generated prose would make our outreach a regulated advertisement</p>
+  <p>The SEC Marketing Rule adopting release (IA-5653) states:</p>
+  <blockquote>"Customizing a template presentation or mass mailing by filling in the name of an investor
+  and/or including other basic information about the investor would <strong>not</strong> result in a
+  one-on-one communication."</blockquote>
+  <p>So the one-on-one exclusion does not protect us once the tool writes the language. Machine-templated
+  outreach sent to many prospects is an <strong>advertisement</strong> — triggering substantiation,
+  fair-and-balanced and archiving obligations.</p>
+</div>
+
+<p><strong>The design conclusion: give the advisor sourced facts and links, never drafted prose.</strong>
+<code>outreach/service.py</code> already says "No drafted correspondence — the advisor writes their own
+outreach." That instinct turns out to be a compliance asset, not just good taste.</p>
+
+<h3>The rest, briefly</h3>
+<ul class="plain">
+  <li><strong>We are almost certainly not a "data broker"</strong> under California, Texas, Oregon, Vermont
+  or the pending Illinois bills. Every one of those definitions requires <em>selling or licensing to third
+  parties</em>. Internal-only use does not qualify — but it flips the moment we share prospect data with a
+  referral partner or license the tool to another firm. Worth a hard block in code.</li>
+  <li><strong>Reg S-P does not cover pure prospects</strong>, only people who actually engage. Our pipeline
+  sits outside it. It is a named 2026 exam priority, so this is worth stating precisely rather than assuming.</li>
+  <li><strong>FCRA</strong> — marketing is not a permissible purpose, and a vendor's "not a consumer report"
+  disclaimer does not control the analysis. Reinforces skipping the people-search tier entirely.</li>
+  <li><strong>No enforcement precedent</strong> was found on advisors referencing personal details in
+  solicitation. Genuinely unresolved rather than settled. The nearest standard is the FTC's treatment of
+  sensitive inferences drawn from ordinary data — which does cover life events inferred from property records.</li>
+</ul>
+
+<h3>Guardrails to build in</h3>
+<ul class="plain">
+  <li>Facts and links, never generated prose.</li>
+  <li>A provenance ledger — every claim traces to a source record and date, so substantiation is answerable.</li>
+  <li>A hard block on exporting prospect data outside the firm.</li>
+  <li>The CMS disclaimer wherever Open Payments data surfaces: a payment record does not indicate an
+  improper relationship.</li>
+</ul>
+
+<h2>7. Two things this changed about our own data</h2>
+<p class="sub">Found incidentally, both worth acting on.</p>
+
+<ul class="plain">
+  <li><strong>Avinesh Agarwalla has moved to Cedars-Sinai in California.</strong> He is still ranked in our
+  Illinois book. This is another instance of <code>KNOWN_GAPS.md</code> §1, and it suggests OpenAlex could
+  double as a staleness check on practice location.</li>
+  <li><strong>Community physicians return nothing, correctly.</strong> Jeffrey Ackerman has no scholarly
+  footprint, and every source correctly declined to invent one. That is the right behaviour — but it means
+  this layer only ever covers academically active prospects, and the board should not imply otherwise.</li>
+</ul>
+
+<h2>8. Open questions</h2>
+<p class="sub">Listed rather than glossed over.</p>
+
+<ul class="plain">
+  <li>Whether a CMS Open Payments data-use agreement exists. None was found, but its absence could not be
+  fully confirmed. Low risk for internal use; check before anything external-facing.</li>
+  <li>Exact caching and storage terms for Anthropic, OpenAI, Kagi and Exa search APIs — not fully verified.
+  Only relevant if we go the paid-search route.</li>
+  <li>Whether the book is an Illinois book or an Illinois-licensed book. Still open from
+  <code>KNOWN_GAPS.md</code>, and it determines whether staleness checks should drop relocated physicians
+  or merely flag them.</li>
+</ul>
+
+<p class="footnote">Companion documents: <code>DATA_SOURCES.md</code> for the four live pulls,
+<code>RESEARCH_CONTACT_OUTREACH.md</code> for channels and contact data, <code>KNOWN_GAPS.md</code> for
+what is currently wrong on screen. Recommended next step: the Open Payments adapter, because it is the only
+Tier 1 source that joins on NPI and therefore the only one that needs no new matching logic.</p>
+
+</div>

@@ -82,12 +82,3 @@ described but never shown.
 
 Partly a sampling artefact: the demo page limit skews 203 of 219 surnames to
 "A". Worth re-checking after a full sweep before treating it as a real finding.
-
----
-
-## 4. The run of show has no agreed length
-
-`visuals/presentation-run-of-show.html` runs about 1,200 spoken words, roughly
-9–10 minutes before demo clicks and pauses, while its own runsheet still shows a
-5:30 finish. Either the slot is longer than five minutes or roughly a third has
-to come out — Speaker 3 first, since the Q&A section already covers most of it.
