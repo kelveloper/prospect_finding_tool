@@ -361,7 +361,10 @@ export default function RefreshData({
       : "Sweeping four live sources…"
     : banner;
 
-  const showPopover = open && phases.length > 0;
+  // The checklist shows when opened by a click, and — while a sweep runs —
+  // on hover too, in place of the source-cadence panel: one click or one
+  // hover reaches the progress, never two clicks.
+  const showPopover = phases.length > 0 && (open || sweeping);
 
   return (
     <div ref={rootRef} className="group relative flex items-center gap-2.5">
@@ -433,116 +436,126 @@ export default function RefreshData({
         <div
           role="dialog"
           aria-label={header}
-          className="absolute right-0 top-full z-30 mt-2 w-[320px] rounded-[12px] border border-hairline bg-white p-3 shadow-panel"
+          // Padding, not margin, for the offset: crossing a margin gap
+          // leaves the hover group and shuts the panel (see the tooltip)
+          className={
+            "absolute right-0 top-full z-30 pt-2 " +
+            (open
+              ? "block"
+              : "hidden group-hover:block group-focus-within:block")
+          }
         >
-          <div className="flex items-baseline justify-between gap-3">
-            <p
-              className={
-                "font-display text-[12px] font-semibold " +
-                (sweepFailed ? "text-tier-poor" : "text-ink")
-              }
-            >
-              {header}
-            </p>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              aria-label="Close"
-              className="text-[12px] leading-none text-ink-muted hover:text-ink"
-            >
-              ✕
-            </button>
-          </div>
-
-          <ol className="mt-2.5 space-y-1.5">
-            {phases.map((p, i) => {
-              const parallel = PARALLEL.has(p.key);
-              const groupStart = parallel && !PARALLEL.has(phases[i - 1]?.key);
-              const groupEnd = parallel && !PARALLEL.has(phases[i + 1]?.key);
-              return (
-                <li
-                  key={p.key}
-                  className={
-                    parallel
-                      ? "ml-1 border-l-2 border-hairline pl-2.5" +
-                        (groupStart ? " mt-2.5 pt-0.5" : "") +
-                        (groupEnd ? " pb-0.5" : "")
-                      : i > 0 && !parallel && PARALLEL.has(phases[i - 1]?.key)
-                        ? "mt-2.5"
-                        : ""
-                  }
-                >
-                  {groupStart ? (
-                    <p className="eyebrow -ml-2.5 mb-1.5 pl-2.5">
-                      searched in parallel
-                    </p>
-                  ) : null}
-                  <div className="flex items-start gap-2 text-[11px]">
-                    <span className="mt-[2px] flex size-3 items-center justify-center">
-                      <PhaseMark status={p.status} />
-                    </span>
-                    <span
-                      className={
-                        "w-[118px] shrink-0 font-display font-semibold " +
-                        (p.status === "pending" || p.status === "skipped"
-                          ? "text-ink-muted"
-                          : "text-ink")
-                      }
-                    >
-                      {PHASE_COPY[p.key]?.name ?? p.label}
-                    </span>
-                    <span
-                      className={
-                        "min-w-0 break-words " +
-                        (p.status === "failed"
-                          ? "font-semibold text-tier-poor"
-                          : "text-ink-muted")
-                      }
-                      title={
-                        p.status === "failed"
-                          ? (p.detail ?? undefined)
-                          : undefined
-                      }
-                    >
-                      {phaseLine(p, sweepFailed)}
-                    </span>
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
-
-          {sweeping && status?.startedAt ? (
-            <p className="mt-2.5 text-[10px] text-ink-muted">
-              Started {duration(secondsSince(status.startedAt, now))} ago
-            </p>
-          ) : null}
-
-          {sweepFailed ? (
-            <>
-              <p className="mt-2.5 text-[11px] text-ink">
-                {failedPhase?.key === "summaries"
-                  ? "Prospects were updated, but the run wasn't recorded."
-                  : "Nothing was saved — your book is unchanged."}
+          <div className="w-[320px] rounded-[12px] border border-hairline bg-white p-3 shadow-panel">
+            <div className="flex items-baseline justify-between gap-3">
+              <p
+                className={
+                  "font-display text-[12px] font-semibold " +
+                  (sweepFailed ? "text-tier-poor" : "text-ink")
+                }
+              >
+                {header}
               </p>
               <button
                 type="button"
-                // A failed sweep recorded nothing, so the weekly gate is
-                // wherever it was; a retry behind a locked gate must force
-                // it (the failed sweep was forced or started from the CLI)
-                onClick={() => runIngest(lastForce.current || lockedDays > 0)}
-                className="mt-2 w-full rounded-[8px] border border-hairline bg-white px-2.5 py-1.5 font-display text-[11px] font-semibold text-brand transition-colors hover:bg-surface-soft"
+                onClick={() => setOpen(false)}
+                aria-label="Close"
+                className="text-[12px] leading-none text-ink-muted hover:text-ink"
               >
-                Try again
+                ✕
               </button>
-            </>
-          ) : null}
+            </div>
 
-          {finished && status?.lastRunAt ? (
-            <p className="mt-2.5 text-[10px] text-ink-muted">
-              Data updated {ago(status.lastRunAt)}
-            </p>
-          ) : null}
+            <ol className="mt-2.5 space-y-1.5">
+              {phases.map((p, i) => {
+                const parallel = PARALLEL.has(p.key);
+                const groupStart =
+                  parallel && !PARALLEL.has(phases[i - 1]?.key);
+                const groupEnd = parallel && !PARALLEL.has(phases[i + 1]?.key);
+                return (
+                  <li
+                    key={p.key}
+                    className={
+                      parallel
+                        ? "ml-1 border-l-2 border-hairline pl-2.5" +
+                          (groupStart ? " mt-2.5 pt-0.5" : "") +
+                          (groupEnd ? " pb-0.5" : "")
+                        : i > 0 && !parallel && PARALLEL.has(phases[i - 1]?.key)
+                          ? "mt-2.5"
+                          : ""
+                    }
+                  >
+                    {groupStart ? (
+                      <p className="eyebrow -ml-2.5 mb-1.5 pl-2.5">
+                        searched in parallel
+                      </p>
+                    ) : null}
+                    <div className="flex items-start gap-2 text-[11px]">
+                      <span className="mt-[2px] flex size-3 items-center justify-center">
+                        <PhaseMark status={p.status} />
+                      </span>
+                      <span
+                        className={
+                          "w-[118px] shrink-0 font-display font-semibold " +
+                          (p.status === "pending" || p.status === "skipped"
+                            ? "text-ink-muted"
+                            : "text-ink")
+                        }
+                      >
+                        {PHASE_COPY[p.key]?.name ?? p.label}
+                      </span>
+                      <span
+                        className={
+                          "min-w-0 break-words " +
+                          (p.status === "failed"
+                            ? "font-semibold text-tier-poor"
+                            : "text-ink-muted")
+                        }
+                        title={
+                          p.status === "failed"
+                            ? (p.detail ?? undefined)
+                            : undefined
+                        }
+                      >
+                        {phaseLine(p, sweepFailed)}
+                      </span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+
+            {sweeping && status?.startedAt ? (
+              <p className="mt-2.5 text-[10px] text-ink-muted">
+                Started {duration(secondsSince(status.startedAt, now))} ago
+              </p>
+            ) : null}
+
+            {sweepFailed ? (
+              <>
+                <p className="mt-2.5 text-[11px] text-ink">
+                  {failedPhase?.key === "summaries"
+                    ? "Prospects were updated, but the run wasn't recorded."
+                    : "Nothing was saved — your book is unchanged."}
+                </p>
+                <button
+                  type="button"
+                  // A failed sweep recorded nothing, so the weekly gate is
+                  // wherever it was; a retry behind a locked gate must force
+                  // it (the failed sweep was forced or started from the CLI)
+                  onClick={() => runIngest(lastForce.current || lockedDays > 0)}
+                  className="mt-2 w-full rounded-[8px] border border-hairline bg-white px-2.5 py-1.5 font-display text-[11px] font-semibold text-brand transition-colors hover:bg-surface-soft"
+                >
+                  Try again
+                </button>
+              </>
+            ) : null}
+
+            {finished && status?.lastRunAt ? (
+              <p className="mt-2.5 text-[10px] text-ink-muted">
+                Data updated {ago(status.lastRunAt)}
+              </p>
+            ) : null}
+          </div>
         </div>
       ) : null}
 
