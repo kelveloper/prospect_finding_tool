@@ -4,13 +4,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import router
-from app.database import Base, engine
+from app.database import Base, add_missing_nullable_columns, engine
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Prototype convenience; production migrations run via Alembic
+    # Prototype convenience; production migrations run via Alembic. The
+    # second call keeps an existing prospects.db usable when a model gains
+    # a nullable column (create_all only creates, never alters).
     Base.metadata.create_all(bind=engine)
+    add_missing_nullable_columns(engine)
     yield
 
 

@@ -387,10 +387,11 @@ CORS on the backend is hardcoded to `localhost:3000` / `127.0.0.1:3000`
 - **No real data.** All five adapters read bundled JSON. No HTTP client, no rate
   limiting, no retry/backoff, no pagination against live APIs.
 - **No scheduling.** Ingestion runs only when someone POSTs to `/ingest/run`.
-- **No Alembic migration exists.** `alembic/versions/` contains only `.gitkeep`,
-  so `alembic upgrade head` is a **no-op**. The schema is created solely by
-  `Base.metadata.create_all()` at app startup. To get real migrations you must
-  first run `alembic revision --autogenerate`.
+- **Migrations are only partly real.** `alembic/versions/` holds one revision
+  (`0001_ingest_run_telemetry`, the sweep-report columns); everything else is
+  still created by `Base.metadata.create_all()` at app startup, which also
+  adds any missing nullable columns to an existing SQLite file
+  (`add_missing_nullable_columns` in `app/database.py`).
 - **No filtering, search, or sorting** beyond `limit` on the ranked endpoint.
 - **No model retraining** — explicitly out of scope; feedback is captured only.
 - **Illinois-only, physicians-only.** `STATE_NAMES` in the frontend maps just
@@ -557,8 +558,9 @@ Ordered roughly by how likely they are to bite you.
 4. **The frontend's "Top Prospect" tier (≥80) is unreachable** in the current
    wiring (max 82, actual max 77.2). Fixed by #3, or by retuning the thresholds.
 
-5. **No migration exists.** `alembic upgrade head` does nothing; the schema comes
-   only from `create_all()`. Any production deploy needs a real revision first.
+5. **No baseline migration exists.** `alembic upgrade head` applies the one
+   revision there is (sweep-report columns); the base schema still comes only
+   from `create_all()`. Any production deploy needs a real baseline first.
 
 6. **No auth on any endpoint**, including `POST /ingest/run`. Fine for a
    prototype, disqualifying for anything internet-facing — especially given the

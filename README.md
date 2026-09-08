@@ -121,13 +121,19 @@ idempotent re-ingestion, and the feedback round-trip.
 
 ## Migrations
 
-The app auto-creates tables on startup (prototype convenience). For real
-migrations:
+The app auto-creates tables on startup (prototype convenience), and on
+the same startup bolts on any nullable column a model has gained since the
+database file was created — so a pulled schema change never breaks a local
+`prospects.db`. Deployments run the real thing:
 
 ```bash
-.venv/bin/alembic revision --autogenerate -m "initial schema"
 .venv/bin/alembic upgrade head
 ```
+
+`alembic/versions/` holds one revision so far (`0001_ingest_run_telemetry`,
+the sweep-report columns on `ingest_runs`); the rest of the schema still
+comes from `create_all`. New schema changes get a revision alongside the
+model edit.
 
 ## Adding a data source (future phases)
 

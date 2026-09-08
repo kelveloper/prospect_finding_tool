@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import CandidateCard from "./CandidateCard";
 import CandidateDetail from "./CandidateDetail";
 import {
@@ -9,6 +9,11 @@ import {
   fetchOutreachHistory,
   type ContactKit,
 } from "@/lib/api";
+import {
+  changedSinceSweep,
+  describeChanges,
+  summarizeChanges,
+} from "@/lib/changes";
 import type { Candidate, OutreachEntry } from "@/lib/data";
 
 type DetailData = NonNullable<Awaited<ReturnType<typeof fetchCandidateDetail>>>;
@@ -53,6 +58,35 @@ export default function Scoreboard({
   const [dossier, setDossier] = useState<Dossier | null>(initialDossier);
   const cache = useRef(new Map<string, Dossier>([[defaultId, initialDossier]]));
   const selectedRef = useRef(defaultId);
+
+  // A refresh (a sweep landed, an outcome was logged) re-renders the page
+  // with a fresh dossier for the prospect in the URL — which is the one on
+  // screen, since every click writes the URL. Adopt it and drop everything
+  // cached from before, or the panel keeps showing last week's score.
+  const [seenDossier, setSeenDossier] = useState(initialDossier);
+  if (initialDossier !== seenDossier) {
+    setSeenDossier(initialDossier);
+    setSelectedId(defaultId);
+    setDossier(initialDossier);
+  }
+  useEffect(() => {
+    cache.current = new Map([[defaultId, initialDossier]]);
+    selectedRef.current = defaultId;
+  }, [initialDossier, defaultId]);
+
+  // "What changed" — new arrivals and movers. The alert above the list
+  // doubles as the toggle; nothing renders when nothing changed.
+  const changes = useMemo(() => summarizeChanges(ranked), [ranked]);
+  const [onlyChanged, setOnlyChanged] = useState(false);
+  const visible = useMemo(
+    () => (onlyChanged ? ranked.filter(changedSinceSweep) : ranked),
+    [ranked, onlyChanged],
+  );
+  // Cards keep their true rank even when the list is filtered
+  const rankOf = useMemo(
+    () => new Map(ranked.map((c, i) => [c.id, i + 1])),
+    [ranked],
+  );
 
   async function show(id: string, pushUrl: boolean) {
     selectedRef.current = id;
@@ -112,10 +146,12 @@ export default function Scoreboard({
       const top = list.getBoundingClientRect().top;
       const start = Math.max(0, Math.floor(-top / rowHeight) - OVERSCAN);
       const end = Math.min(
-        ranked.length,
+        visible.length,
         Math.ceil((window.innerHeight - top) / rowHeight) + OVERSCAN,
       );
-      setRange((r) => (r.start === start && r.end === end ? r : { start, end }));
+      setRange((r) =>
+        r.start === start && r.end === end ? r : { start, end },
+      );
     }
     update();
     // capture:true hears the aside's own scroll as well as the page's
@@ -125,7 +161,7 @@ export default function Scoreboard({
       window.removeEventListener("scroll", update, true);
       window.removeEventListener("resize", update);
     };
-  }, [rowHeight, cardHeight, ranked.length]);
+  }, [rowHeight, cardHeight, visible.length]);
 
   // Fall back to the ranked row for the selected id while its dossier loads.
   const featured =
@@ -134,9 +170,6 @@ export default function Scoreboard({
     ranked[0];
   const detail = dossier?.detail;
   const rank = ranked.findIndex((c) => c.id === featured.id) + 1;
-
-  // Fresh arrivals (last 48h) get the NEW badge and the list-top alert
-  const newCount = ranked.filter((c) => c.isNew).length;
 
   return (
     <div className="mx-auto grid max-w-[1560px] grid-cols-1 items-start lg:grid-cols-[minmax(0,1fr)_420px]">
@@ -168,22 +201,41 @@ export default function Scoreboard({
         </h2>
         <p className="eyebrow mt-3">Ranked by fit score</p>
 
-        {/* New-arrivals alert — only rendered when there is something new */}
-        {newCount > 0 ? (
-          <div className="mt-3 flex items-center gap-2 rounded-[12px] bg-tier-strong-bg px-4 py-3">
+        {/* What changed since the last sweep — the alert is the filter.
+            Only rendered when something did; the unchanged majority is the
+            default list, not a view of its own. */}
+        {changes.total > 0 ? (
+          <div className="mt-3 flex items-center justify-between gap-3 rounded-[12px] bg-tier-strong-bg px-4 py-2.5">
             <span className="font-display text-[13px] font-semibold text-tier-strong-fg">
-              ✨ {newCount} new prospect{newCount === 1 ? "" : "s"} since the
-              last ingest — look for the NEW badge below.
+              ✨ {describeChanges(changes)} since the last sweep
             </span>
+            <button
+              type="button"
+              onClick={() => setOnlyChanged((v) => !v)}
+              aria-pressed={onlyChanged}
+              title={
+                onlyChanged
+                  ? `Back to all ${ranked.length} prospects`
+                  : "Show only the prospects that are new or whose score moved"
+              }
+              className={
+                "shrink-0 rounded-full border px-2.5 py-1 font-display text-[11px] font-semibold transition-colors " +
+                (onlyChanged
+                  ? "border-tier-strong-fg bg-tier-strong-fg text-white"
+                  : "border-tier-strong-fg/40 bg-white text-tier-strong-fg hover:bg-tier-strong-bg")
+              }
+            >
+              {onlyChanged ? "Show all" : "Only these"}
+            </button>
           </div>
         ) : null}
 
         <div
           ref={listRef}
           className="relative mt-3"
-          style={{ height: ranked.length * rowHeight - CARD_GAP }}
+          style={{ height: visible.length * rowHeight - CARD_GAP }}
         >
-          {ranked.slice(range.start, range.end).map((candidate, i) => {
+          {visible.slice(range.start, range.end).map((candidate, i) => {
             const index = range.start + i;
             return (
               <div
@@ -193,7 +245,7 @@ export default function Scoreboard({
               >
                 <CandidateCard
                   candidate={candidate}
-                  rank={index + 1}
+                  rank={rankOf.get(candidate.id) ?? index + 1}
                   active={candidate.id === featured.id}
                   onSelect={() => void show(candidate.id, true)}
                 />

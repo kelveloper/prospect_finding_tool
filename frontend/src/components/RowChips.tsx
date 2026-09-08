@@ -30,7 +30,25 @@ export function TriggerChip({ trigger }: { trigger: Candidate["trigger"] }) {
  *
  *  Until a second ingest exists there is nothing to compare against, so this
  *  says so rather than leaving a gap the advisor has to interpret. */
-export function MovementChip({ change }: { change: number | null }) {
+export function MovementChip({
+  change,
+  isNew = false,
+}: {
+  change: number | null;
+  /** A new arrival has no earlier score — say so instead of "no change yet". */
+  isNew?: boolean;
+}) {
+  if (change === null && isNew) {
+    return (
+      <span
+        title="First found by the last sweep — there is no earlier score to compare against."
+        className="shrink-0 cursor-help font-display text-[11px] font-bold text-tier-strong-fg"
+      >
+        ✨ new
+      </span>
+    );
+  }
+
   if (change === null) {
     return (
       <span

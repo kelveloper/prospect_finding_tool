@@ -608,6 +608,39 @@ type ApiOutreachEvent = {
   follow_up_on: string | null;
 };
 
+export type IngestPhaseStatus =
+  "pending" | "running" | "done" | "failed" | "skipped";
+
+/** One step of the sweep checklist, as /ingest/status reports it. */
+export type IngestPhase = {
+  key: string;
+  label: string;
+  status: IngestPhaseStatus;
+  /** Rows a source returned; prospects resolved for the merge step. */
+  records: number | null;
+  /** The error, on a failed step. */
+  detail: string | null;
+  created: number | null;
+  updated: number | null;
+  skipped: number | null;
+};
+
+/** What the last recorded sweep found. Every field is null on runs that
+ *  predate the report columns. */
+export type SweepReport = {
+  npiRecords: number | null;
+  idfprRecords: number | null;
+  pecosRecords: number | null;
+  cookRecords: number | null;
+  prospectsCreated: number | null;
+  prospectsUpdated: number | null;
+  prospectsResolved: number | null;
+  prospectsSkipped: number | null;
+  enrichmentRecords: number | null;
+  enrichmentMatched: number | null;
+  durationSeconds: number | null;
+};
+
 export type IngestStatus = {
   lastRunAt: string | null;
   nextSweepAt: string | null;
@@ -618,29 +651,70 @@ export type IngestStatus = {
   running: boolean;
   /** Why the last background sweep produced no run, if it failed. */
   lastError: string | null;
+  /** Live checklist of the in-flight (or most recent) sweep; empty before
+   *  the first one. */
+  phases: IngestPhase[];
+  startedAt: string | null;
+  /** The last recorded run's report; null until a run exists. */
+  lastSweep: SweepReport | null;
 };
+
+type IngestStatusWire = {
+  last_run_at: string | null;
+  next_sweep_at: string | null;
+  prospects_created: number | null;
+  prospects_updated: number | null;
+  stale_summaries: number;
+  running?: boolean;
+  last_error?: string | null;
+  phases?: IngestPhase[];
+  started_at?: string | null;
+  npi_records?: number | null;
+  idfpr_records?: number | null;
+  pecos_records?: number | null;
+  cook_records?: number | null;
+  prospects_resolved?: number | null;
+  prospects_skipped?: number | null;
+  enrichment_records?: number | null;
+  enrichment_matched?: number | null;
+  duration_seconds?: number | null;
+};
+
+/** Wire → app shape for /ingest/status. Shared by the server-rendered
+ *  header and the client's poll so the two never drift. */
+export function toIngestStatus(s: IngestStatusWire): IngestStatus {
+  return {
+    lastRunAt: s.last_run_at,
+    nextSweepAt: s.next_sweep_at,
+    prospectsCreated: s.prospects_created,
+    prospectsUpdated: s.prospects_updated,
+    staleSummaries: s.stale_summaries,
+    running: s.running ?? false,
+    lastError: s.last_error ?? null,
+    phases: s.phases ?? [],
+    startedAt: s.started_at ?? null,
+    lastSweep: s.last_run_at
+      ? {
+          npiRecords: s.npi_records ?? null,
+          idfprRecords: s.idfpr_records ?? null,
+          pecosRecords: s.pecos_records ?? null,
+          cookRecords: s.cook_records ?? null,
+          prospectsCreated: s.prospects_created,
+          prospectsUpdated: s.prospects_updated,
+          prospectsResolved: s.prospects_resolved ?? null,
+          prospectsSkipped: s.prospects_skipped ?? null,
+          enrichmentRecords: s.enrichment_records ?? null,
+          enrichmentMatched: s.enrichment_matched ?? null,
+          durationSeconds: s.duration_seconds ?? null,
+        }
+      : null,
+  };
+}
 
 /** Latest ingest run + stale-summary count; null when the API is down. */
 export async function fetchIngestStatus(): Promise<IngestStatus | null> {
   try {
-    const s = await api<{
-      last_run_at: string | null;
-      next_sweep_at: string | null;
-      prospects_created: number | null;
-      prospects_updated: number | null;
-      stale_summaries: number;
-      running: boolean;
-      last_error: string | null;
-    }>("/ingest/status");
-    return {
-      lastRunAt: s.last_run_at,
-      nextSweepAt: s.next_sweep_at,
-      prospectsCreated: s.prospects_created,
-      prospectsUpdated: s.prospects_updated,
-      staleSummaries: s.stale_summaries,
-      running: s.running,
-      lastError: s.last_error,
-    };
+    return toIngestStatus(await api<IngestStatusWire>("/ingest/status"));
   } catch {
     return null;
   }

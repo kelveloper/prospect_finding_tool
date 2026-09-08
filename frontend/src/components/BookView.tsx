@@ -4,6 +4,11 @@ import Link from "next/link";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { EvidenceChip, MovementChip, TriggerChip } from "./RowChips";
 import { ChevronLeft, ChevronRight } from "./icons";
+import {
+  changedSinceSweep,
+  describeChanges,
+  summarizeChanges,
+} from "@/lib/changes";
 import type { Candidate } from "@/lib/data";
 import { tierStyle } from "@/lib/tier";
 import { BOOK_VIEW, viewHref } from "@/lib/view";
@@ -120,6 +125,7 @@ export default function BookView({ ranked, selectedId }: Props) {
   const [sort, setSort] = useState<SortKey>("rank");
   const [fromBack, setFromBack] = useState(false);
   const [onlyNew, setOnlyNew] = useState(false);
+  const [onlyChanged, setOnlyChanged] = useState(false);
   // A native <details> only closes from its own summary, so an open column
   // menu followed the advisor around the page. Close on any click outside one,
   // and on Escape. Done against the DOM rather than React state because the
@@ -176,6 +182,7 @@ export default function BookView({ ranked, selectedId }: Props) {
     location,
     query,
     onlyNew,
+    onlyChanged,
     sort,
     fromBack,
   };
@@ -186,6 +193,7 @@ export default function BookView({ ranked, selectedId }: Props) {
     setLocation(next.location ?? "all");
     setQuery(next.query ?? "");
     setOnlyNew(!!next.onlyNew);
+    setOnlyChanged(!!next.onlyChanged);
     setSort(
       ((next.sort as SortKey) ?? "rank") in SORTS
         ? (next.sort as SortKey)
@@ -236,6 +244,7 @@ export default function BookView({ ranked, selectedId }: Props) {
     () => ranked.map((c, i) => ({ ...c, rank: i + 1 })),
     [ranked],
   );
+  const changes = useMemo(() => summarizeChanges(entries), [entries]);
 
   /** Commonest first, so the value that matches most of the board is the
    *  first thing you see. Ties fall back to alphabetical. */
@@ -283,6 +292,7 @@ export default function BookView({ ranked, selectedId }: Props) {
       .filter(
         (e) =>
           (!onlyNew || e.isNew) &&
+          (!onlyChanged || changedSinceSweep(e)) &&
           (specialty === "all" || e.specialty === specialty) &&
           (location === "all" || e.location === location) &&
           (tier === "all" || e.tier === tier) &&
@@ -302,7 +312,17 @@ export default function BookView({ ranked, selectedId }: Props) {
         }
         return SORTS[sort].cmp(a, b) * (fromBack ? -1 : 1);
       });
-  }, [entries, specialty, tier, location, query, sort, fromBack, onlyNew]);
+  }, [
+    entries,
+    specialty,
+    tier,
+    location,
+    query,
+    sort,
+    fromBack,
+    onlyNew,
+    onlyChanged,
+  ]);
 
   /** Clicking a menu entry both picks the column and sets which end to read
    *  from, so one call covers what were two controls. */
@@ -315,8 +335,8 @@ export default function BookView({ ranked, selectedId }: Props) {
    *  one of the built-in chips. */
   const saveBlockedBecause = isEmpty(viewState)
     ? "Nothing to save yet — filter or re-order the book first, then save that as a view you can come back to."
-    : sameState(viewState, { ...EMPTY_STATE, onlyNew: true })
-      ? "This is already the New arrivals view."
+    : sameState(viewState, { ...EMPTY_STATE, onlyChanged: true })
+      ? "This is already the What changed view."
       : (views.find((v) => sameState(viewState, v.state))?.name ?? null);
 
   /** After a single ingest there is nothing to compare against, so the column
@@ -325,11 +345,14 @@ export default function BookView({ ranked, selectedId }: Props) {
    *  board, below which the column is 95% identical text. */
   const hasMovement = useMemo(() => {
     if (entries.length === 0) return false;
+    // Movement is the whole point of the What changed view, so it always
+    // earns the column there
+    if (onlyChanged) return true;
     const moved = entries.filter(
       (e) => e.scoreChange !== null && e.scoreChange !== 0,
     ).length;
     return moved / entries.length >= 0.05;
-  }, [entries]);
+  }, [entries, onlyChanged]);
 
   const filtered = !isEmpty(viewState);
   const clear = () => {
@@ -338,6 +361,7 @@ export default function BookView({ ranked, selectedId }: Props) {
     setLocation("all");
     setQuery("");
     setOnlyNew(false);
+    setOnlyChanged(false);
     setSort("rank");
     setFromBack(false);
   };
@@ -408,18 +432,24 @@ export default function BookView({ ranked, selectedId }: Props) {
               title="Every prospect on the board, no filters"
             />
 
-            <ViewChip
-              label="New arrivals"
-              count={entries.filter((e) => e.isNew).length}
-              active={
-                onlyNew &&
-                specialty === "all" &&
-                tier === "all" &&
-                !query.trim()
-              }
-              onClick={() => applyState({ ...EMPTY_STATE, onlyNew: true })}
-              title="Prospects ingestion first found in the last 48 hours"
-            />
+            {/* New arrivals and movers together; absent when the last
+                sweep changed nothing, since there is nothing to show */}
+            {changes.total > 0 ? (
+              <ViewChip
+                label="What changed"
+                count={changes.total}
+                active={
+                  onlyChanged &&
+                  specialty === "all" &&
+                  tier === "all" &&
+                  !query.trim()
+                }
+                onClick={() =>
+                  applyState({ ...EMPTY_STATE, onlyChanged: true })
+                }
+                title={`${describeChanges(changes)} since the last sweep — new arrivals and prospects whose score moved`}
+              />
+            ) : null}
 
             {views.map((view) => (
               <ViewChip
@@ -429,6 +459,7 @@ export default function BookView({ ranked, selectedId }: Props) {
                   entries.filter(
                     (e) =>
                       (!view.state.onlyNew || e.isNew) &&
+                      (!view.state.onlyChanged || changedSinceSweep(e)) &&
                       (view.state.specialty === "all" ||
                         e.specialty === view.state.specialty) &&
                       (view.state.tier === "all" ||
@@ -1070,7 +1101,10 @@ function BookEntry({
 
       {showMovement ? (
         <span className="hidden w-[78px] shrink-0 text-right md:block">
-          <MovementChip change={candidate.scoreChange} />
+          <MovementChip
+            change={candidate.scoreChange}
+            isNew={candidate.isNew}
+          />
         </span>
       ) : null}
 

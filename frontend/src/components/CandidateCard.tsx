@@ -100,7 +100,10 @@ export default function CandidateCard({
         <TriggerChip trigger={candidate.trigger} />
 
         <span className="ml-auto">
-          <MovementChip change={candidate.scoreChange} />
+          <MovementChip
+            change={candidate.scoreChange}
+            isNew={candidate.isNew}
+          />
         </span>
       </div>
     </a>

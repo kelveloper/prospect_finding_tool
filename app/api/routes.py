@@ -15,8 +15,7 @@ from app.schemas import (
 )
 from app.models import IngestRun
 from app.services.live_ingest import (
-    ingest_is_running,
-    last_ingest_error,
+    ingest_progress,
     next_sweep_due_at,
     run_live_ingest,
     start_background_ingest,
@@ -94,6 +93,21 @@ def ingest_status(db: Session = Depends(get_db)):
     """Latest ingest run plus how many advisor summaries it left stale."""
     last = db.query(IngestRun).order_by(IngestRun.ran_at.desc()).first()
     stale = count_stale(db)
+    progress = ingest_progress()
+    report = {
+        field: getattr(last, field) if last else None
+        for field in (
+            "npi_records",
+            "idfpr_records",
+            "pecos_records",
+            "cook_records",
+            "prospects_resolved",
+            "prospects_skipped",
+            "enrichment_records",
+            "enrichment_matched",
+            "duration_seconds",
+        )
+    }
     return IngestStatusOut(
         next_sweep_at=next_sweep_due_at(db),
         last_run_at=last.ran_at if last else None,
@@ -101,8 +115,11 @@ def ingest_status(db: Session = Depends(get_db)):
         prospects_created=last.prospects_created if last else None,
         prospects_updated=last.prospects_updated if last else None,
         stale_summaries=stale,
-        running=ingest_is_running(),
-        last_error=last_ingest_error(),
+        running=progress["running"],
+        last_error=progress["error"],
+        phases=progress["phases"],
+        started_at=progress["started_at"],
+        **report,
     )
 
 

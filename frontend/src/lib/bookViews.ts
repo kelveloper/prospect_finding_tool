@@ -19,8 +19,10 @@ export type BookViewState = {
   tier: string;
   location: string;
   query: string;
-  /** Built-ins narrow the board in ways the filter controls cannot. */
+  /** Built-ins narrow the board in ways the filter controls cannot.
+   *  `onlyNew` survives for views saved before "What changed" replaced it. */
   onlyNew?: boolean;
+  onlyChanged?: boolean;
   /** Order is part of a view: "my weakest Chicago derms" is a sort as much
    *  as a filter, and Reset already treated it as a change. */
   sort?: string;
@@ -39,6 +41,7 @@ export const EMPTY_STATE: BookViewState = {
   location: "all",
   query: "",
   onlyNew: false,
+  onlyChanged: false,
   sort: "rank",
   fromBack: false,
 };
@@ -50,6 +53,7 @@ export function isEmpty(s: BookViewState): boolean {
     (s.location ?? "all") === "all" &&
     s.query.trim() === "" &&
     !s.onlyNew &&
+    !s.onlyChanged &&
     (s.sort ?? "rank") === "rank" &&
     !s.fromBack
   );
@@ -62,6 +66,7 @@ export function sameState(a: BookViewState, b: BookViewState): boolean {
     (a.location ?? "all") === (b.location ?? "all") &&
     a.query.trim() === b.query.trim() &&
     !!a.onlyNew === !!b.onlyNew &&
+    !!a.onlyChanged === !!b.onlyChanged &&
     (a.sort ?? "rank") === (b.sort ?? "rank") &&
     !!a.fromBack === !!b.fromBack
   );
@@ -83,6 +88,7 @@ const SORT_WORDS: Record<string, string> = {
  *  rather than counting them. The advisor can overwrite it. */
 export function describe(s: BookViewState): string {
   const parts: string[] = [];
+  if (s.onlyChanged) parts.push("What changed");
   if (s.onlyNew) parts.push("New arrivals");
   if (s.specialty !== "all") parts.push(s.specialty);
   if ((s.location ?? "all") !== "all") parts.push(s.location);

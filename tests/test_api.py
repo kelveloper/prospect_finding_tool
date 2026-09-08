@@ -364,3 +364,82 @@ def test_contact_kit_endpoint(client):
     assert client.get("/prospects/nope/contact-kit").status_code == 404
 
 
+
+
+# ── Sweep telemetry: phases while it runs, the report once it lands ──
+def test_ingest_status_reports_the_sweep(client, live_stub):
+    result = _ingest(client)
+    status = client.get("/ingest/status").json()
+
+    # Feature B: per-source counts and the pipeline's tallies are persisted
+    feeds = live_stub["feeds"]
+    assert status["npi_records"] == len(feeds["nppes"])
+    assert status["idfpr_records"] == len(feeds["idfpr"])
+    assert status["pecos_records"] == len(feeds["pecos"])
+    assert status["cook_records"] == len(feeds["cook"])
+    assert status["prospects_resolved"] == result["prospects_resolved"]
+    assert status["prospects_skipped"] == result["prospects_skipped"]
+    assert status["enrichment_records"] == result["enrichment_records"]
+    assert status["enrichment_matched"] == result["enrichment_matched"]
+    assert status["duration_seconds"] is not None and status["duration_seconds"] >= 0
+
+    # Feature A: the checklist stays readable after completion — every
+    # phase done, in display order, each carrying what it produced
+    phases = status["phases"]
+    assert [p["key"] for p in phases] == [key for key, _ in live_ingest.PHASES]
+    assert all(p["status"] == "done" for p in phases)
+    by_key = {p["key"]: p for p in phases}
+    assert by_key["nppes"]["records"] == len(feeds["nppes"])
+    assert by_key["pecos"]["records"] == len(feeds["pecos"])
+    assert by_key["resolve"]["records"] == result["prospects_resolved"]
+    assert by_key["resolve"]["created"] == result["prospects_created"]
+    assert by_key["resolve"]["updated"] == result["prospects_updated"]
+    assert by_key["resolve"]["skipped"] == result["prospects_skipped"]
+    # Every newcomer got a composed summary
+    assert by_key["summaries"]["records"] == result["prospects_created"]
+    assert status["started_at"] is not None
+    assert status["running"] is False
+
+
+def test_failing_source_marks_its_phase_and_saves_nothing(client, monkeypatch):
+    import httpx
+
+    class _Broken:
+        def __init__(self, **kwargs):
+            pass
+
+        def fetch(self):
+            raise httpx.ConnectTimeout("timed out after 60s")
+
+    monkeypatch.setattr(live_ingest, "IDFPRLiveDataSource", _Broken)
+
+    response = client.post("/ingest/run?force=true&wait=true")
+    assert response.status_code == 502
+
+    status = client.get("/ingest/status").json()
+    by_key = {p["key"]: p for p in status["phases"]}
+    assert by_key["nppes"]["status"] == "done"
+    assert by_key["idfpr"]["status"] == "failed"
+    assert "timed out after 60s" in by_key["idfpr"]["detail"]
+    # The other parallel sources still finish (the pool waits for them)
+    assert by_key["pecos"]["status"] == "done"
+    assert by_key["cook"]["status"] == "done"
+    # Downstream never ran, and nothing was recorded
+    assert by_key["resolve"]["status"] == "pending"
+    assert by_key["summaries"]["status"] == "pending"
+    assert status["last_run_at"] is None
+    assert client.get("/prospects/ranked").json() == []
+
+
+def test_ingest_status_tolerates_runs_without_a_report(client, db_session):
+    """Rows recorded before the report columns existed have them null."""
+    from app.models import IngestRun
+
+    db_session.add(IngestRun(state="IL", prospects_created=4, prospects_updated=0))
+    db_session.commit()
+
+    status = client.get("/ingest/status").json()
+    assert status["prospects_created"] == 4
+    assert status["npi_records"] is None
+    assert status["duration_seconds"] is None
+    assert isinstance(status["phases"], list)

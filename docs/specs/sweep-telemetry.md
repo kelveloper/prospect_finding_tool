@@ -1,6 +1,6 @@
 # Spec: Sweep telemetry — live phase progress + per-source counts
 
-**Status:** ready to build · **Audience:** any coding agent (Roo/Cline/etc.) working in this repo
+**Status:** built 2026-09-08 (branch `feat/sweep-telemetry`) · **Audience:** any coding agent (Roo/Cline/etc.) working in this repo
 **Goal:** when a data sweep runs (the nav's **Refresh Data** button or the **Test sweep**), the user should see *which step the sweep is on* while it loads, and afterwards a *report of what it found* — how many rows per source, how many became prospects — persisted in the database and shown in the UI.
 
 ---

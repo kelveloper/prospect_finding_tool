@@ -179,6 +179,22 @@ class FunnelBandOut(BaseModel):
     conversion_rate: float  # converted / attempted
 
 
+class IngestPhaseOut(BaseModel):
+    """One step of the sweep checklist. `records` is what the step
+    produced (rows for a source, prospects resolved for the merge); a
+    failed step carries the error in `detail`."""
+
+    key: str
+    label: str
+    status: Literal["pending", "running", "done", "failed", "skipped"]
+    records: int | None = None
+    detail: str | None = None
+    # Merge & score also reports what happened to the book
+    created: int | None = None
+    updated: int | None = None
+    skipped: int | None = None
+
+
 class IngestStatusOut(BaseModel):
     # All None until the first recorded run
     last_run_at: datetime | None
@@ -193,6 +209,23 @@ class IngestStatusOut(BaseModel):
     running: bool = False
     # Why the last background sweep produced no run, if it failed
     last_error: str | None = None
+
+    # Live progress: the checklist of the in-flight (or most recent) sweep
+    # in this process, in display order. Empty before the first sweep.
+    phases: list[IngestPhaseOut] = []
+    started_at: datetime | None = None
+
+    # The last recorded run's report. All None on runs that predate the
+    # columns, and on the NPPES-only path for non-Illinois states.
+    npi_records: int | None = None
+    idfpr_records: int | None = None
+    pecos_records: int | None = None
+    cook_records: int | None = None
+    prospects_resolved: int | None = None
+    prospects_skipped: int | None = None
+    enrichment_records: int | None = None
+    enrichment_matched: int | None = None
+    duration_seconds: float | None = None
 
 
 class IngestStarted(BaseModel):

@@ -1,7 +1,7 @@
 import uuid
 from datetime import date, datetime, timedelta, timezone
 
-from sqlalchemy import Date, DateTime, Float, ForeignKey, String, Text
+from sqlalchemy import Date, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -222,6 +222,22 @@ class IngestRun(Base):
     prospects_created: Mapped[int] = mapped_column(default=0)
     prospects_updated: Mapped[int] = mapped_column(default=0)
     ran_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, index=True)
+
+    # The sweep report — what each source returned and what the pipeline
+    # made of it. Nullable: rows recorded before these columns existed
+    # stay valid (alembic 0001_ingest_run_telemetry adds them).
+    npi_records: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    idfpr_records: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    pecos_records: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    cook_records: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    prospects_resolved: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # Unknown physicians the fresh-entrant discovery filter declined to create
+    prospects_skipped: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    enrichment_records: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # Rows that attached to a prospect; the gap to enrichment_records is
+    # what the identity gate refused to pin on anyone
+    enrichment_matched: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    duration_seconds: Mapped[float | None] = mapped_column(Float, nullable=True)
 
 
 class OutreachEvent(Base):

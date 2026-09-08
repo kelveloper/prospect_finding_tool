@@ -39,7 +39,9 @@ prospect is, confidence says how sure we are it's the right person.
 ## The flow (what happens on POST /ingest/run)
 
 The call returns `{"status": "started"}` immediately and the sweep runs on a
-background thread; watch `/ingest/status` for `running` and `last_error`.
+background thread; watch `/ingest/status` for `running`, `last_error`, and
+`phases` — the six-step checklist the nav's popover renders, plus the last
+run's per-source counts and duration.
 Pass `?wait=true` to run it inside the request and get the full result back
 (tests and the empty-database bootstrap do this). A second start while one
 is running gets a 409.
