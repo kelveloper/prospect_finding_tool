@@ -280,6 +280,9 @@ export default function RefreshData({
       );
       // 409 = a sweep is already in flight (another tab) — watch that one
       if (!res.ok && res.status !== 409) throw new Error(String(res.status));
+      // You asked for it, so show it: the checklist opens on its own for a
+      // sweep started here (one started elsewhere waits for a click)
+      setOpen(true);
       for (let tick = 0; tick < 300; tick++) {
         await new Promise((resolve) => setTimeout(resolve, SWEEP_POLL_MS));
         const fresh = await loadStatus();
