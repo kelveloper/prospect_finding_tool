@@ -308,6 +308,14 @@ function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
       ? `${STATE_NAMES[p.state] ?? p.state}, ${p.state}`
       : "Location unknown";
 
+  // The board is indexed by the state we searched, so a location naming a
+  // different one reads like an error unless the row says why it is here.
+  // Only the disagreeing rows carry the note; the rest stay uncluttered.
+  const licenseNote =
+    p.state && p.address_state && p.address_state !== p.state
+      ? `${p.state} license`
+      : null;
+
   return {
     id: p.id,
     name: p.name,
@@ -315,6 +323,7 @@ function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
     specialty,
     category: specialty,
     location,
+    licenseNote,
     score: p.score,
     tier,
     tierLabel: label,

@@ -77,8 +77,17 @@ export default function CandidateDetail({
             <Heading className="mt-1 font-display text-[30px] font-bold tracking-[-0.75px] text-ink">
               {candidate.name}
             </Heading>
+            {/* The location is the practice address. On the rows where that
+                sits outside the state we searched, say so here — otherwise
+                the header reads like the wrong person. */}
             <p className="mt-1 text-[16px] text-ink-muted">
               {candidate.location}
+              {candidate.licenseNote ? (
+                <span className="text-ink-faint">
+                  {" · "}
+                  {candidate.licenseNote}
+                </span>
+              ) : null}
             </p>
 
             {/* Trust line: how sure we are these records are one person. */}
