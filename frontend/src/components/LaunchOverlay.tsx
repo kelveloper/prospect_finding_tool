@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import BeginTile from "./launch/BeginTile";
 import FoundTodayTile from "./launch/FoundTodayTile";
 import ViewerTile from "./launch/ViewerTile";
@@ -28,21 +28,37 @@ type Props = {
  *  Whether it stays is a client decision — the server cannot read the
  *  per-tab flag — so a tab that is already mid-review closes it on mount,
  *  with the head script keeping it from painting in the meantime. */
-export default function LaunchOverlay({ locatedToday, total }: Props) {
-  const [phase, setPhase] = useState<"open" | "closing" | "closed">("open");
+// Per-tab storage never changes under a mounted overlay, so there is
+// nothing to subscribe to; the store exists to read it during render.
+const subscribeToNothing = () => () => {};
 
+export default function LaunchOverlay({ locatedToday, total }: Props) {
   // Settle what the server could not: closed for a tab that has already
-  // begun, open when the wordmark deliberately asked for it back.
+  // begun, open when the wordmark deliberately asked for it back. Read as
+  // an external store rather than set from an effect — the server snapshot
+  // is "open", which is what it rendered, so hydration still matches.
+  const alreadyBegun = useSyncExternalStore(
+    subscribeToNothing,
+    () => hasLaunched() && !launchRequested(),
+    () => false,
+  );
+  const [phaseState, setPhase] = useState<"open" | "closing" | "closed">(
+    "open",
+  );
+  const phase = phaseState === "open" && alreadyBegun ? "closed" : phaseState;
+
+  // The head script may have hidden the overlay for a tab that has begun;
+  // a deliberate return to the opening screen has to undo that.
   useEffect(() => {
-    if (hasLaunched() && !launchRequested()) setPhase("closed");
-    else document.documentElement.removeAttribute(LAUNCH_ATTR);
-  }, []);
+    if (!alreadyBegun) document.documentElement.removeAttribute(LAUNCH_ATTR);
+  }, [alreadyBegun]);
 
   // The stylesheet hook goes on only once the screen is fully gone — while
   // it slides away it still has to be visible. Setting it on every close
   // also restores what React's development remount strips off <html>.
   useEffect(() => {
-    if (phase === "closed") document.documentElement.setAttribute(LAUNCH_ATTR, "");
+    if (phase === "closed")
+      document.documentElement.setAttribute(LAUNCH_ATTR, "");
   }, [phase]);
 
   const begin = useCallback(() => {
@@ -63,7 +79,9 @@ export default function LaunchOverlay({ locatedToday, total }: Props) {
   // motion), so the overlay is also unmounted on a timer.
   useEffect(() => {
     if (phase !== "closing") return;
-    const instant = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const instant = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
     const timer = setTimeout(() => setPhase("closed"), instant ? 0 : 800);
     return () => clearTimeout(timer);
   }, [phase]);
@@ -94,7 +112,8 @@ export default function LaunchOverlay({ locatedToday, total }: Props) {
       onTransitionEnd={(e) => {
         // Tailwind v4 slides via the `translate` property, not `transform`;
         // both are listed so the unmount survives either being animated.
-        const slid = e.propertyName === "translate" || e.propertyName === "transform";
+        const slid =
+          e.propertyName === "translate" || e.propertyName === "transform";
         if (e.target === e.currentTarget && slid) setPhase("closed");
       }}
       className={

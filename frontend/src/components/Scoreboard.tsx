@@ -239,14 +239,21 @@ export default function Scoreboard({
 
   // A new query or filter means a shorter list under a scroll position
   // measured against the old one. Without this you type and land past the end,
-  // looking at blank space where the matches are.
+  // looking at blank space where the matches are. The window resets during
+  // the render that sees the change (React's adjust-on-prop-change pattern)
+  // and only the scrolling waits for the commit.
+  const listKey = `${query}\u0000${onlyChanged}\u0000${triggerFilter}\u0000${auditFilter}`;
+  const [seenListKey, setSeenListKey] = useState(listKey);
+  if (listKey !== seenListKey) {
+    setSeenListKey(listKey);
+    setRange({ start: 0, end: INITIAL_WINDOW });
+  }
   const railRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
-    setRange({ start: 0, end: INITIAL_WINDOW });
     railRef.current?.scrollTo({ top: 0 });
     // Mobile scrolls the page rather than the rail.
     if (window.innerWidth < 1024) railRef.current?.scrollIntoView();
-  }, [query, onlyChanged, triggerFilter, auditFilter]);
+  }, [listKey]);
 
   // Fall back to the ranked row for the selected id while its dossier loads.
   const featured =
