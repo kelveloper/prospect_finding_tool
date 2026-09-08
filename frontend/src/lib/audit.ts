@@ -89,16 +89,11 @@ export const AUDIT_CHIPS: { key: AuditFilter; label: string; hint: string }[] =
       label: TIER_META[t].label,
       hint: TIER_META[t].hint,
     })),
-    {
-      key: "not_licensed",
-      label: "Not licence-matched",
-      hint: "No licence-number merge anywhere in the profile — the strongest key is missing.",
-    },
-    {
-      key: "name_only",
-      label: "Name-only events",
-      hint: "Carries a deed attached by exact name and state alone, at 0.9 — where a near-miss would land.",
-    },
+    // Two flags are deliberately not chips. "Not licence-matched" is
+    // always the union of Strong, Barely and Single-source, which the
+    // tier chips already say. "Name-only events" is exactly the set of
+    // cards tagged "Bought a home" — every deed is matched by name — so
+    // the Why-now filter on the board covers it. The API keeps both.
   ];
 
 export function matchesAuditFilter(c: IdentityAudit, f: AuditFilter): boolean {
@@ -158,7 +153,9 @@ export function describeIdentity(c: IdentityAudit): string {
     );
   }
   if (c.hasNameOnlyEvents)
-    parts.push("Carries an event attached by name alone.");
+    parts.push(
+      "Its home purchase was matched by name alone — deeds carry no licence or NPI.",
+    );
   return parts.join(" ");
 }
 

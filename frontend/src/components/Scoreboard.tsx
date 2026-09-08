@@ -88,6 +88,25 @@ export default function Scoreboard({
   const changes = useMemo(() => summarizeChanges(ranked), [ranked]);
   const [onlyChanged, setOnlyChanged] = useState(false);
 
+  // Why now — filter by the tag each card shows. Counts follow the tag,
+  // not the underlying signal, so the list never shows a card whose chip
+  // disagrees with the filter that produced it.
+  const [triggerFilter, setTriggerFilter] = useState<string>("all");
+  const triggerChips = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const c of ranked)
+      if (c.trigger)
+        counts.set(c.trigger.label, (counts.get(c.trigger.label) ?? 0) + 1);
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([label, count]) => ({
+        label,
+        count,
+        hint:
+          ranked.find((c) => c.trigger?.label === label)?.trigger?.hint ?? "",
+      }));
+  }, [ranked]);
+
   // Identity audit — operator only, off by default (see lib/audit.ts).
   // With it off none of this renders and the board is the advisor's.
   const audit = useAuditMode();
@@ -106,6 +125,8 @@ export default function Scoreboard({
 
   const visible = useMemo(() => {
     let list = onlyChanged ? ranked.filter(changedSinceSweep) : ranked;
+    if (triggerFilter !== "all")
+      list = list.filter((c) => c.trigger?.label === triggerFilter);
     if (audit && auditFilter !== "all")
       list = list.filter((c) => matchesAuditFilter(c.identity, auditFilter));
     if (audit && weakestFirst)
@@ -115,7 +136,7 @@ export default function Scoreboard({
         (a, b) => a.identity.identityConfidence - b.identity.identityConfidence,
       );
     return list;
-  }, [ranked, onlyChanged, audit, auditFilter, weakestFirst]);
+  }, [ranked, onlyChanged, triggerFilter, audit, auditFilter, weakestFirst]);
   // Cards keep their true rank even when the list is filtered
   const rankOf = useMemo(
     () => new Map(ranked.map((c, i) => [c.id, i + 1])),
@@ -262,6 +283,42 @@ export default function Scoreboard({
             >
               {onlyChanged ? "Show all" : "Only these"}
             </button>
+          </div>
+        ) : null}
+
+        {/* ── Why now — the tag on each card, as a filter ── */}
+        {triggerChips.length > 0 ? (
+          <div className="mt-3 flex flex-wrap items-center gap-1.5">
+            <span className="eyebrow mr-1">Why now</span>
+            {[
+              { label: "all", count: ranked.length, hint: "Every prospect" },
+              ...triggerChips,
+            ].map((chip) => (
+              <button
+                key={chip.label}
+                type="button"
+                onClick={() => setTriggerFilter(chip.label)}
+                aria-pressed={triggerFilter === chip.label}
+                title={chip.hint}
+                className={
+                  "rounded-full border px-2.5 py-1 font-display text-[11px] font-semibold transition-colors " +
+                  (triggerFilter === chip.label
+                    ? "border-brand bg-brand text-white"
+                    : "border-hairline bg-white text-ink-muted hover:bg-surface-soft")
+                }
+              >
+                {chip.label === "all" ? "All" : chip.label}{" "}
+                <span
+                  className={
+                    triggerFilter === chip.label
+                      ? "text-white/70"
+                      : "text-ink-faint"
+                  }
+                >
+                  · {chip.count}
+                </span>
+              </button>
+            ))}
           </div>
         ) : null}
 

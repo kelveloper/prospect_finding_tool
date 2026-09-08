@@ -4,9 +4,8 @@ import { TIER_META, describeIdentity, type IdentityAudit } from "@/lib/audit";
  *  Only rendered in identity-audit mode; never advisor-facing.
  *
  *  Barely shows its weakest score, because 0.85 and 0.80 are not the same
- *  risk and the number is the whole point. A name-only event earns a
- *  second mark: a certain profile can still carry the one attach most
- *  exposed to a near-miss. Hover reads the stored reason verbatim. */
+ *  risk and the number is the whole point. Hover reads the stored reason
+ *  verbatim, and says when the home purchase was matched by name alone. */
 export default function IdentityBadge({ audit }: { audit: IdentityAudit }) {
   const meta = TIER_META[audit.identityTier];
   const label =
@@ -28,14 +27,6 @@ export default function IdentityBadge({ audit }: { audit: IdentityAudit }) {
         <span aria-hidden>{meta.mark}</span>
         {label}
       </span>
-      {audit.hasNameOnlyEvents ? (
-        <span
-          aria-label="Has an event attached by name alone"
-          className="inline-flex items-center rounded-full bg-tier-neutral-bg px-1.5 py-[3px] font-display text-[10px] font-bold text-tier-neutral-fg"
-        >
-          ⌂ name-only
-        </span>
-      ) : null}
     </span>
   );
 }
