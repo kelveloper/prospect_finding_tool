@@ -209,6 +209,7 @@ class IngestPhaseOut(BaseModel):
     created: int | None = None
     updated: int | None = None
     skipped: int | None = None
+    moved: int | None = None
 
 
 class IngestStatusOut(BaseModel):
@@ -241,6 +242,7 @@ class IngestStatusOut(BaseModel):
     prospects_skipped: int | None = None
     enrichment_records: int | None = None
     enrichment_matched: int | None = None
+    prospects_moved: int | None = None
     duration_seconds: float | None = None
 
 

@@ -106,6 +106,7 @@ def ingest_status(db: Session = Depends(get_db)):
             "prospects_skipped",
             "enrichment_records",
             "enrichment_matched",
+            "prospects_moved",
             "duration_seconds",
         )
     }

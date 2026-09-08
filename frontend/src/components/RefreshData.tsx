@@ -114,17 +114,24 @@ function secondsSince(iso: string, now: number): number {
   return (now - new Date(stamp).getTime()) / 1000;
 }
 
-/** The merge step's result line: what happened to the book. */
+/** The merge step's result line: what happened to the book.
+ *
+ *  "Re-scored", not "updated": the pipeline counts every existing prospect
+ *  it re-fetched, which after a full sweep is everyone. "Moved" is whose
+ *  score actually came out different — the honest change number, and the
+ *  same one the board's What changed alert shows. */
 function bookChanges(
   created: number | null,
   updated: number | null,
   skipped: number | null,
+  moved: number | null,
   long = false,
 ): string {
   const parts = [
     `${created ?? 0} new${long ? " prospects" : ""}`,
-    `${updated ?? 0} updated`,
+    `${updated ?? 0} re-scored`,
   ];
+  if (moved != null) parts.push(`${moved} moved`);
   if (skipped != null)
     parts.push(`${skipped} skipped${long ? " (not fresh entrants)" : ""}`);
   return parts.join(" · ");
@@ -135,7 +142,7 @@ function phaseLine(p: IngestPhase, sweepFailed: boolean): string {
   switch (p.status) {
     case "done":
       if (p.key === "resolve")
-        return bookChanges(p.created, p.updated, p.skipped);
+        return bookChanges(p.created, p.updated, p.skipped, p.moved);
       return copy ? copy.done(p.records ?? 0) : `${p.records ?? 0} rows`;
     case "running":
       return copy?.running ?? "running…";
@@ -287,6 +294,7 @@ export default function RefreshData({
                 r.prospectsCreated,
                 r.prospectsUpdated,
                 r.prospectsSkipped,
+                r.prospectsMoved,
               ),
             );
           await revalidateBoard();
@@ -562,6 +570,7 @@ export default function RefreshData({
                   report.prospectsCreated,
                   report.prospectsUpdated,
                   report.prospectsSkipped,
+                  report.prospectsMoved,
                   true,
                 )}
               </p>

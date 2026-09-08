@@ -261,6 +261,9 @@ class IngestRun(Base):
     # Rows that attached to a prospect; the gap to enrichment_records is
     # what the identity gate refused to pin on anyone
     enrichment_matched: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # Re-scored prospects whose score came out different — the honest
+    # change count beside prospects_updated, which counts everyone touched
+    prospects_moved: Mapped[int | None] = mapped_column(Integer, nullable=True)
     duration_seconds: Mapped[float | None] = mapped_column(Float, nullable=True)
 
 

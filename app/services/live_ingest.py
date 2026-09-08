@@ -137,6 +137,7 @@ def run_live_ingest(
     to the caller."""
     _reset_progress()
     started = time.monotonic()
+    started_at = datetime.now(timezone.utc).replace(tzinfo=None)
 
     # Phase 1: real physicians from NPPES — the seed every other source
     # is keyed off, so it has to finish first.
@@ -230,15 +231,29 @@ def run_live_ingest(
     # ever shows the raw pipeline text. Fill-empty-only: an existing (LLM)
     # summary is never overwritten — changed veterans stay flagged stale
     # until the offline LLM refresh upgrades them.
+    # The same pass counts the movers: "updated" is everyone re-scored,
+    # which after a full sweep is everyone; "moved" is whose score actually
+    # came out different — the number the board's What changed alert shows.
+    moved = 0
+
     def _write_summaries() -> int:
+        nonlocal moved
         written = 0
         for prospect in RankingService(db).ranked(limit=100_000):
             if prospect.advisor_summary is None:
                 apply_summary(prospect, compose(prospect), source="composed")
                 written += 1
+            if prospect.score_history and prospect.score_change:
+                latest = prospect.score_history[-1].recorded_at
+                if latest.tzinfo is not None:
+                    latest = latest.astimezone(timezone.utc).replace(tzinfo=None)
+                if latest >= started_at:
+                    moved += 1
         return written
 
     _phased("summaries", _write_summaries, lambda n: n)
+    _stamp("resolve", "done", moved=moved)
+    run.prospects_moved = moved
     run.duration_seconds = round(time.monotonic() - started, 1)
     db.commit()
     return result

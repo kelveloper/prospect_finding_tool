@@ -648,6 +648,8 @@ export type IngestPhase = {
   created: number | null;
   updated: number | null;
   skipped: number | null;
+  /** Re-scored prospects whose score came out different. */
+  moved: number | null;
 };
 
 /** What the last recorded sweep found. Every field is null on runs that
@@ -661,6 +663,7 @@ export type SweepReport = {
   prospectsUpdated: number | null;
   prospectsResolved: number | null;
   prospectsSkipped: number | null;
+  prospectsMoved: number | null;
   enrichmentRecords: number | null;
   enrichmentMatched: number | null;
   durationSeconds: number | null;
@@ -700,6 +703,7 @@ type IngestStatusWire = {
   cook_records?: number | null;
   prospects_resolved?: number | null;
   prospects_skipped?: number | null;
+  prospects_moved?: number | null;
   enrichment_records?: number | null;
   enrichment_matched?: number | null;
   duration_seconds?: number | null;
@@ -728,6 +732,7 @@ export function toIngestStatus(s: IngestStatusWire): IngestStatus {
           prospectsUpdated: s.prospects_updated,
           prospectsResolved: s.prospects_resolved ?? null,
           prospectsSkipped: s.prospects_skipped ?? null,
+          prospectsMoved: s.prospects_moved ?? null,
           enrichmentRecords: s.enrichment_records ?? null,
           enrichmentMatched: s.enrichment_matched ?? null,
           durationSeconds: s.duration_seconds ?? null,

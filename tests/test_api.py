@@ -382,6 +382,8 @@ def test_ingest_status_reports_the_sweep(client, live_stub):
     assert status["enrichment_records"] == result["enrichment_records"]
     assert status["enrichment_matched"] == result["enrichment_matched"]
     assert status["duration_seconds"] is not None and status["duration_seconds"] >= 0
+    # First sweep: everyone is new, nobody has a previous score to move from
+    assert status["prospects_moved"] == 0
 
     # Feature A: the checklist stays readable after completion — every
     # phase done, in display order, each carrying what it produced
@@ -395,6 +397,7 @@ def test_ingest_status_reports_the_sweep(client, live_stub):
     assert by_key["resolve"]["created"] == result["prospects_created"]
     assert by_key["resolve"]["updated"] == result["prospects_updated"]
     assert by_key["resolve"]["skipped"] == result["prospects_skipped"]
+    assert by_key["resolve"]["moved"] == 0
     # Every newcomer got a composed summary
     assert by_key["summaries"]["records"] == result["prospects_created"]
     assert status["started_at"] is not None

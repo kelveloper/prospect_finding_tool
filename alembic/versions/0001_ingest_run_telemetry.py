@@ -28,6 +28,7 @@ COLUMNS: list[tuple[str, sa.types.TypeEngine]] = [
     ("prospects_skipped", sa.Integer()),
     ("enrichment_records", sa.Integer()),
     ("enrichment_matched", sa.Integer()),
+    ("prospects_moved", sa.Integer()),
     ("duration_seconds", sa.Float()),
 ]
 
