@@ -79,6 +79,30 @@ class Prospect(Base):
         """Distinct detected signal types — the scoreboard's quick overview."""
         return sorted({s.signal_type for s in self.signals})
 
+    # ── Identity audit (app/identity/audit.py) ──
+    # Computed from the persisted matches; the ranked query eager-loads
+    # them, so these cost nothing extra per row.
+    def _identity_audit(self):
+        from app.identity.audit import audit_identity
+
+        return audit_identity(self.identity_confidence, self.identity_matches)
+
+    @property
+    def identity_tier(self) -> str:
+        return self._identity_audit().tier
+
+    @property
+    def license_matched(self) -> bool:
+        return self._identity_audit().license_matched
+
+    @property
+    def has_name_only_events(self) -> bool:
+        return self._identity_audit().has_name_only_events
+
+    @property
+    def weakest_link(self):
+        return self._identity_audit().weakest_link
+
     @property
     def is_new(self) -> bool:
         """Arrived in the book within the last 48 hours — powers the NEW

@@ -9,6 +9,7 @@ import {
   type IngestStatus,
   type SweepReport,
 } from "@/lib/api";
+import { setAuditMode, useAuditMode } from "@/lib/audit";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const POLL_MS = 15000;
@@ -195,6 +196,7 @@ export default function RefreshData({
   const rootRef = useRef<HTMLDivElement>(null);
   // What Try again should re-run: the same call the user clicked
   const lastForce = useRef(false);
+  const audit = useAuditMode();
 
   // Self-updating: the line stays current without a page refresh, and
   // picks up ingests run from anywhere (another tab, the CLI, a teammate).
@@ -604,6 +606,26 @@ export default function RefreshData({
           >
             Test sweep — ignore the weekly lock
           </button>
+
+          {/* Operator-only, like the button above. Hidden from the board
+              rather than protected — there are no accounts to protect it
+              with. */}
+          <label className="mt-2.5 flex cursor-pointer items-start gap-2 text-[10px] leading-[14px] text-ink-muted">
+            <input
+              type="checkbox"
+              checked={audit}
+              onChange={(e) => setAuditMode(e.target.checked)}
+              className="mt-[1px] accent-brand"
+            />
+            <span>
+              <span className="font-display text-[11px] font-semibold text-ink">
+                Identity audit
+              </span>{" "}
+              — badge and filter the board by how each profile was merged. Off
+              for advisors; on stays on in this browser. Hides, does not
+              protect.
+            </span>
+          </label>
         </div>
       )}
     </div>

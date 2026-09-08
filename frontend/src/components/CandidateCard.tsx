@@ -1,6 +1,7 @@
 import ScoreRing from "./ScoreRing";
 import { EvidenceChip, MovementChip, TriggerChip } from "./RowChips";
 import Badge from "./Badge";
+import IdentityBadge from "./IdentityBadge";
 import { tierStyle } from "@/lib/tier";
 import type { Candidate } from "@/lib/data";
 
@@ -12,6 +13,8 @@ type Props = {
   /** Swap the panel in place — a server navigation here re-rendered and
    *  re-sent the entire board on every click. */
   onSelect: () => void;
+  /** Identity-audit mode: show the merge-evidence badge. Operator only. */
+  audit?: boolean;
 };
 
 export default function CandidateCard({
@@ -19,6 +22,7 @@ export default function CandidateCard({
   rank,
   active,
   onSelect,
+  audit = false,
 }: Props) {
   const style = tierStyle(candidate.tier);
 
@@ -106,6 +110,18 @@ export default function CandidateCard({
           />
         </span>
       </div>
+
+      {/* Operator-only: the merge evidence behind the profile, on its own
+          line so it never squeezes the advisor's chips. Every card gets
+          it or none does, so the virtualized row height stays uniform. */}
+      {audit ? (
+        <div className="mt-2 flex items-center gap-1.5">
+          <span className="text-[10px] uppercase tracking-[0.5px] text-ink-faint">
+            identity
+          </span>
+          <IdentityBadge audit={candidate.identity} />
+        </div>
+      ) : null}
     </a>
   );
 }

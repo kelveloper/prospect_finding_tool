@@ -1,5 +1,7 @@
 export type Tier = "strong" | "promising" | "neutral" | "weak" | "poor";
 
+import type { IdentityAudit } from "@/lib/audit";
+
 export type Candidate = {
   id: string;
   name: string;
@@ -31,6 +33,9 @@ export type Candidate = {
   isNew: boolean;
   /** ISO timestamp of when ingestion first located this prospect. */
   createdAt: string;
+  /** Identity audit — the merge evidence behind the profile. Always
+   *  present; only rendered in audit mode. */
+  identity: IdentityAudit;
 };
 
 export type ProfileRow = {

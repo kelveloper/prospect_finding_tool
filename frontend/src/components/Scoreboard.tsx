@@ -10,6 +10,15 @@ import {
   type ContactKit,
 } from "@/lib/api";
 import {
+  AUDIT_CHIPS,
+  auditCounts,
+  describeTiers,
+  isWeakIdentity,
+  matchesAuditFilter,
+  useAuditMode,
+  type AuditFilter,
+} from "@/lib/audit";
+import {
   changedSinceSweep,
   describeChanges,
   summarizeChanges,
@@ -78,10 +87,35 @@ export default function Scoreboard({
   // doubles as the toggle; nothing renders when nothing changed.
   const changes = useMemo(() => summarizeChanges(ranked), [ranked]);
   const [onlyChanged, setOnlyChanged] = useState(false);
-  const visible = useMemo(
-    () => (onlyChanged ? ranked.filter(changedSinceSweep) : ranked),
-    [ranked, onlyChanged],
+
+  // Identity audit — operator only, off by default (see lib/audit.ts).
+  // With it off none of this renders and the board is the advisor's.
+  const audit = useAuditMode();
+  const [auditFilter, setAuditFilter] = useState<AuditFilter>("all");
+  const [weakestFirst, setWeakestFirst] = useState(false);
+  const counts = useMemo(
+    () => auditCounts(ranked.map((c) => c.identity)),
+    [ranked],
   );
+  // The payoff: where a high score meets weak evidence — the exact rows
+  // where a wrong congratulations call could happen
+  const weakInTop20 = useMemo(
+    () => ranked.slice(0, 20).filter((c) => isWeakIdentity(c.identity)).length,
+    [ranked],
+  );
+
+  const visible = useMemo(() => {
+    let list = onlyChanged ? ranked.filter(changedSinceSweep) : ranked;
+    if (audit && auditFilter !== "all")
+      list = list.filter((c) => matchesAuditFilter(c.identity, auditFilter));
+    if (audit && weakestFirst)
+      // Stable: ties keep rank order, so the weakest books come first and
+      // the best-ranked of them lead
+      list = [...list].sort(
+        (a, b) => a.identity.identityConfidence - b.identity.identityConfidence,
+      );
+    return list;
+  }, [ranked, onlyChanged, audit, auditFilter, weakestFirst]);
   // Cards keep their true rank even when the list is filtered
   const rankOf = useMemo(
     () => new Map(ranked.map((c, i) => [c.id, i + 1])),
@@ -161,7 +195,8 @@ export default function Scoreboard({
       window.removeEventListener("scroll", update, true);
       window.removeEventListener("resize", update);
     };
-  }, [rowHeight, cardHeight, visible.length]);
+    // `audit` adds a line to every card, so the measured height must follow it
+  }, [rowHeight, cardHeight, visible.length, audit]);
 
   // Fall back to the ranked row for the selected id while its dossier loads.
   const featured =
@@ -230,6 +265,95 @@ export default function Scoreboard({
           </div>
         ) : null}
 
+        {/* ── Identity audit — operator only ───────────── */}
+        {audit ? (
+          <div className="mt-3 rounded-[12px] border border-dashed border-hairline bg-white p-3">
+            <div className="flex items-center justify-between gap-3">
+              <span className="eyebrow">Identity audit</span>
+              <button
+                type="button"
+                onClick={() => setWeakestFirst((v) => !v)}
+                aria-pressed={weakestFirst}
+                title="Order by identity confidence, weakest merges first"
+                className={
+                  "shrink-0 rounded-full border px-2 py-0.5 font-display text-[10px] font-semibold transition-colors " +
+                  (weakestFirst
+                    ? "border-brand bg-brand text-white"
+                    : "border-hairline bg-white text-ink-muted hover:bg-surface-soft")
+                }
+              >
+                Weakest first
+              </button>
+            </div>
+            <p className="mt-1 text-[11px] text-ink-muted">
+              {describeTiers(counts)}
+            </p>
+
+            {/* Chips carry counts, and only tiers with anyone in them get
+                one — an empty class is not a filter */}
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {AUDIT_CHIPS.filter(
+                (chip) => chip.key === "all" || counts[chip.key] > 0,
+              ).map((chip) => (
+                <button
+                  key={chip.key}
+                  type="button"
+                  onClick={() => setAuditFilter(chip.key)}
+                  aria-pressed={auditFilter === chip.key}
+                  title={chip.hint}
+                  className={
+                    "rounded-full border px-2.5 py-1 font-display text-[11px] font-semibold transition-colors " +
+                    (auditFilter === chip.key
+                      ? "border-brand bg-brand text-white"
+                      : "border-hairline bg-white text-ink-muted hover:bg-surface-soft")
+                  }
+                >
+                  {chip.label}{" "}
+                  <span
+                    className={
+                      auditFilter === chip.key
+                        ? "text-white/70"
+                        : "text-ink-faint"
+                    }
+                  >
+                    · {counts[chip.key]}
+                  </span>
+                </button>
+              ))}
+              {auditFilter === "weak" ? (
+                <button
+                  type="button"
+                  onClick={() => setAuditFilter("all")}
+                  aria-pressed
+                  title="Barely and single-source together — the top-20 check. Click to clear."
+                  className="rounded-full border border-tier-poor bg-tier-poor px-2.5 py-1 font-display text-[11px] font-semibold text-white"
+                >
+                  Weak identity{" "}
+                  <span className="text-white/70">· {counts.weak} ✕</span>
+                </button>
+              ) : null}
+            </div>
+
+            {auditFilter === "all" ? (
+              weakInTop20 > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => setAuditFilter("weak")}
+                  className="mt-2.5 w-full rounded-[8px] bg-tier-poor-bg px-3 py-2 text-left font-display text-[11px] font-semibold text-tier-poor-fg transition-colors hover:bg-tier-poor-bg/70"
+                >
+                  ⚠ {weakInTop20} of the top 20 rest on barely or single-source
+                  identity — show them
+                </button>
+              ) : (
+                <p className="mt-2.5 text-[11px] text-tier-strong-fg">
+                  ✓ All of the top 20 are held together by a licence, an NPI, or
+                  a corroborated name.
+                </p>
+              )
+            ) : null}
+          </div>
+        ) : null}
+
         <div
           ref={listRef}
           className="relative mt-3"
@@ -248,6 +372,7 @@ export default function Scoreboard({
                   rank={rankOf.get(candidate.id) ?? index + 1}
                   active={candidate.id === featured.id}
                   onSelect={() => void show(candidate.id, true)}
+                  audit={audit}
                 />
               </div>
             );

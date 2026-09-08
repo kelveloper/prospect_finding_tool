@@ -5,6 +5,7 @@
  * (server) falling back to NEXT_PUBLIC_API_URL (shared with the browser
  * for outreach posts) and finally localhost.
  */
+import type { IdentityTier } from "@/lib/audit";
 import type {
   Candidate,
   CandidateProfile,
@@ -42,6 +43,16 @@ type ApiRanked = {
   outreach_status: string | null;
   is_new: boolean;
   created_at: string;
+  identity_tier: IdentityTier;
+  identity_confidence: number;
+  license_matched: boolean;
+  has_name_only_events: boolean;
+  weakest_link: {
+    score: number;
+    reason: string;
+    source_a: string;
+    source_b: string;
+  } | null;
 };
 
 type ApiSignal = {
@@ -297,6 +308,20 @@ function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
     scoreChange: p.score_change ?? null,
     isNew: p.is_new ?? false,
     createdAt: p.created_at,
+    identity: {
+      identityTier: p.identity_tier ?? "single_source",
+      identityConfidence: p.identity_confidence ?? 0,
+      licenseMatched: p.license_matched ?? false,
+      hasNameOnlyEvents: p.has_name_only_events ?? false,
+      weakestLink: p.weakest_link
+        ? {
+            score: p.weakest_link.score,
+            reason: p.weakest_link.reason,
+            sourceA: p.weakest_link.source_a,
+            sourceB: p.weakest_link.source_b,
+          }
+        : null,
+    },
   };
 }
 

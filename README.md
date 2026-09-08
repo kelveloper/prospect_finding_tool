@@ -73,6 +73,7 @@ curl -X POST localhost:8000/ingest/run
 |---|---|---|
 | POST | `/ingest/run` | Run the live pipeline (default): real physicians from NPPES per scored specialty, then — concurrently — licenses verified against IDFPR by license number, PECOS billing groups + career snapshots, Cook County deed matches. Returns immediately and runs in the background; `?wait=true` blocks and returns the result, a second start gets 409. `?state=IL&limit=25` tunes the pull. |
 | GET | `/prospects/ranked?limit=50` | Ranked leads, highest score first |
+| GET | `/prospects/ranked?tier=barely,single_source` | Same, filtered by identity-audit tier (also `license_matched=`, `name_only_events=`) |
 | GET | `/prospects/{id}` | Full profile: scores, signals, identity confidence |
 | POST | `/feedback` | Advisor verdict: `good_fit` \| `revisit_later` \| `not_fit` |
 | GET | `/prospects/{id}/feedback` | Feedback history |

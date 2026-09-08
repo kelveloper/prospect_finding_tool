@@ -24,6 +24,15 @@ class ScoreSnapshotOut(BaseModel):
     recorded_at: datetime
 
 
+class WeakestLinkOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    score: float
+    reason: str
+    source_a: str
+    source_b: str
+
+
 class RankedProspect(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -50,6 +59,13 @@ class RankedProspect(BaseModel):
     is_new: bool = False
     # When ingestion first located this prospect — drives the "found today" tile
     created_at: datetime
+    # Identity audit — how good the evidence holding the profile together is
+    # (app/identity/audit.py). Always sent; the UI decides whether to show it.
+    identity_tier: Literal["certain", "strong", "barely", "single_source"]
+    identity_confidence: float
+    license_matched: bool
+    has_name_only_events: bool
+    weakest_link: WeakestLinkOut | None = None
 
 
 class ScoreComponent(BaseModel):

@@ -30,6 +30,7 @@ from app.schemas.api import (
     OutreachEventOut,
     ScoreComponent,
 )
+from app.identity.audit import TIERS
 from app.summaries import count_stale
 from app.scoring import ScoringEngine
 from app.services import RankingService
@@ -125,9 +126,37 @@ def ingest_status(db: Session = Depends(get_db)):
 
 @router.get("/prospects/ranked", response_model=list[RankedProspect])
 def ranked_prospects(
-    limit: int = Query(default=50, ge=1, le=5000), db: Session = Depends(get_db)
+    limit: int = Query(default=50, ge=1, le=5000),
+    tier: str | None = Query(
+        default=None,
+        description=(
+            "Identity audit filter: comma-separated tier keys "
+            "(certain, strong, barely, single_source); rank order is kept"
+        ),
+    ),
+    license_matched: bool | None = Query(
+        default=None, description="Identity audit: only prospects with/without a licence-number merge"
+    ),
+    name_only_events: bool | None = Query(
+        default=None, description="Identity audit: only prospects with/without events attached by name alone"
+    ),
+    db: Session = Depends(get_db),
 ):
-    return RankingService(db).ranked(limit=limit)
+    tiers: set[str] | None = None
+    if tier is not None:
+        tiers = {t.strip() for t in tier.split(",") if t.strip()}
+        unknown = tiers - set(TIERS)
+        if unknown:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Unknown identity tier(s): {', '.join(sorted(unknown))}",
+            )
+    return RankingService(db).ranked(
+        limit=limit,
+        tiers=tiers,
+        license_matched=license_matched,
+        name_only_events=name_only_events,
+    )
 
 
 @router.get("/prospects/{prospect_id}", response_model=ProspectDetail)

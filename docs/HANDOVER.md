@@ -392,7 +392,9 @@ CORS on the backend is hardcoded to `localhost:3000` / `127.0.0.1:3000`
   still created by `Base.metadata.create_all()` at app startup, which also
   adds any missing nullable columns to an existing SQLite file
   (`add_missing_nullable_columns` in `app/database.py`).
-- **No filtering, search, or sorting** beyond `limit` on the ranked endpoint.
+- **Little filtering on the API.** The ranked endpoint takes `limit` and the
+  identity-audit filters (`tier`, `license_matched`, `name_only_events`);
+  every other filter and sort lives in the browser over the full board.
 - **No model retraining** — explicitly out of scope; feedback is captured only.
 - **Illinois-only, physicians-only.** `STATE_NAMES` in the frontend maps just
   `IL`; the IDFPR adapter hardcodes `state="IL"`.

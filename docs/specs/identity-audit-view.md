@@ -1,6 +1,6 @@
 # Spec: Identity audit view — filter prospects by merge-evidence quality
 
-**Status:** ready to build · **Audience:** any coding agent working in this repo
+**Status:** built 2026-09-08 (branch `feat/sweep-telemetry`; §5.4 orphan log and §5.5 CSV export left as follow-ups) · **Audience:** any coding agent working in this repo
 **Goal:** an internal, operator-only view ("my eyes only" — not advisor-facing) that classifies every prospect by the *quality of the identity evidence* holding their profile together, filters the ranked board by that class, and makes it easy to spot high-ranked prospects resting on weak merges.
 
 Motivating rule (from `app/identity/resolver.py`): a profile's `identity_confidence` = the **weakest** merge in its cluster ("confidence = weakest link"). A licence-number merge is 1.0; exact name + state is 0.95; a first-initial + specialty merge squeaks by at 0.85; a single-source profile that never merged with anything sits at 0.6. The verdict (merged / not) is binary at threshold 0.80, but the certainty is not — and today that certainty is stored yet invisible on the board.

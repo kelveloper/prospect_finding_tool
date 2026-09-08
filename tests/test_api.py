@@ -443,3 +443,84 @@ def test_ingest_status_tolerates_runs_without_a_report(client, db_session):
     assert status["npi_records"] is None
     assert status["duration_seconds"] is None
     assert isinstance(status["phases"], list)
+
+
+# ── Identity audit on the ranked board ──
+def test_ranked_rows_carry_identity_audit(client):
+    _ingest(client)
+    rows = client.get("/prospects/ranked").json()
+    assert rows
+    by_name = {r["name"]: r for r in rows}
+    # John Smith: NPPES + IDFPR merged on licence number
+    smith = by_name["John Smith"]
+    assert smith["identity_tier"] == "certain"
+    assert smith["license_matched"] is True
+    assert smith["identity_confidence"] == 1.0
+    assert smith["weakest_link"]["reason"]
+    for r in rows:
+        assert r["identity_tier"] in {"certain", "strong", "barely", "single_source"}
+        assert isinstance(r["license_matched"], bool)
+        assert isinstance(r["has_name_only_events"], bool)
+
+
+def test_ranked_tier_filter_keeps_rank_order(client):
+    _ingest(client)
+    everyone = client.get("/prospects/ranked").json()
+    tiers = {r["identity_tier"] for r in everyone}
+    assert "certain" in tiers
+
+    certain = client.get("/prospects/ranked?tier=certain").json()
+    assert certain == [r for r in everyone if r["identity_tier"] == "certain"]
+
+    rest = client.get("/prospects/ranked?tier=barely,single_source").json()
+    assert rest == [
+        r for r in everyone if r["identity_tier"] in {"barely", "single_source"}
+    ]
+
+    unmatched = client.get("/prospects/ranked?license_matched=false").json()
+    assert unmatched == [r for r in everyone if not r["license_matched"]]
+
+    assert client.get("/prospects/ranked?tier=bogus").status_code == 422
+
+
+def test_single_source_includes_prospects_with_no_match_rows(client, db_session):
+    from app.models import Prospect
+
+    _ingest(client)
+    # A profile that predates the audit: one source, no identity_matches rows
+    db_session.add(
+        Prospect(
+            full_name="Solo Practitioner",
+            first_name="Solo",
+            last_name="Practitioner",
+            state="IL",
+            identity_confidence=0.6,
+            total_score=1.0,
+        )
+    )
+    db_session.commit()
+    rows = client.get("/prospects/ranked?tier=single_source").json()
+    solo = next(r for r in rows if r["name"] == "Solo Practitioner")
+    assert solo["identity_tier"] == "single_source"
+    assert solo["weakest_link"] is None
+
+
+def test_ranked_board_does_not_lazy_load_per_row(client, db_session):
+    from sqlalchemy import event
+
+    _ingest(client)
+    statements: list[str] = []
+
+    def count(conn, cursor, statement, parameters, context, executemany):
+        statements.append(statement)
+
+    engine = db_session.get_bind()
+    event.listen(engine, "before_cursor_execute", count)
+    try:
+        rows = client.get("/prospects/ranked?limit=5000").json()
+    finally:
+        event.remove(engine, "before_cursor_execute", count)
+    assert len(rows) >= 3
+    # One SELECT for prospects plus one per eager-loaded relationship —
+    # never one per prospect
+    assert len(statements) <= 6, statements
