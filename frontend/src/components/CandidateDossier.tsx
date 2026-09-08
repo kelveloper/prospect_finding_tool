@@ -32,9 +32,9 @@ export default function CandidateDossier({ fieldChanges, scoreHistory }: Props) 
   if (!hasChanges && !hasTrajectory) return null;
 
   return (
-    <div className="mt-8 flex flex-col gap-4">
+    <div className="mt-5 flex flex-col gap-3">
       {hasTrajectory ? (
-        <section className="rounded-[16px] bg-white px-6 py-5 shadow-card">
+        <section className="rounded-[16px] bg-white px-6 py-4 shadow-card">
           <div className="flex items-center gap-2">
             <span className="h-4 w-[3px] shrink-0 rounded-full bg-brand" />
             <h2 className="eyebrow">Score Across Ingests</h2>

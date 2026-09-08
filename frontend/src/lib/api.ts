@@ -32,6 +32,7 @@ type ApiRanked = {
   specialty: string | null;
   state: string | null;
   city: string | null;
+  address_state: string | null;
   score: number;
   qualification_score: number;
   timing_score: number;
@@ -39,6 +40,7 @@ type ApiRanked = {
   advisor_summary: string | null;
   summary_source: string | null;
   signal_types: string[];
+  signal_strengths?: Record<string, number>;
   score_change: number | null;
   outreach_status: string | null;
   is_new: boolean;
@@ -199,7 +201,7 @@ function tenure(from: string | null): string {
 const SIGNAL_LABELS: [string, string][] = [
   ["PHYSICIAN", "Active license"],
   ["SPECIALTY", "Specialty tier"],
-  ["NEW_LICENSE", "Newly licensed"],
+  ["NEW_LICENSE", "License date"],
   ["PRACTICE_ENTRY", "Entered practice"],
   ["CAREER_ADVANCEMENT", "Career move"],
   ["OWNERSHIP", "Practice ownership"],
@@ -211,7 +213,26 @@ const SIGNAL_LABELS: [string, string][] = [
  *  A 62 built on three signals is not the same claim as a 62 built on five,
  *  and the score alone cannot say which. Bands follow the spread on the real
  *  board, where most prospects sit at three or four of seven. */
-function toEvidence(signalTypes: string[]): Candidate["evidence"] {
+/** Rows whose wording changes with recency.
+ *
+ *  Holding a license date is evidence either way, so the tick — and the
+ *  evidence count with it — stays put. What moves is the claim: a two-month
+ *  registration earns "Newly licensed", a seventeen-year one is just a date
+ *  we hold. Same threshold the trigger chip uses. */
+const RECENCY_LABELS: Record<string, { fresh: string; stale: string }> = {
+  NEW_LICENSE: { fresh: "Newly licensed", stale: "License date" },
+};
+
+function labelFor(type: string, base: string, strength: number | undefined) {
+  const pair = RECENCY_LABELS[type];
+  if (!pair) return base;
+  return (strength ?? 0) >= (RECENCY_GATED[type] ?? 0.6) ? pair.fresh : pair.stale;
+}
+
+function toEvidence(
+  signalTypes: string[],
+  strengths: Record<string, number> = {},
+): Candidate["evidence"] {
   const present = new Set(signalTypes);
   const found = SIGNAL_LABELS.filter(([type]) => present.has(type));
   const level: Candidate["evidence"]["level"] =
@@ -222,7 +243,7 @@ function toEvidence(signalTypes: string[]): Candidate["evidence"] {
     found: found.length,
     total: SIGNAL_LABELS.length,
     signals: SIGNAL_LABELS.map(([type, label]) => ({
-      label,
+      label: labelFor(type, label, strengths[type]),
       present: present.has(type),
     })),
   };
@@ -238,8 +259,11 @@ const TRIGGERS: { type: string; label: string; hint: string; hot?: boolean }[] =
   [
     {
       type: "OWNERSHIP",
-      label: "New practice",
-      hint: "Bills Medicare under their own entity — they went independent.",
+      label: "Owns practice",
+      // "New practice" and "went independent" both asserted a recent switch.
+      // PECOS records who is paid today and carries no formation date, so we
+      // cannot date this — see docs/OWNERSHIP_TENURE_BIAS.md.
+      hint: "Bills Medicare under their own entity. The billing record carries no formation date, so we cannot say when.",
       hot: true,
     },
     {
@@ -260,9 +284,25 @@ const TRIGGERS: { type: string; label: string; hint: string; hot?: boolean }[] =
     },
   ];
 
-function toTrigger(signalTypes: string[]): Candidate["trigger"] {
+/** Signals that only mean something if they happened recently. A license is
+ *  emitted for everyone who holds one, so presence alone would print "New
+ *  license" on a seventeen-year-old registration. 0.6 is the detector's
+ *  two-year step on the recency curve. */
+const RECENCY_GATED: Record<string, number> = {
+  NEW_LICENSE: 0.6,
+  CAREER_ADVANCEMENT: 0.6,
+};
+
+function toTrigger(
+  signalTypes: string[],
+  strengths: Record<string, number> = {},
+): Candidate["trigger"] {
   const present = new Set(signalTypes);
-  const hit = TRIGGERS.find((t) => present.has(t.type));
+  const hit = TRIGGERS.find((t) => {
+    if (!present.has(t.type)) return false;
+    const floor = RECENCY_GATED[t.type];
+    return floor === undefined || (strengths[t.type] ?? 0) >= floor;
+  });
   return hit
     ? { label: hit.label, hint: hit.hint, hot: hit.hot ?? false }
     : null;
@@ -271,11 +311,21 @@ function toTrigger(signalTypes: string[]): Candidate["trigger"] {
 function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
   const { tier, label } = tierFromScore(p.score);
   const specialty = p.specialty ?? "Physician";
+  // Prefer the practice address's own state; `p.state` is only the state we
+  // searched, so pairing it with a city from elsewhere invents a place.
   const location = p.city
-    ? `${p.city}, ${p.state ?? ""}`.replace(/, $/, "")
+    ? `${p.city}, ${p.address_state ?? p.state ?? ""}`.replace(/, $/, "")
     : p.state
       ? `${STATE_NAMES[p.state] ?? p.state}, ${p.state}`
       : "Location unknown";
+
+  // The board is indexed by the state we searched, so a location naming a
+  // different one reads like an error unless the row says why it is here.
+  // Only the disagreeing rows carry the note; the rest stay uncluttered.
+  const licenseNote =
+    p.state && p.address_state && p.address_state !== p.state
+      ? `${p.state} license`
+      : null;
 
   return {
     id: p.id,
@@ -284,6 +334,7 @@ function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
     specialty,
     category: specialty,
     location,
+    licenseNote,
     score: p.score,
     tier,
     tierLabel: label,
@@ -299,11 +350,23 @@ function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
       detail
         ? detail.signals.map((sig) => sig.signal_type)
         : (p.signal_types ?? []),
+      // On the detail view the real strengths are to hand; on the board they
+      // ride along on the ranked payload.
+      detail
+        ? Object.fromEntries(
+            detail.signals.map((sig) => [sig.signal_type, sig.strength]),
+          )
+        : (p.signal_strengths ?? {}),
     ),
     evidence: toEvidence(
       detail
         ? detail.signals.map((sig) => sig.signal_type)
         : (p.signal_types ?? []),
+      detail
+        ? Object.fromEntries(
+            detail.signals.map((sig) => [sig.signal_type, sig.strength]),
+          )
+        : (p.signal_strengths ?? {}),
     ),
     scoreChange: p.score_change ?? null,
     isNew: p.is_new ?? false,

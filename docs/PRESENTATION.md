@@ -10,7 +10,7 @@ would actually use it, and the exact math behind every number on screen.
 
 > We find people in public data who are *becoming* wealthy — not people who
 > already are — rank them by a transparent, auditable score, and hand an
-> advisor a short list with the evidence and the first letter attached.
+> advisor a short list with the evidence and the reason to call attached.
 
 **Status as of 2026-08-27:** working end-to-end prototype, **running entirely
 on live data**. Four free government APIs, a deterministic scoring engine,
@@ -123,7 +123,7 @@ Data Sources — all live, free, no API keys
 3. ATTACH ENRICHMENT    billing entities / deeds / career events bind to a
                         person, on exact NPI or exact-name-and-state only
         ▼
-4. DETECT SIGNALS       six signal types, each with a strength and a confidence
+4. DETECT SIGNALS       seven signal types, each with a strength and a confidence
         ▼
 5. SCORE                Qualification (60%) + Timing (40%)
         ▼
@@ -171,7 +171,7 @@ scores, not row counts, and movement becomes visible.
 | `POST` | `/ingest/run?state=IL&limit=25` | Refresh the prospect pool, in the background. `limit` is per specialty, max 200; `wait=true` blocks and returns the full result; a second start while one runs gets 409 |
 | `GET` | `/prospects/ranked?limit=50` | The lead list — highest score first, with `score_change` since the previous run |
 | `GET` | `/prospects/{id}` | Full dossier: scores, per-component breakdown, every signal, identity match evidence, practice address |
-| `GET` | `/prospects/{id}/contact-kit` | Mail address, practice phone, the primary trigger, and a trigger-matched letter draft |
+| `GET` | `/prospects/{id}/contact-kit` | Mail address, practice phone, the primary trigger, and the handling rules. No drafted correspondence — the advisor writes their own |
 | `POST` | `/feedback` | Advisor verdict: `good_fit` \| `revisit_later` \| `not_fit`, plus notes |
 | `GET` | `/prospects/{id}/feedback` | Verdict history for that prospect |
 | `GET` | `/health` | Liveness |
@@ -423,7 +423,7 @@ a *monitoring* system rather than a one-shot report.
 | `DetectedSignal` | A signal before persistence: type, source, description, strength, confidence, event date |
 | `ScoreBreakdown` / component list | The two sub-scores and total; and the per-component contribution list the UI renders as bars |
 
-### 5.2 The six signal types — all six live
+### 5.2 The seven signal types — all seven live
 
 | Signal | Meaning | Source | Confidence |
 |---|---|---|---|

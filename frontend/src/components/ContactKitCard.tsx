@@ -68,7 +68,7 @@ export default function ContactKitCard({
   ];
 
   return (
-    <section className="mt-8">
+    <section className="mt-5">
       <div className="flex items-center gap-3">
         <h2 className="eyebrow">Reach Out</h2>
         {kit.urgency === "elevated" ? (

@@ -9,6 +9,10 @@ export type Candidate = {
   specialty: string;
   category: string;
   location: string;
+  /** Set only when the practice address sits outside the state we searched,
+   *  e.g. "IL license" on a row whose location reads Boston, MA. Null when
+   *  the two agree, which is the ordinary case — 183 of 219 rows. */
+  licenseNote: string | null;
   score: number;
   tier: Tier;
   tierLabel: string;

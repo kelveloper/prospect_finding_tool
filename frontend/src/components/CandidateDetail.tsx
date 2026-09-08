@@ -77,8 +77,17 @@ export default function CandidateDetail({
             <Heading className="mt-1 font-display text-[30px] font-bold tracking-[-0.75px] text-ink">
               {candidate.name}
             </Heading>
+            {/* The location is the practice address. On the rows where that
+                sits outside the state we searched, say so here — otherwise
+                the header reads like the wrong person. */}
             <p className="mt-1 text-[16px] text-ink-muted">
               {candidate.location}
+              {candidate.licenseNote ? (
+                <span className="text-ink-faint">
+                  {" · "}
+                  {candidate.licenseNote}
+                </span>
+              ) : null}
             </p>
 
             {/* Trust line: how sure we are these records are one person. */}
@@ -144,7 +153,7 @@ export default function CandidateDetail({
         ) : null}
       </details>
 
-      <hr className="my-6 border-surface-soft" />
+      <hr className="my-4 border-surface-soft" />
 
       {/* ── WHY NOW — the one paragraph that makes the case ── */}
       <section>
@@ -179,7 +188,7 @@ export default function CandidateDetail({
       {/* The advisor's actual next step — call, write, log the outcome —
           lives in the Reach Out block above. This only answers "how do you
           know?", so it is cited, not offered as a button. */}
-      <div className="sources-note mt-8 border-t border-surface-soft pt-4">
+      <div className="sources-note mt-5 border-t border-surface-soft pt-3">
         <p className="eyebrow">How we know</p>
         <div className="mt-2">
           <Citation

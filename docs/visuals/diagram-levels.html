@@ -1,0 +1,260 @@
+<title>Five Levels of the Same Diagram</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap">
+<style>
+  :root {
+    color-scheme: light;
+    --ground:#F4F6F8; --surface:#FFFFFF; --sunk:#ECEFF3;
+    --ink:#14181F; --ink-2:#4A5361; --ink-3:#7A8492;
+    --rule:#DDE2E9;
+    --key:#0B5FA5; --key-bg:#EDF4FB;
+    --out:#186A47; --out-bg:#E9F5EF;
+    --drop:#9E2F1B; --drop-bg:#FBEDEA;
+    --sans:"IBM Plex Sans",system-ui,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
+    --serif:"Newsreader",Georgia,serif;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --ground:#0D1117; --surface:#161B22; --sunk:#1C232C;
+    --ink:#E6EDF3; --ink-2:#AEB9C4; --ink-3:#7D8894; --rule:#2A323C;
+    --key:#8FC4F0; --key-bg:#12283C; --out:#7FD3A8; --out-bg:#14291F;
+    --drop:#F0A08C; --drop-bg:#33201B;
+  }}
+  :root[data-theme="dark"]{
+    --ground:#0D1117; --surface:#161B22; --sunk:#1C232C;
+    --ink:#E6EDF3; --ink-2:#AEB9C4; --ink-3:#7D8894; --rule:#2A323C;
+    --key:#8FC4F0; --key-bg:#12283C; --out:#7FD3A8; --out-bg:#14291F;
+    --drop:#F0A08C; --drop-bg:#33201B;
+  }
+
+  body { background:var(--ground); color:var(--ink); font-family:var(--sans);
+         font-size:16px; line-height:1.55; -webkit-text-size-adjust:100%; }
+  .wrap { max-width:780px; margin:0 auto; padding:32px 18px 80px; }
+  header { border-bottom:2px solid var(--ink); padding-bottom:16px; margin-bottom:30px; }
+  .eyebrow { font-family:var(--mono); font-size:11px; letter-spacing:.14em;
+             text-transform:uppercase; color:var(--ink-3); margin:0 0 8px; }
+  h1 { font-family:var(--serif); font-weight:600; font-size:clamp(28px,6.5vw,40px);
+       line-height:1.1; margin:0 0 10px; }
+  .standfirst { font-size:16.5px; color:var(--ink-2); margin:0; }
+
+  .level { margin:0 0 34px; }
+  .level-head { display:flex; gap:12px; align-items:baseline; margin:0 0 4px; }
+  .level-n { font-family:var(--mono); font-size:11px; letter-spacing:.12em;
+             text-transform:uppercase; color:var(--key); flex:none; }
+  h2 { font-family:var(--serif); font-weight:600; font-size:22px; margin:0; }
+  .adds { font-size:15px; color:var(--ink-2); margin:0 0 14px; }
+  .adds b { color:var(--ink); font-weight:600; }
+
+  .frame { background:var(--surface); border:1px solid var(--rule);
+           border-radius:10px; padding:18px 14px; overflow-x:auto; }
+  .frame svg { display:block; width:100%; height:auto; color:var(--ink); }
+  .use { font-family:var(--mono); font-size:12px; line-height:1.6; color:var(--ink-3);
+         margin:10px 2px 0; }
+  .use b { color:var(--key); }
+
+  .box  { fill:var(--surface); stroke:currentColor; stroke-width:1.4; }
+  .src  { fill:none; stroke:var(--ink-3); stroke-width:1.2; }
+  .key  { fill:var(--key-bg); stroke:var(--key); stroke-width:1.8; }
+  .out  { fill:var(--out-bg); stroke:var(--out); stroke-width:1.8; }
+  .drop { fill:var(--drop-bg); stroke:var(--drop); stroke-width:1.2; }
+  .gate { fill:var(--drop-bg); stroke:var(--drop); stroke-width:1.5; }
+  .ln   { stroke:var(--ink-3); stroke-width:1.4; fill:none; }
+  .ln-d { stroke:var(--drop); stroke-width:1.2; fill:none; stroke-dasharray:4 3; }
+  .t    { font-family:var(--sans); font-size:13px; font-weight:600; fill:var(--ink); }
+  .s    { font-family:var(--mono); font-size:10.5px; fill:var(--ink-3); }
+  .sd   { font-family:var(--mono); font-size:10.5px; fill:var(--drop); }
+  .n    { font-family:var(--mono); font-size:10px; letter-spacing:.1em; fill:var(--ink-3); }
+  footer { margin-top:44px; padding-top:16px; border-top:1px solid var(--rule);
+           font-family:var(--mono); font-size:12px; color:var(--ink-3); }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">ProspectIQ &middot; the same system, five ways</p>
+    <h1>Five Levels of the Same Diagram</h1>
+    <p class="standfirst">Each one adds exactly one idea to the one before it. Start at the top and stop wherever the person you are talking to stops nodding.</p>
+  </header>
+
+  <!-- ============ LEVEL 1 ============ -->
+  <section class="level">
+    <div class="level-head"><span class="level-n">Level 1</span><h2>The whole thing in three boxes</h2></div>
+    <p class="adds">The sentence version. <b>Public records go in, a ranked list comes out.</b></p>
+    <div class="frame">
+      <svg viewBox="0 0 720 110" role="img" aria-label="Public records go in, the system works out who is worth calling, and a ranked list comes out.">
+        <defs><marker id="m1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"></path></marker></defs>
+        <rect class="box" x="10" y="30" width="190" height="50" rx="6"></rect>
+        <text class="t" x="26" y="52">Public records</text>
+        <text class="s" x="26" y="69">free government data</text>
+        <line class="ln" x1="200" y1="55" x2="252" y2="55" marker-end="url(#m1)"></line>
+        <rect class="key" x="252" y="30" width="200" height="50" rx="6"></rect>
+        <text class="t" x="268" y="52">Who is worth calling</text>
+        <text class="s" x="268" y="69">and why now</text>
+        <line class="ln" x1="452" y1="55" x2="504" y2="55" marker-end="url(#m1)"></line>
+        <rect class="out" x="504" y="30" width="200" height="50" rx="6"></rect>
+        <text class="t" x="520" y="52">A ranked list</text>
+        <text class="s" x="520" y="69">best first, with reasons</text>
+      </svg>
+    </div>
+    <p class="use"><b>Use when:</b> someone asks in a corridor. Also the one you draw on a whiteboard.</p>
+  </section>
+
+  <!-- ============ LEVEL 2 ============ -->
+  <section class="level">
+    <div class="level-head"><span class="level-n">Level 2</span><h2>Name the sources, split the middle</h2></div>
+    <p class="adds">Adds <b>which four sources</b>, and breaks the middle into the two things it actually does: work out who is who, then look at what changed.</p>
+    <div class="frame">
+      <svg viewBox="0 0 760 230" role="img" aria-label="Four named public sources feed into matching the same person, then judging what changed recently, producing a ranked list.">
+        <defs><marker id="m2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"></path></marker></defs>
+        <text class="n" x="8" y="14">PUBLIC DATA</text>
+        <rect class="src" x="8" y="22" width="168" height="32" rx="5"></rect><text class="t" x="20" y="42">Doctor registry</text>
+        <rect class="src" x="8" y="60" width="168" height="32" rx="5"></rect><text class="t" x="20" y="80">State licensing</text>
+        <rect class="src" x="8" y="98" width="168" height="32" rx="5"></rect><text class="t" x="20" y="118">Medicare billing</text>
+        <rect class="src" x="8" y="136" width="168" height="32" rx="5"></rect><text class="t" x="20" y="156">Property records</text>
+        <path class="ln" d="M176 38 L206 38 L206 95 L236 95" marker-end="url(#m2)"></path>
+        <path class="ln" d="M176 76 L206 76 L206 95"></path>
+        <path class="ln" d="M176 114 L206 114 L206 95"></path>
+        <path class="ln" d="M176 152 L206 152 L206 95"></path>
+        <rect class="key" x="236" y="72" width="160" height="46" rx="6"></rect>
+        <text class="t" x="250" y="92">Who is who?</text><text class="s" x="250" y="109">match the same person</text>
+        <line class="ln" x1="396" y1="95" x2="434" y2="95" marker-end="url(#m2)"></line>
+        <rect class="key" x="434" y="72" width="160" height="46" rx="6"></rect>
+        <text class="t" x="448" y="92">What changed?</text><text class="s" x="448" y="109">and how recently</text>
+        <line class="ln" x1="594" y1="95" x2="632" y2="95" marker-end="url(#m2)"></line>
+        <rect class="out" x="592" y="130" width="160" height="46" rx="6"></rect>
+        <text class="t" x="606" y="150">Ranked list</text><text class="s" x="606" y="167">best first, with reasons</text>
+        <path class="ln" d="M632 95 L672 95 L672 130" marker-end="url(#m2)"></path>
+        <text class="s" x="236" y="200">Same license number, or an exact</text>
+        <text class="s" x="236" y="215">name match. Otherwise we do not merge.</text>
+        <text class="s" x="434" y="200">A license from two months ago is worth</text>
+        <text class="s" x="434" y="215">far more than one from 2008.</text>
+      </svg>
+    </div>
+    <p class="use"><b>Use when:</b> your team lead asks how it works, and you have twenty seconds.</p>
+  </section>
+
+  <!-- ============ LEVEL 3 ============ -->
+  <section class="level">
+    <div class="level-head"><span class="level-n">Level 3</span><h2>Two kinds of record</h2></div>
+    <p class="adds">Adds the idea that makes the rest make sense. <b>Two sources describe a person; two describe an event.</b> People get <b>merged</b> together. Events get <b>attached</b> to a person who already exists.</p>
+    <div class="frame">
+      <svg viewBox="0 0 760 300" role="img" aria-label="The registry and licensing produce person records which merge into one person; Medicare billing and property records produce event records which attach to that person, forming one profile that is scored.">
+        <defs><marker id="m3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"></path></marker></defs>
+        <text class="n" x="8" y="14">WHO SOMEBODY IS</text>
+        <rect class="src" x="8" y="22" width="160" height="30" rx="5"></rect><text class="t" x="20" y="41">Doctor registry</text>
+        <rect class="src" x="8" y="58" width="160" height="30" rx="5"></rect><text class="t" x="20" y="77">State licensing</text>
+        <text class="n" x="8" y="130">WHAT HAPPENED TO THEM</text>
+        <rect class="src" x="8" y="138" width="160" height="30" rx="5"></rect><text class="t" x="20" y="157">Medicare billing</text>
+        <rect class="src" x="8" y="174" width="160" height="30" rx="5"></rect><text class="t" x="20" y="193">Property records</text>
+        <path class="ln" d="M168 37 L196 37 L196 55 L224 55" marker-end="url(#m3)"></path>
+        <path class="ln" d="M168 73 L196 73 L196 55"></path>
+        <path class="ln" d="M168 153 L196 153 L196 171 L224 171" marker-end="url(#m3)"></path>
+        <path class="ln" d="M168 189 L196 189 L196 171"></path>
+        <rect class="key" x="224" y="32" width="176" height="46" rx="6"></rect>
+        <text class="t" x="238" y="52">MERGE them</text><text class="s" x="238" y="69">two records, one person</text>
+        <rect class="box" x="224" y="148" width="176" height="46" rx="6"></rect>
+        <text class="t" x="238" y="168">ATTACH them</text><text class="s" x="238" y="185">events find their owner</text>
+        <path class="ln" d="M400 55 L436 55 L436 108 L472 108" marker-end="url(#m3)"></path>
+        <path class="ln" d="M400 171 L436 171 L436 108"></path>
+        <rect class="key" x="472" y="85" width="176" height="46" rx="6"></rect>
+        <text class="t" x="486" y="105">One profile</text><text class="s" x="486" y="122">everything about them</text>
+        <line class="ln" x1="560" y1="131" x2="560" y2="168" marker-end="url(#m3)"></line>
+        <rect class="out" x="472" y="168" width="176" height="46" rx="6"></rect>
+        <text class="t" x="486" y="188">Score, then rank</text><text class="s" x="486" y="205">best first</text>
+        <text class="s" x="224" y="248">An event can never create a prospect. It can only</text>
+        <text class="s" x="224" y="264">attach to somebody the person records already found,</text>
+        <text class="s" x="224" y="280">or be thrown away.</text>
+      </svg>
+    </div>
+    <p class="use"><b>Use when:</b> someone asks how you avoid mixing up two doctors with the same name.</p>
+  </section>
+
+  <!-- ============ LEVEL 4 ============ -->
+  <section class="level">
+    <div class="level-head"><span class="level-n">Level 4</span><h2>What gets thrown away</h2></div>
+    <p class="adds">Adds the <b>gates</b>. Three points where a record is refused, and the rule behind all of them: <b>a missed signal is safer than a wrong one.</b></p>
+    <div class="frame">
+      <svg viewBox="0 0 760 330" role="img" aria-label="Three gates reject records: an entry gate on eligibility, an identity gate on whether records match, and a derivation gate on whether a signal is strong enough to claim.">
+        <defs>
+          <marker id="m4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"></path></marker>
+          <marker id="m4d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--drop)"></path></marker>
+        </defs>
+        <rect class="src" x="8" y="40" width="150" height="42" rx="5"></rect>
+        <text class="t" x="20" y="60">Four sources</text><text class="s" x="20" y="76">everything they return</text>
+        <line class="ln" x1="158" y1="61" x2="192" y2="61" marker-end="url(#m4)"></line>
+        <rect class="gate" x="192" y="38" width="150" height="46" rx="6"></rect>
+        <text class="t" x="204" y="58">GATE 1 &middot; eligible?</text><text class="sd" x="204" y="75">a physician, in Illinois</text>
+        <path class="ln-d" d="M267 84 L267 116" marker-end="url(#m4d)"></path>
+        <rect class="drop" x="192" y="116" width="150" height="34" rx="5"></rect>
+        <text class="sd" x="204" y="137">thrown away</text>
+        <line class="ln" x1="342" y1="61" x2="376" y2="61" marker-end="url(#m4)"></line>
+        <rect class="gate" x="376" y="38" width="164" height="46" rx="6"></rect>
+        <text class="t" x="388" y="58">GATE 2 &middot; same person?</text><text class="sd" x="388" y="75">prove it, or drop it</text>
+        <path class="ln-d" d="M458 84 L458 116" marker-end="url(#m4d)"></path>
+        <rect class="drop" x="376" y="116" width="164" height="34" rx="5"></rect>
+        <text class="sd" x="388" y="137">left as two people</text>
+        <line class="ln" x1="540" y1="61" x2="574" y2="61" marker-end="url(#m4)"></line>
+        <rect class="key" x="574" y="38" width="176" height="46" rx="6"></rect>
+        <text class="t" x="586" y="58">One profile</text><text class="s" x="586" y="75">only proven facts</text>
+        <line class="ln" x1="662" y1="84" x2="662" y2="120" marker-end="url(#m4)"></line>
+        <rect class="gate" x="574" y="120" width="176" height="46" rx="6"></rect>
+        <text class="t" x="586" y="140">GATE 3 &middot; worth saying?</text><text class="sd" x="586" y="157">too weak to mention</text>
+        <line class="ln" x1="662" y1="166" x2="662" y2="200" marker-end="url(#m4)"></line>
+        <rect class="out" x="574" y="200" width="176" height="46" rx="6"></rect>
+        <text class="t" x="586" y="220">Score, then rank</text><text class="s" x="586" y="237">best first</text>
+        <text class="s" x="8" y="272">Every gate is a yes or no. Nothing is ever rejected after the score,</text>
+        <text class="s" x="8" y="288">because by then it can only be worth more or less.</text>
+        <text class="sd" x="8" y="312">A missed signal is safer than attaching someone else&rsquo;s house to a prospect.</text>
+      </svg>
+    </div>
+    <p class="use"><b>Use when:</b> the question is about trust, compliance, or false matches.</p>
+  </section>
+
+  <!-- ============ LEVEL 5 ============ -->
+  <section class="level">
+    <div class="level-head"><span class="level-n">Level 5</span><h2>How the number is made</h2></div>
+    <p class="adds">Adds the <b>seven signals</b> and the <b>60 / 40 split</b>. Real numbers, from the doctor at rank one.</p>
+    <div class="frame">
+      <svg viewBox="0 0 760 400" role="img" aria-label="Seven signals split into three qualification components worth sixty percent and four timing components worth forty percent, blended into a score of 62 for the top-ranked doctor.">
+        <defs><marker id="m5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"></path></marker></defs>
+        <rect class="key" x="290" y="8" width="180" height="40" rx="6"></rect>
+        <text class="t" x="304" y="27">One profile</text><text class="s" x="304" y="42">seven signals, 0 to 1</text>
+        <path class="ln" d="M330 48 L330 74 L180 74 L180 96" marker-end="url(#m5)"></path>
+        <path class="ln" d="M430 48 L430 74 L560 74 L560 96" marker-end="url(#m5)"></path>
+
+        <text class="n" x="40" y="92">SHOULD WE CARE? &middot; 60%</text>
+        <rect class="box" x="40" y="96" width="280" height="128" rx="6"></rect>
+        <text class="s" x="54" y="118">Physician standing</text>      <text class="s" x="246" y="118">40 &times; 1.00 = 40.0</text>
+        <text class="s" x="54" y="140">Specialty earning tier</text>  <text class="s" x="246" y="140">35 &times; 0.45 = 15.8</text>
+        <text class="s" x="54" y="162">Practice ownership</text>      <text class="s" x="246" y="162">25 &times; 0.00 =  0.0</text>
+        <line class="ln" x1="54" y1="176" x2="306" y2="176"></line>
+        <text class="t" x="54" y="196">Subtotal</text>                 <text class="t" x="246" y="196">55.8</text>
+        <text class="s" x="54" y="215">of a possible 100</text>
+
+        <text class="n" x="420" y="92">WHY NOW? &middot; 40%</text>
+        <rect class="box" x="420" y="96" width="300" height="128" rx="6"></rect>
+        <text class="s" x="434" y="118">License recency</text>         <text class="s" x="628" y="118">40 &times; 1.00 = 40.0</text>
+        <text class="s" x="434" y="140">Property purchase</text>       <text class="s" x="628" y="140">30 &times; 1.00 = 30.0</text>
+        <text class="s" x="434" y="162">Practice entry</text>          <text class="s" x="628" y="162">15 &times; 0.10 =  1.5</text>
+        <text class="s" x="434" y="184">Career move</text>             <text class="s" x="628" y="184">15 &times; 0.00 =  0.0</text>
+        <line class="ln" x1="434" y1="196" x2="706" y2="196"></line>
+        <text class="t" x="434" y="215">Subtotal</text>                <text class="t" x="628" y="215">71.5</text>
+
+        <path class="ln" d="M180 224 L180 258 L330 258 L330 282" marker-end="url(#m5)"></path>
+        <path class="ln" d="M560 224 L560 258 L430 258 L430 282" marker-end="url(#m5)"></path>
+        <text class="s" x="196" y="252">&times; 0.60 = 33.5</text>
+        <text class="s" x="466" y="252">&times; 0.40 = 28.6</text>
+
+        <rect class="out" x="290" y="282" width="180" height="46" rx="6"></rect>
+        <text class="t" x="304" y="302">Score 62.0</text><text class="s" x="304" y="319">rank 1 of 219</text>
+
+        <text class="s" x="40" y="356">Points = the most that row can be worth, times how strong the signal is.</text>
+        <text class="s" x="40" y="374">His specialty scores 0.45, so he wins on timing rather than on fit.</text>
+        <text class="s" x="40" y="392">Nobody can pass 91 on a first run &mdash; a career move needs two months of data.</text>
+      </svg>
+    </div>
+    <p class="use"><b>Use when:</b> someone asks &ldquo;why is he number one?&rdquo; or &ldquo;where does 62 come from?&rdquo;</p>
+  </section>
+
+  <footer>ProspectIQ &middot; numbers are live from the current board &middot; full trace: one-doctor-trace.html</footer>
+</div>

@@ -411,7 +411,7 @@ CORS on the backend is hardcoded to `localhost:3000` / `127.0.0.1:3000`
 - The "Financial Event" step of the core product hypothesis never fires
 
 **I verified the fix works.** Adding the two adapters to the source list
-produces all six signal types and a materially better-separated board:
+produces all seven signal types and a materially better-separated board:
 
 ```
  1.  89.2  John A Smith    [NEW_LICENSE,OWNERSHIP,PHYSICIAN,PROPERTY_EVENT,SPECIALTY]

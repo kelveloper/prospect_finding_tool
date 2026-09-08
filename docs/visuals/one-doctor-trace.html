@@ -136,13 +136,29 @@
   .sw-gate   { background: #F5EADA; border: 1.6px solid #9A5B08; }
   .sw-core   { background: #DDECEC; border: 2px solid #0B6B70; }
   .sw-out    { background: #0B6B70; border: 2px solid #0B6B70; }
-  .sw-dest   { background: #131A1C; border: 2px solid #131A1C; }
 
   figcaption {
     font-family: var(--mono); font-size: 12px; line-height: 1.65; color: var(--mid);
     margin-top: 18px; max-width: 80ch;
   }
   figcaption strong { color: var(--ink); font-weight: 500; }
+
+  /* ---------- saying it out loud ---------- */
+  .talk { margin: 24px 0 0; display: flex; flex-direction: column; gap: 16px; }
+  .talk-step { display: grid; grid-template-columns: 92px 1fr; gap: 16px; align-items: start; }
+  .talk-cue {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--accent); padding-top: 5px; line-height: 1.5;
+  }
+  .talk-say {
+    font-size: 17px; line-height: 1.6; margin: 0; max-width: 60ch;
+    border-left: 2px solid var(--rule); padding-left: 16px;
+  }
+  .talk-say em { color: var(--ink); font-style: normal; font-weight: 600; }
+  .talk-aside {
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.6; color: var(--warn);
+    margin: 8px 0 0; padding-left: 16px; max-width: 60ch;
+  }
 
   .rulebox {
     border-left: 3px solid var(--accent); background: var(--card);
@@ -168,7 +184,7 @@
   <header class="masthead">
     <p class="eyebrow">Prospect finding tool · worked trace</p>
     <h1>One Doctor, End to End</h1>
-    <p class="standfirst">The whole pipeline, followed by a single physician the entire way — from the one query a human writes, to the score on the board.</p>
+    <p class="standfirst">The whole pipeline, followed by a single physician the entire way — from the one query we invent, to the score on the board.</p>
   </header>
 
   <div class="disclaimer">
@@ -188,8 +204,8 @@
     </dl>
   </div>
 
-  <h2>The one query a human writes, and the four it unlocks</h2>
-  <p class="sub">Only row 1 answers a question we chose the words for. Every other row is fetched using an identifier that row 1 handed over &mdash; so row 1 has to land first. The other three searches then run at the same time, because none of them needs the others.</p>
+  <h2>The one query we invent, and the four that follow</h2>
+  <p class="sub">Only row 1 comes from a question we made up. Every other row is fetched using an identifier that row 1 handed over &mdash; so row 1 has to land first. The other three are then asked at the same time, because none of them needs the others.</p>
   <div class="table-scroll">
     <table>
       <thead>
@@ -197,31 +213,31 @@
       </thead>
       <tbody>
         <tr>
-          <td class="row-id">ROW 1</td><td>NPI Registry (NPPES)</td>
+          <td class="row-id">ROW 1</td><td>NPI Registry</td>
           <td class="key">our own query — Illinois + orthopaedics</td>
           <td>NPI 1538291746, A. Reyes, Chicago, enumerated 7 months ago</td>
           <td class="verdict-keep">kept</td>
         </tr>
         <tr>
-          <td class="row-id">ROW 2</td><td>IL Licensing (IDFPR)</td>
-          <td class="key">licence number from row 1</td>
-          <td>Licence 036-104271, issued 8 months ago, active</td>
+          <td class="row-id">ROW 2</td><td>IL Licensing</td>
+          <td class="key">license number from row 1</td>
+          <td>License 036-104271, issued 8 months ago, active</td>
           <td class="verdict-keep">kept</td>
         </tr>
         <tr>
-          <td class="row-id">ROW 3</td><td>Medicare Billing (PECOS)</td>
+          <td class="row-id">ROW 3</td><td>Medicare Billing</td>
           <td class="key">NPI number from row 1</td>
           <td>Payments reassigned to Reyes Orthopaedic Group PLLC</td>
           <td class="verdict-keep">kept</td>
         </tr>
         <tr>
-          <td class="row-id">ROW 4</td><td>County Deeds (Cook County)</td>
+          <td class="row-id">ROW 4</td><td>County Deeds</td>
           <td class="key">surname from row 1</td>
           <td>A. Reyes bought a house for $840,000, two months ago</td>
           <td class="verdict-keep">kept</td>
         </tr>
         <tr>
-          <td class="row-id">ROW 5</td><td>County Deeds (Cook County)</td>
+          <td class="row-id">ROW 5</td><td>County Deeds</td>
           <td class="key">surname from row 1</td>
           <td>A. Reyes-Martin bought a different house</td>
           <td class="verdict-drop">discarded</td>
@@ -240,77 +256,73 @@
         <p class="sheet-meta">8 steps &middot; 3 gate layers</p>
       </div>
       <p class="scroll-hint">
-        <b>Read straight down.</b> Every box is a thing that now exists. Every arrow is the action that produced the next one &mdash; including the step numbers, because fetching a database is something you <i>do</i>. Steps 2 to 4 sit in one box together: they are searched concurrently, not in turn.<br>
-        <b>Dashed arrows leave the pipeline.</b> Alongside her one real drop-out at gate 2, they name the kind of record each gate would have caught.<br>
-        <b>The three keys appear twice.</b> The unlabelled teal dotted line skips ahead: the keys are search terms in steps 2 to 4, then return at gate 2 as evidence &mdash; nothing is trusted just because a search returned it. Gate 2 runs in order: people are merged first, events judged once the people exist.<br>
-        <b>Only step 1 is required.</b> No NPI row, no prospect. Every other source is optional: its absence lowers her score, never her existence.
+        <b>Read straight down.</b> Every box is a thing that now exists. Every arrow is the action that produced the next one &mdash; including the step numbers, because fetching a database is something you <i>do</i>. Steps 2 to 4 sit in one box together: they are asked concurrently, not in turn.<br>
+        <b>Dashed arrows leave the pipeline.</b> Alongside her one real drop-out at gate 2, they name the kind of record each gate would have caught.
       </p>
 
 <pre class="mermaid">
 %%{init: {"theme":"base","themeVariables":{"fontFamily":"Archivo, Helvetica Neue, Arial, sans-serif","fontSize":"15px","lineColor":"#5D6E74","edgeLabelBackground":"#F7F9F9","primaryColor":"#FFFFFF","primaryTextColor":"#131A1C","primaryBorderColor":"#131A1C"},"flowchart":{"curve":"linear","nodeSpacing":40,"rankSpacing":50,"padding":13,"useMaxWidth":false,"htmlLabels":true}}%%
 flowchart TB
 
-  A0(["The only question a human writes — who are the Illinois orthopaedic surgeons?"])
-  A0 -->|"STEP 1 · ask the NPI Registry (NPPES) — the one required source"| R1["ROW 1 · NPI 1538291746, A. Reyes, orthopaedic surgery, Chicago"]
+  A0(["The one question we invent — who are the Illinois orthopaedic surgeons?"])
+  A0 -->|"STEP 1 · ask the NPI Registry"| R1["ROW 1 · NPI 1538291746, A. Reyes, orthopaedic surgery, Chicago"]
 
   R1 --> E1{"GATE 1 · ENTRY — a physician, in Illinois?"}
-  E1 -.->|"fail"| X1(["a Wisconsin dermatologist stops here — and never becomes a prospect"])
-  E1 -->|"pass — row 1 now supplies all three lookup keys"| SEED["Her licence number 036-104271, her NPI 1538291746, her surname REYES"]
+  E1 -.->|"fail"| X1(["a Wisconsin dermatologist stops here"])
+  E1 -->|"pass — row 1 now supplies all three lookup keys"| SEED["Her license number 036-104271, her NPI 1538291746, her surname REYES"]
 
-  subgraph PAR ["STEPS 2, 3 and 4 · searched at the same time · all optional — a miss costs points, never the person"]
+  subgraph PAR ["STEPS 2, 3 and 4 · asked at the same time, because none needs the others"]
     direction LR
-    R2["ROW 2 · licence issued 8 months ago, status active"]
+    R2["ROW 2 · license issued 8 months ago, status active"]
     R3["ROW 3 · payments go to Reyes Orthopaedic Group PLLC"]
-    R4["ROW 4 · A. Reyes bought a house, 840,000 dollars, 2 months ago"]
-    R5["ROW 5 · A. Reyes-Martin bought a different house"]
+    D0["Two deeds come back under that surname"]
   end
 
-  SEED -->|"STEP 2 · search IL Licensing (IDFPR) by licence number"| R2
-  SEED -->|"STEP 3 · search Medicare Billing (PECOS) by NPI"| R3
-  SEED -->|"STEP 4 · search County Deeds (Cook County) by surname — one search, two deeds"| R4
-  SEED --> R5
+  SEED -->|"STEP 2 · ask IL Licensing by license number"| R2
+  SEED -->|"STEP 3 · ask Medicare Billing by NPI"| R3
+  SEED -->|"STEP 4 · ask County Deeds by surname"| D0
 
-  R2 --> E2{"GATE 1 · ENTRY — an active individual licence?"}
-  R3 --> E3{"GATE 1 · ENTRY — does it name who receives her payments?"}
+  R2 --> E2{"GATE 1 · ENTRY — an active individual license?"}
+  E2 -.->|"fail"| X2(["a lapsed or business license stops here"])
+
+  R3 --> E3{"GATE 1 · ENTRY — a payment reassignment row?"}
+  E3 -.->|"fail"| X3(["a plain facility affiliation stops here"])
+
+  D0 --> R4["ROW 4 · A. Reyes bought a house, 840,000 dollars, 2 months ago"]
+  D0 --> R5["ROW 5 · A. Reyes-Martin bought a different house"]
   R4 --> E4{"GATE 1 · ENTRY — over 100,000 dollars and under 3 years old?"}
   R5 --> E4
+  E4 -.->|"fail"| X4(["a 40,000 dollar token transfer stops here"])
 
-  E2 -.->|"fail"| X2(["a lapsed or business licence stops here — the row, not the doctor"])
-  E3 -.->|"fail"| X3(["a facility affiliation stops here — it only says where she works, not who gets paid"])
-  E4 -.->|"fail"| X4(["a 40,000 dollar token transfer — the row stops, not the doctor"])
   E2 -->|"pass"| S5
   E3 -->|"pass"| S5
   E4 -->|"both deeds pass"| S5
   S5["STEP 5 · Five rows, sorted into two shapes"]
 
-  S5 -->|"first — rows 1 and 2 say who she is"| E5{"GATE 2 · VERIFY — same person?"}
-  S5 -->|"then — rows 3, 4 and 5"| E6{"GATE 2 · VERIFY — whose event is this?"}
+  S5 -->|"rows 1 and 2 say who she is"| E5{"GATE 2 · IDENTITY — same human?"}
+  S5 -->|"rows 3, 4 and 5 say what happened to her"| E6{"GATE 2 · IDENTITY — whose event is this?"}
 
   E5 -.->|"weaker evidence"| X5(["they would stay two separate people"])
-  E5 -->|"same licence number — MERGE"| M1["ONE PERSON · Dr A. Reyes"]
+  E5 -->|"both rows carry license 036-104271, so MERGE"| M1["ONE PERSON · Dr A. Reyes"]
 
-  E6 -.->|"row 5 — caught by the search, refused by exact match"| X6(["discarded, attached to nobody"])
+  E6 -.->|"row 5 — Reyes-Martin is not an exact surname"| X6(["discarded, attached to nobody"])
   E6 -->|"row 3 by NPI, row 4 by exact name, so ATTACH"| S6
 
   M1 --> S6["STEP 6 · One profile — 4 rows kept, each logged with its match reason"]
-  S6 --> S7["STEP 7 · Seven signals — physician, orthopaedics, new licence, entered practice, owns practice, bought property, career move"]
+  S6 --> S7["STEP 7 · Signals — physician, orthopaedics, new license, practice entry, owns practice, bought property"]
 
   S7 --> E7{"GATE 3 · DERIVATION — strong enough to claim?"}
   E7 -.->|"career move needs a second monthly snapshot"| X7(["not claimed on her dossier"])
-  E7 -->|"6 of 7 signals earn points"| Q1["Should we care? · physician 40 + orthopaedics 35 + own PLLC 20 = 95"]
-  E7 -->|"6 of 7 signals earn points"| Q2["Why now? · licence 34 + property 30 + practice entry 12.8 + career move 0 = 76.8"]
+  E7 -->|"6 of 7 signals pass"| Q1["Should we care? · physician 40 + orthopaedics 35 + own PLLC 20 = 95"]
+  E7 -->|"6 of 7 signals pass"| Q2["Why now? · license 34 + property 30 + practice entry 12.8 = 76.8"]
 
-  Q1 -->|"STEP 8 · weigh — 95 × 0.60 = 57.0"| T1
-  Q2 -->|"STEP 8 · weigh — 76.8 × 0.40 = 30.7"| T1
+  Q1 -->|"95 × 0.60 = 57.0"| T1
+  Q2 -->|"76.8 × 0.40 = 30.7"| T1
 
-  T1(["SCORE 87.7 OUT OF 100"])
+  T1(["STEP 8 · SCORE 87.7 OUT OF 100"])
   T1 --> O1["Ranked board — near the top of the list"]
-  T1 --> O2["Dossier — LLM-written advisor summary, every fact traced back to its row"]
+  T1 --> O2["Dossier — every fact traced back to its row"]
   T1 --> O3["Contact kit — practice address, lead with the new PLLC"]
-
-  SEED -.-> E5
-  E6 ~~~ X5
-  linkStyle 35 stroke:#0B6B70,stroke-width:2px,stroke-dasharray:2 5
 
   classDef source fill:#FFFFFF,stroke:#54646A,stroke-width:1.5px,color:#131A1C
   classDef gate fill:#F5EADA,stroke:#9A5B08,stroke-width:1.8px,color:#5E3703
@@ -318,29 +330,123 @@ flowchart TB
   classDef shape fill:#FFFFFF,stroke:#131A1C,stroke-width:1.8px,color:#131A1C
   classDef core fill:#DDECEC,stroke:#0B6B70,stroke-width:2.2px,color:#08383B
   classDef out fill:#0B6B70,stroke:#0B6B70,stroke-width:2.2px,color:#FFFFFF
-  classDef dest fill:#131A1C,stroke:#131A1C,stroke-width:2.2px,color:#FFFFFF
 
-  class A0,R1,R2,R3,R4,R5,SEED source
+  class A0,R1,R2,R3,D0,R4,R5,SEED source
   style PAR fill:#EEF4F4,stroke:#0B6B70,stroke-width:1.4px,color:#08383B
   class E1,E2,E3,E4,E5,E6,E7 gate
   class X1,X2,X3,X4,X5,X6,X7 reject
-  class Q1,Q2 shape
+  class Q1,Q2,O1,O2,O3 shape
   class S5,M1,S6,S7 core
-  class T1 dest
-  class O1,O2,O3 out
+  class T1 out
 </pre>
 
       <div class="key">
         <span class="key-item"><span class="swatch sw-src"></span> a row that arrived</span>
         <span class="key-item"><span class="swatch sw-gate"></span> a gate &mdash; pass or fail</span>
         <span class="key-item"><span class="swatch sw-core"></span> the prospect being built</span>
-        <span class="key-item"><span class="swatch sw-dest"></span> the finished score</span>
-        <span class="key-item"><span class="swatch sw-out"></span> output</span>
+        <span class="key-item"><span class="swatch sw-out"></span> what reaches the advisor</span>
       </div>
     </div>
 
-    <figcaption><strong>Steps 1 to 4 sit on the arrows, not in the boxes.</strong> Fetching a database is an action, and each one names the identifier it used &mdash; so you can see that nothing after row 1 is ever searched for by guesswork. Only row 1 blocks the others; steps 2 to 4 then run together. Step 5 is the only fork, and it runs left side first: the <em>merge</em> builds the people, then the <em>attach</em> offers each event to the finished list of them &mdash; which is how row 5 can fail to find an owner anywhere.</figcaption>
+    <figcaption><strong>Steps 1 to 4 sit on the arrows, not in the boxes.</strong> Fetching a database is an action, and each one names the identifier it used &mdash; so you can see that nothing after row 1 is ever searched for by guesswork. Only row 1 blocks the others; steps 2 to 4 then run together. Step 5 is the only fork: the left side <em>merges</em> two records into one person, the right side <em>attaches</em> events to her, and row 5 fails to find an owner.</figcaption>
   </figure>
+
+  <h2>Saying it out loud</h2>
+  <p class="sub">For walking a colleague through the chart above, one to one. Point at each box as you go.</p>
+
+  <div class="talk">
+    <div class="talk-step">
+      <div class="talk-cue">Set up</div>
+      <div>
+        <p class="talk-say">So this is one doctor going through the whole pipeline. She&rsquo;s made up
+        &mdash; the person isn&rsquo;t real &mdash; but every rule and every number here is the real one
+        from the system. Five rows come in about her, and I&rsquo;ll show you what happens to each.</p>
+      </div>
+    </div>
+
+    <div class="talk-step">
+      <div class="talk-cue">Row 1</div>
+      <div>
+        <p class="talk-say">Everything starts here. This is the only question we make up ourselves
+        &mdash; give me every orthopaedic surgeon in Illinois. That comes back with her NPI, her
+        specialty, and her license number. And those three IDs are what everything else is looked up
+        with.</p>
+      </div>
+    </div>
+
+    <div class="talk-step">
+      <div class="talk-cue">Rows 2&ndash;4</div>
+      <div>
+        <p class="talk-say">So then we go and ask the other three sources, all at the same time. Her
+        license number goes to state licensing, which tells us it was issued eight months ago. Her NPI
+        goes to Medicare, which tells us she bills through her own company. And her surname goes to
+        county property records.</p>
+        <p class="talk-aside">Point out that only the last one uses a name. The first two are exact ID
+        joins, so there&rsquo;s nothing to get wrong.</p>
+      </div>
+    </div>
+
+    <div class="talk-step">
+      <div class="talk-cue">The fork</div>
+      <div>
+        <p class="talk-say">Now this is the only place the chart splits, and it&rsquo;s worth
+        understanding why. Two of those rows describe <em>who she is</em>. Three of them describe
+        <em>something that happened to her</em>. And those two kinds need opposite things done to
+        them.</p>
+      </div>
+    </div>
+
+    <div class="talk-step">
+      <div class="talk-cue">Left side</div>
+      <div>
+        <p class="talk-say">On the left, the two person records get <em>merged</em>. Both of them carry
+        the same license number, so we know for certain it&rsquo;s one human, not two. Two records go in,
+        one person comes out.</p>
+      </div>
+    </div>
+
+    <div class="talk-step">
+      <div class="talk-cue">Right side</div>
+      <div>
+        <p class="talk-say">On the right, the event records <em>attach</em>. They can&rsquo;t create
+        anybody &mdash; each one has to go and find a person who already exists. The Medicare row
+        attaches on her NPI, so no risk there. The first house attaches because the name and state match
+        exactly.</p>
+      </div>
+    </div>
+
+    <div class="talk-step">
+      <div class="talk-cue">Row 5</div>
+      <div>
+        <p class="talk-say">And this is the row I&rsquo;d actually point at. A second deed comes back
+        under Reyes-Martin. Close, but not exact &mdash; so we drop it. It attaches to nobody. Because if
+        we&rsquo;d guessed, we&rsquo;d have put someone else&rsquo;s house on her file and quietly
+        inflated her score, and nobody would ever have caught it.</p>
+        <p class="talk-aside">This is the whole philosophy in one row: a missed signal is safer than a
+        wrong one.</p>
+      </div>
+    </div>
+
+    <div class="talk-step">
+      <div class="talk-cue">The score</div>
+      <div>
+        <p class="talk-say">So four rows survive, they become signals, and the signals become a score.
+        Eighty-seven point seven &mdash; sixty percent from &ldquo;should we care about her&rdquo;, forty
+        percent from &ldquo;why now&rdquo;. And every single point traces back to one of those rows, with
+        the reason it was accepted stored alongside it.</p>
+      </div>
+    </div>
+
+    <div class="talk-step">
+      <div class="talk-cue">If pushed</div>
+      <div>
+        <p class="talk-say">One thing worth saying yourself before anyone asks: she can&rsquo;t reach a
+        hundred, and that&rsquo;s deliberate. Proving somebody <em>moved</em> takes comparing two months
+        of data, so on a first run those points simply can&rsquo;t be earned. Anything above ninety-one
+        means we watched a person change over time.</p>
+      </div>
+    </div>
+  </div>
 
   <h2>Where the 87.7 comes from</h2>
   <p class="sub">Points = the maximum for that row, multiplied by how strong the signal is.</p>

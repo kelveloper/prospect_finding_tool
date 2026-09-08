@@ -1,7 +1,19 @@
 # Docs
 
-Twenty documents, flat on purpose — they cross-reference each other as siblings,
-so nesting them into folders would break roughly two dozen links for no gain.
+Nineteen documents and four visuals, flat on purpose — they cross-reference each
+other as siblings, so nesting them into folders would break roughly two dozen
+links for no gain. Read top to bottom: the sections below run from *decide this*
+through *how it works* to *why we chose it*.
+
+## Decide first
+
+Open questions where the code and the pitch disagree. Nothing here is broken in
+production, but each one changes what the product claims.
+
+| | |
+|---|---|
+| [`OWNERSHIP_TENURE_BIAS.md`](OWNERSHIP_TENURE_BIAS.md) | The ownership signal has no date, so it selects for physicians established for twenty years — the opposite of the thesis. Three options, one recommendation |
+| [`KNOWN_GAPS.md`](KNOWN_GAPS.md) | Four things that are wrong or misleading on screen, found while demoing — starting with out-of-state doctors labelled Illinois |
 
 ## Start here
 
@@ -36,7 +48,6 @@ so nesting them into folders would break roughly two dozen links for no gain.
 | | |
 |---|---|
 | [`PRESENTATION.md`](PRESENTATION.md) | Everything needed to present the build — proven vs inferred, screen by screen |
-| [`visuals/presentation-run-of-show.html`](visuals/presentation-run-of-show.html) | The five-minute script itself — who says what, when, and what to click |
 
 ## Research (dated decision records)
 
@@ -46,19 +57,20 @@ so nesting them into folders would break roughly two dozen links for no gain.
 | [`RESEARCH_CAREER_SIGNAL.md`](RESEARCH_CAREER_SIGNAL.md) | Choosing a real source for career moves |
 | [`RESEARCH_PROPERTY_SIGNAL.md`](RESEARCH_PROPERTY_SIGNAL.md) | Choosing a real source for property purchases |
 | [`RESEARCH_CONTACT_OUTREACH.md`](RESEARCH_CONTACT_OUTREACH.md) | Channels and contact data once a prospect is ranked |
+| [`RESEARCH_COMPETITIVE_UX.md`](RESEARCH_COMPETITIVE_UX.md) | How competing tools present a prospect, and what we took from them |
+| [`RESEARCH_TALKING_POINTS.html`](RESEARCH_TALKING_POINTS.html) | Conversation starters: what data exists, what it costs, what it is allowed to do |
 
 ## Visuals
 
-Standalone HTML pages — open them in a browser. The first two explain how
-the pipeline works; the third is the script for presenting it live; the
-last surveys how the market presents prospects, and where we sit.
+Standalone HTML pages — open them in a browser. One traces a single
+physician through the engine, one is the script for presenting it live,
+and one draws the same system at five levels of detail.
 
 | | |
 |---|---|
-| [`visuals/pipeline-end-to-end.html`](visuals/pipeline-end-to-end.html) | Sourcing to ranked prospect in plain English — the whole engine, hand-drawn |
 | [`visuals/one-doctor-trace.html`](visuals/one-doctor-trace.html) | One invented physician's five rows traced from the first query to her score |
-| [`visuals/presentation-run-of-show.html`](visuals/presentation-run-of-show.html) | The five-minute, three-speaker script: timings, stage directions, Q&A prep |
-| [`visuals/prospecting-ux-teardown.html`](visuals/prospecting-ux-teardown.html) | How the market presents prospects, and where we sit against it |
+| [`visuals/demo-for-team-lead.html`](visuals/demo-for-team-lead.html) | Intro and demo for a one-to-one, with the answers to the questions that actually get asked |
+| [`visuals/diagram-levels.html`](visuals/diagram-levels.html) | The same system drawn five ways, each adding one idea &mdash; stop at whichever level lands |
 
 ## Historical
 

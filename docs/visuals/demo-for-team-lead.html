@@ -1,0 +1,553 @@
+<title>Team Lead Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap">
+<style>
+  :root {
+    color-scheme: light;
+    --ground:#F4F6F8; --surface:#FFFFFF; --sunk:#ECEFF3;
+    --ink:#14181F; --ink-2:#4A5361; --ink-3:#7A8492;
+    --rule:#DDE2E9; --rule-2:#C7CED8;
+    --say:#0B5FA5; --say-bg:#EDF4FB; --say-rule:#B6D3EC;
+    --do:#6B4E12; --do-bg:#FBF4E4; --do-rule:#E3CE95;
+    --warn:#9E2F1B; --warn-bg:#FBEDEA; --warn-rule:#EFC3B8;
+    --ok:#186A47; --ok-bg:#E9F5EF;
+    --sans:"IBM Plex Sans",system-ui,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
+    --serif:"Newsreader",Georgia,serif;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --ground:#0D1117; --surface:#161B22; --sunk:#1C232C;
+    --ink:#E6EDF3; --ink-2:#AEB9C4; --ink-3:#7D8894;
+    --rule:#2A323C; --rule-2:#3A434F;
+    --say:#8FC4F0; --say-bg:#12283C; --say-rule:#2C4A67;
+    --do:#E0C177; --do-bg:#2C2513; --do-rule:#4E4326;
+    --warn:#F0A08C; --warn-bg:#33201B; --warn-rule:#5C332A;
+    --ok:#7FD3A8; --ok-bg:#14291F;
+  }}
+  :root[data-theme="dark"]{
+    --ground:#0D1117; --surface:#161B22; --sunk:#1C232C;
+    --ink:#E6EDF3; --ink-2:#AEB9C4; --ink-3:#7D8894;
+    --rule:#2A323C; --rule-2:#3A434F;
+    --say:#8FC4F0; --say-bg:#12283C; --say-rule:#2C4A67;
+    --do:#E0C177; --do-bg:#2C2513; --do-rule:#4E4326;
+    --warn:#F0A08C; --warn-bg:#33201B; --warn-rule:#5C332A;
+    --ok:#7FD3A8; --ok-bg:#14291F;
+  }
+
+  body { background:var(--ground); color:var(--ink); font-family:var(--sans);
+         font-size:16px; line-height:1.55; -webkit-text-size-adjust:100%; }
+  .wrap { max-width:680px; margin:0 auto; padding:28px 18px 80px; }
+
+  header { border-bottom:2px solid var(--ink); padding-bottom:16px; margin-bottom:8px; }
+  .eyebrow { font-family:var(--mono); font-size:11px; letter-spacing:.14em;
+             text-transform:uppercase; color:var(--ink-3); margin:0 0 8px; }
+  h1 { font-family:var(--serif); font-weight:600; font-size:clamp(28px,7vw,38px);
+       line-height:1.1; margin:0 0 10px; letter-spacing:-.01em; }
+  .shape { font-size:15.5px; color:var(--ink-2); margin:0; }
+  .shape b { color:var(--ink); font-weight:600; }
+
+  h2 { font-family:var(--sans); font-weight:600; font-size:13px; letter-spacing:.1em;
+       text-transform:uppercase; color:var(--ink-3); margin:38px 0 12px;
+       padding-bottom:8px; border-bottom:1px solid var(--rule); }
+
+  .card { background:var(--surface); border:1px solid var(--rule);
+          border-radius:10px; padding:16px 16px; margin:0 0 12px; }
+  .card ol, .card ul { margin:0; padding-left:20px; }
+  .card li { margin:0 0 7px; font-size:15.5px; }
+  .card li:last-child { margin-bottom:0; }
+  .card li b { font-weight:600; }
+  code { font-family:var(--mono); font-size:13.5px; background:var(--sunk);
+         padding:1px 5px; border-radius:4px; }
+
+  /* the two voices */
+  .say { background:var(--say-bg); border-left:4px solid var(--say-rule);
+         border-radius:0 10px 10px 0; padding:14px 16px; margin:0 0 10px; }
+  .say p { margin:0 0 12px; font-family:var(--serif); font-size:19px;
+           line-height:1.5; color:var(--ink); }
+  .say p:last-child { margin-bottom:0; }
+  .say em { font-style:normal; font-weight:600; }
+
+  .do { display:flex; gap:10px; align-items:flex-start;
+        background:var(--do-bg); border:1px solid var(--do-rule);
+        border-radius:10px; padding:11px 14px; margin:18px 0 10px; }
+  .do .tag { font-family:var(--mono); font-size:10px; letter-spacing:.1em;
+             text-transform:uppercase; color:var(--do); flex:none; padding-top:3px; }
+  .do span:last-child { font-size:15px; color:var(--ink); }
+
+  .warn { background:var(--warn-bg); border:1px solid var(--warn-rule);
+          border-radius:10px; padding:12px 14px; margin:0 0 12px; }
+  .warn p { margin:0; font-size:14.5px; color:var(--ink); }
+  .warn b { color:var(--warn); font-weight:600; }
+
+  .stop { text-align:center; background:var(--surface); border:2px solid var(--ink);
+          border-radius:12px; padding:22px 18px; margin:26px 0; }
+  .stop .big { font-family:var(--serif); font-size:26px; font-weight:600; margin:0 0 8px; }
+  .stop p { margin:0; font-size:15px; color:var(--ink-2); }
+
+  /* questions */
+  details { background:var(--surface); border:1px solid var(--rule);
+            border-radius:10px; margin:0 0 9px; overflow:hidden; }
+  details[open] { border-color:var(--rule-2); }
+  summary { cursor:pointer; padding:14px 16px; font-weight:600; font-size:15.5px;
+            list-style:none; display:flex; gap:10px; align-items:flex-start; }
+  summary::-webkit-details-marker { display:none; }
+  summary::before { content:"+"; font-family:var(--mono); color:var(--ink-3);
+                    font-weight:400; flex:none; }
+  details[open] summary::before { content:"–"; }
+  summary:focus-visible { outline:2px solid var(--say); outline-offset:-2px; }
+  .answer { padding:0 16px 15px 42px; }
+  .answer .say { margin-top:0; }
+  .answer > p { font-size:14.5px; color:var(--ink-2); margin:10px 0 0; }
+  .answer > p b { color:var(--ink); }
+
+  .keyline { font-family:var(--mono); font-size:11px; letter-spacing:.08em;
+             text-transform:uppercase; color:var(--ink-3); margin:20px 0 8px; }
+  table { border-collapse:collapse; width:100%; font-size:14.5px; margin:10px 0 0; }
+  th,td { text-align:left; padding:8px 10px 8px 0; border-bottom:1px solid var(--rule); }
+  th { font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); font-weight:600; }
+  td b { font-weight:600; }
+  /* the simple diagram */
+  .simple { background:var(--surface); border:1px solid var(--rule);
+            border-radius:10px; padding:18px 14px; margin:0 0 12px; overflow-x:auto; }
+  .simple svg { display:block; width:100%; min-width:520px; height:auto; color:var(--ink); }
+  .sd-box { fill:var(--surface); stroke:currentColor; stroke-width:1.4; }
+  .sd-src { fill:none; stroke:var(--ink-3); stroke-width:1.2; }
+  .sd-key { fill:var(--say-bg); stroke:var(--say); stroke-width:1.8; }
+  .sd-out { fill:var(--ok-bg); stroke:var(--ok); stroke-width:1.8; }
+  .sd-line { stroke:var(--ink-3); stroke-width:1.4; fill:none; }
+  .sd-t { font-family:var(--sans); font-size:13px; font-weight:600; fill:var(--ink); }
+  .sd-s { font-family:var(--mono); font-size:10.5px; fill:var(--ink-3); }
+  .sd-n { font-family:var(--mono); font-size:10px; letter-spacing:.1em; fill:var(--ink-3); }
+  footer { margin-top:44px; padding-top:16px; border-top:1px solid var(--rule);
+           font-family:var(--mono); font-size:12px; color:var(--ink-3); }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">ProspectIQ &middot; one-to-one</p>
+    <h1>Team Lead Demo</h1>
+    <p class="shape"><b>Context, then the problem, then three things, then stop talking.</b> Who to call first &middot; everything we found &middot; where to start the conversation. Blue is what you say, yellow is what you do. Around eight minutes with the clicks &mdash; nearer five if you skip the two beats marked cuttable.</p>
+  </header>
+
+  <div class="warn">
+    <p><b>Do not open the diagram.</b> Keep it in a tab. It comes out only if he asks how it is built &mdash; there is a section for that at the bottom.</p>
+  </div>
+
+  <h2>Before you start</h2>
+  <div class="card">
+    <ol>
+      <li>The <b>opening page</b>, before you press Begin</li>
+      <li>The <b>board</b></li>
+      <li><b>Rahul Aggarwal</b> &mdash; his row on the board, expanded once so it is warm; plus his contact section</li>
+      <li>Spare tab: <b>How we know this about Rahul Aggarwal</b>, only if he asks how you know it is him</li>
+      <li>The <b>book view</b></li>
+      <li>Spare tab: <b>Beth Ann Adams</b>, only if ownership comes up</li>
+    </ol>
+  </div>
+  <div class="card">
+    <ul>
+      <li>Backend on the default <code>prospects.db</code></li>
+      <li><b>Do not run an ingest live.</b> It takes about two minutes</li>
+      <li>Check who is at rank 1 before you walk in</li>
+    </ul>
+  </div>
+
+  <h2>1 &middot; The intro &mdash; about 60 seconds, nothing on screen</h2>
+
+  <p style="font-size:15.5px;color:var(--ink-2);margin:0 0 12px;">He has not seen this project. Open straight on the first line &mdash; no preamble &mdash; and frame it as an <b>opportunity</b>, not a complaint about how advisors work today.</p>
+
+  <div class="say">
+    <p>We built a proof of concept for prospecting at the private bank.</p>
+    <p>It pulls public government data about doctors, works out which of them an advisor should spend time on, and ranks them with the reason attached. It is a working prototype &mdash; but it is real data and real scores, running end to end.</p>
+    <p>So the opportunity is to find prospects earlier than anyone else. Before they are wealthy, and before they already have an advisor.</p>
+    <p>And we started with doctors, because their careers leave a public trail. They get a license. They enter practice. Some of them open their own practice. Some of them buy a house. And every one of those is public record.</p>
+    <p>So we joined those separate government databases together, scored everybody, and ranked them.</p>
+  </div>
+  <div class="warn">
+    <p>Say <b>&ldquo;proof of concept&rdquo;</b> in the first sentence. It sets his expectations, so when he spots something missing you are confirming what you told him rather than defending a gap. Add who else worked on it if that helps.</p>
+  </div>
+
+  <div class="warn">
+    <p><b>Stop there and share your screen.</b> Do not explain the architecture yet.</p>
+  </div>
+
+  <h2>2 &middot; The demo &mdash; three things an advisor gets</h2>
+
+  <div class="do"><span class="tag">Do</span><span>Share on the <b>opening page</b>, before pressing Begin.</span></div>
+  <div class="say">
+    <p>Now, this is the tool. And this is what an advisor sees when they open it. Who they are, what is new today, and a button to start.</p>
+  </div>
+
+  <p class="keyline">One &middot; who to call first</p>
+
+  <div class="do"><span class="tag">Do</span><span>Press Begin. Land on the <b>scoreboard</b>.</span></div>
+  <div class="say">
+    <p>This is our scoreboard. Two hundred and nineteen real Illinois-licensed doctors, pulled from federal and state registries, ranked best first. So an advisor is not choosing who to work on. The list already did that.</p>
+  </div>
+  <div class="warn">
+    <p>Say <b>&ldquo;Illinois-licensed&rdquo;</b>, not &ldquo;Illinois doctors&rdquo;. 183 of the 219 actually practise there; the rest hold an Illinois license and work elsewhere. Small word, and it is the true one.</p>
+  </div>
+
+  <div class="do"><span class="tag">Do</span><span>Stay on the board. Point at the list for the first one, then at a row for the other two.</span></div>
+  <div class="say">
+    <p>And there are three helpful things this tool gives an advisor. The first is <em>who to call first</em> &mdash; that is this, the list is already ordered.</p>
+    <p>The second is <em>everything we found out about them</em>. And the third is <em>where to start the conversation</em>. Both of those are inside any one of these rows.</p>
+  </div>
+
+  <div class="do"><span class="tag">Do</span><span>Open <b>Rahul Aggarwal</b>, number one. Everything from here is him.</span></div>
+  <div class="say">
+    <p>And this is who it put at the top today, already in front of the advisor on the first screen. He is a cardiologist who got his Illinois license two months ago &mdash; but his national registration is seven years old. So he is not a new graduate. He is an established doctor moving into Illinois.</p>
+    <p>And two months ago he bought a house here, for one point one million dollars. That is a person whose financial relationships are being rebuilt right now.</p>
+  </div>
+
+  <p class="keyline">The most important sentence in the demo</p>
+  <div class="say">
+    <p>So &mdash; somebody further down this list bought a house for more than twice as much, and Rahul still ranks above her. Because hers was two years ago, and his was two months ago.</p>
+    <p>So why does the bigger house score lower? <em>Because recency is what we are looking for.</em> This is not just a rich list.</p>
+  </div>
+
+  <p class="keyline">Two &middot; everything we found</p>
+
+  <div class="do"><span class="tag">Do</span><span>Still on the board. Hit <b>Show the records</b> on his row to expand it. You are not leaving this page.</span></div>
+  <div class="say">
+    <p>Then the second helpful thing. An advisor should not have to go and dig this out themselves, so when they expand the row, this is everything we hold on him.</p>
+  </div>
+
+  <div class="do"><span class="tag">Point at</span><span>The label at the top &mdash; <b>Identity verified across NPI + IL License, 100% match confidence</b>.</span></div>
+  <div class="say">
+    <p>That label tells you the different sources are all the same person. Because we are joining four separate databases here, and the obvious risk is putting the wrong person&rsquo;s records on somebody&rsquo;s file.</p>
+  </div>
+
+  <div class="do"><span class="tag">Point at</span><span><b>Practice Entity &mdash; None on record</b>, and <b>Recent Advancement &mdash; None on record</b>.</span></div>
+  <div class="say">
+    <p>This shows everything across the sources we looked into. So it is clear what we found, and what we did not.</p>
+  </div>
+
+  <div class="do"><span class="tag">Point at &middot; briefly</span><span>The property block, and <b>Source: COOK_COUNTY</b>. You already told this story &mdash; this is just the callback.</span></div>
+  <div class="say">
+    <p>And this is the one point one million dollar house I mentioned &mdash; straight from the Cook County recorder.</p>
+  </div>
+  <div class="warn">
+    <p><b>The blanks are the strong part.</b> If he lingers on them, that is good &mdash; &ldquo;we would rather show a blank than imply we know something we do not.&rdquo; Do not say it unprompted; let him notice.</p>
+  </div>
+  <div class="warn">
+    <p><b>If he asks about &ldquo;Signal Strength 100%&rdquo;:</b> &ldquo;That is just how recent it is. A purchase two months ago counts fully; one from a few years back counts much less.&rdquo; One sentence, no arithmetic.</p>
+  </div>
+  <div class="warn">
+    <p><b>If he notices the Boston address:</b> that is the relocation, not a mistake. &ldquo;He is licensed in Illinois and still practising in Boston &mdash; which is exactly the move we are trying to catch.&rdquo;</p>
+  </div>
+  <div class="warn">
+    <p><b>If he points at the &ldquo;Strong evidence&rdquo; chip</b> and asks how that differs from the score &mdash; that is the fit-versus-evidence question, and the answer is in the questions section below. Short version: the score is how good he looks, the badge is how much we know.</p>
+  </div>
+
+  <div class="do"><span class="tag">Only if he asks how you know</span><span>Then open <b>How we know this about Rahul Aggarwal</b> &mdash; sections one and two. Leave section three, it is the scoring breakdown.</span></div>
+  <div class="say">
+    <p>There is a full <em>audit trail</em> behind this if you want it. It lists every check we ran, including the ones that failed &mdash; Medicare had nothing for him, and we say so rather than leaving it out. And our confidence is the weakest of those links, not an average, so one shaky match drags the whole thing down instead of getting hidden.</p>
+  </div>
+  <div class="warn">
+    <p>That page is the audit trail, not the daily view. Going there unprompted spends your best minute on something an advisor would rarely open &mdash; but it is the right answer to &ldquo;how do you know it is the same person?&rdquo;</p>
+  </div>
+
+  <p class="keyline">Three &middot; where to start the conversation</p>
+
+  <div class="do"><span class="tag">Do</span><span>Open his <b>contact section</b>.</span></div>
+  <div class="say">
+    <p>And the third helpful thing is the starting point. The practice address, the phone number, and the one thing to open with &mdash; which for him is the new Illinois license.</p>
+    <p>Notice what it does not give them: the property. Because that is only used to tell <em>us</em> when to call.</p>
+  </div>
+  <div class="warn">
+    <p><b>Never say you would reference the property in the outreach.</b> The system deliberately withholds it. Saying otherwise turns a demo into a compliance conversation.</p>
+  </div>
+
+  <div class="do"><span class="tag">Do</span><span>Point at the <b>outreach buttons</b>. Do not click through them.</span></div>
+  <div class="say">
+    <p>And when the advisor actually reaches out, they log what happened here. Did they speak to them, did they become a client, were they not a fit. Right now that is just a record we keep, nothing more.</p>
+  </div>
+  <div class="warn">
+    <p><b>Stop there.</b> Do not volunteer the roadmap. &ldquo;Just a record we keep, nothing more&rdquo; stops him assuming it feeds the score, without turning into a promise about when it will.</p>
+  </div>
+
+  <div class="do"><span class="tag">Cuttable</span><span>Switch to the <b>book view</b> if there is time. Nothing later depends on it.</span></div>
+  <div class="say">
+    <p>That was one person. Day to day an advisor may prefer working from a list, so we have this book view for quicker scanning. And they can filter the list, and even save that view with a name, so they can pick up from where they left off.</p>
+  </div>
+
+  <div class="say">
+    <p>So &mdash; who to call first, everything we know about them, and where to start. That is the tool.</p>
+  </div>
+
+  <div class="stop">
+    <p class="big">Then stop.</p>
+    <p>&ldquo;That is the tool. Happy to go into any part of it.&rdquo;<br>
+    Now be quiet and let him ask. His questions tell you which screen to open next.</p>
+  </div>
+
+  <h2>Only if the score comes up</h2>
+
+  <p style="font-size:15.5px;color:var(--ink-2);margin:0 0 12px;">Four layers. Start at the top and only go deeper if he keeps asking. You are allowed to stop at any of them &mdash; each one is a complete answer.</p>
+
+  <div class="card">
+    <p style="margin:0 0 6px;font-size:13px;font-weight:600;color:var(--key);">LAYER 1 &middot; the only sentence you must know cold</p>
+    <p style="margin:0;font-size:16px;">&ldquo;The score is two questions. <b>Should we care about this person</b> &mdash; that is sixty percent. And <b>why now</b> &mdash; that is the other forty.&rdquo;</p>
+  </div>
+
+  <div class="card">
+    <p style="margin:0 0 6px;font-size:13px;font-weight:600;color:var(--key);">LAYER 2 &middot; why he is first, with no arithmetic</p>
+    <p style="margin:0;font-size:16px;">&ldquo;He is first because both his signals are two months old &mdash; the license and the house. Nothing else on the board is that recent.&rdquo;</p>
+  </div>
+
+  <div class="card">
+    <p style="margin:0 0 6px;font-size:13px;font-weight:600;color:var(--key);">LAYER 3 &middot; open the screen and read it</p>
+    <p style="margin:0 0 8px;font-size:16px;">&ldquo;Let me pull it up &mdash; each row is the most that component can be worth, how strong his signal is, and what that comes to.&rdquo;</p>
+    <p style="margin:0;font-size:14.5px;color:var(--ink-2);"><b>Read the numbers off the screen. Do not recite them and do not do the multiplication out loud.</b> The table below is the same thing if the screen is slow.</p>
+  </div>
+
+  <div class="card">
+    <p style="margin:0 0 6px;font-size:13px;font-weight:600;color:var(--key);">LAYER 4 &middot; the honest stop</p>
+    <p style="margin:0;font-size:16px;">&ldquo;The weights are ours and they are not calibrated yet. That is exactly the part we would want real advisor outcomes for.&rdquo;</p>
+  </div>
+
+  <div class="warn">
+    <p><b>&ldquo;I would have to check that one&rdquo; is a good answer.</b> So is naming whoever owns that part. Guessing at a threshold in front of an engineer costs far more than not knowing it &mdash; he will remember the wrong number, not the confident delivery.</p>
+  </div>
+
+  <div class="do"><span class="tag">Cuttable</span><span>Open his <b>score breakdown</b> only if he wants the arithmetic. The table below is your crib sheet.</span></div>
+  <div class="say">
+    <p>The sixty-two is two numbers, not one. <em>Should we care about this person</em> &mdash; he scores fifty-six, because cardiology is a middle tier for us and he does not own a practice. And <em>why now</em> &mdash; he scores seventy-two, because the license and the house are both two months old. Sixty percent of the first, forty percent of the second.</p>
+    <p>So he is first not because he is the wealthiest person here. He is not. He is first because he is the one something is happening to.</p>
+  </div>
+  <table style="margin:0 0 12px;">
+    <thead><tr><th>Rahul Aggarwal</th><th>Max</th><th>Strength</th><th>Points</th></tr></thead>
+    <tbody>
+      <tr><td colspan="4" style="padding-top:10px;"><b>Should we care? &mdash; 60%</b></td></tr>
+      <tr><td>Physician standing</td><td>40</td><td>1.00</td><td><b>40.0</b></td></tr>
+      <tr><td>Specialty earning tier</td><td>35</td><td>0.45</td><td>15.8</td></tr>
+      <tr><td>Practice ownership</td><td>25</td><td>0.00</td><td>0.0</td></tr>
+      <tr><td></td><td></td><td></td><td><b>55.8</b></td></tr>
+      <tr><td colspan="4" style="padding-top:10px;"><b>Why now? &mdash; 40%</b></td></tr>
+      <tr><td>License recency</td><td>40</td><td>1.00</td><td><b>40.0</b></td></tr>
+      <tr><td>Property purchase</td><td>30</td><td>1.00</td><td><b>30.0</b></td></tr>
+      <tr><td>Practice entry</td><td>15</td><td>0.10</td><td>1.5</td></tr>
+      <tr><td>Career move</td><td>15</td><td>0.00</td><td>0.0</td></tr>
+      <tr><td></td><td></td><td></td><td><b>71.5</b></td></tr>
+      <tr><td colspan="3"><b>55.8 &times; 0.60 &nbsp;+&nbsp; 71.5 &times; 0.40</b></td><td><b>62.0</b></td></tr>
+    </tbody>
+  </table>
+  <div class="warn">
+    <p><b>If he asks why 60/40:</b> &ldquo;They are our weights, not calibrated yet. A strong prospect at an average moment still beats a weak one at a perfect moment, so fit carries more. In production we would tune them against what advisors actually convert.&rdquo;</p>
+  </div>
+
+
+  <div class="warn">
+    <p><b>Do not defend 60/40 as correct.</b> It is a starting point, and saying so is the strong answer. &ldquo;A good prospect at an average moment beats a weak one at a perfect moment, so fit carries more &mdash; but those are our weights, not tuned ones.&rdquo;</p>
+  </div>
+
+  <h2>3 &middot; The questions you will get</h2>
+
+  <details open>
+    <summary>What is the difference between the score and the evidence badge?</summary>
+    <div class="answer">
+      <div class="say">
+        <p>They answer two different questions. The <em>score</em> is how good this prospect looks. The <em>evidence</em> is how much we actually know about them.</p>
+        <p>We look for seven signals on each person. The evidence badge is just how many of the seven we found &mdash; five or more is strong, four is partial, three or fewer is thin. The score is what those signals are <em>worth</em> once they are weighted.</p>
+      </div>
+      <p><b>Then the example that makes it land:</b></p>
+      <div class="say">
+        <p>So you can have a high score built on thin evidence. Alex Brewer scores higher than Rahul on fit &mdash; seventy-five against fifty-six &mdash; but we hold fewer facts about him. That is why we show both numbers instead of blending them into one.</p>
+      </div>
+      <table>
+        <thead><tr><th>Prospect</th><th>Fit</th><th>Evidence</th></tr></thead>
+        <tbody>
+          <tr><td>Rahul Aggarwal</td><td>55.8</td><td><b>strong</b> &middot; 5 of 7</td></tr>
+          <tr><td>Alex C Brewer</td><td><b>75.0</b></td><td>partial &middot; 4 of 7</td></tr>
+          <tr><td>Beth Ann Adams</td><td><b>91.5</b></td><td><b>strong</b> &middot; 5 of 7</td></tr>
+        </tbody>
+      </table>
+      <p>The three headings on the sources page &mdash; <b>Career Signal</b>, <b>Ownership &amp; Practice</b>, <b>Financial Activity</b> &mdash; are only how that page is <b>grouped for reading</b>. They are not how the badge is calculated. Say that plainly if he asks.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Does it look up one person at a time?</summary>
+    <div class="answer">
+      <div class="say">
+        <p>No, it is a bulk sweep. One run pulls hundreds of doctors, resolves them, scores them all and ranks them &mdash; that is where the two hundred and nineteen come from. The diagram follows a single person through, but only because that is easier to read than three hundred at once.</p>
+      </div>
+      <p><b>Pre-empt this one.</b> It is exactly what confused a reader of the diagram.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Do those outreach answers feed back into the ranking?</summary>
+    <div class="answer">
+      <div class="say">
+        <p>Not yet. Right now they are only stored. But that is the loop we would want to close &mdash; those are real outcomes we could tune the weights against, instead of the ones we picked ourselves.</p>
+      </div>
+      <p><b>Only say this if asked.</b> Nothing in the scoring code reads these events, and he may well check. &ldquo;Not yet&rdquo; first, then the intent &mdash; in that order.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>How is the score calculated?</summary>
+    <div class="answer">
+      <div class="say">
+        <p>Two questions. First, should we care about this person at all &mdash; that is sixty percent, and it is things like their specialty and whether they own a practice. Second, why now &mdash; that is forty percent, and it is all recency.</p>
+        <p>Those weights are ours, and they are not calibrated yet. In production we would tune them against what advisors actually convert.</p>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Can I filter to just the people who bought a house?</summary>
+    <div class="answer">
+      <div class="say">
+        <p>Yes, in the book view &mdash; you can filter and save the view. There are no pre-built default filters yet, which is a fair thing to add.</p>
+      </div>
+      <p>Do not oversell it. Filter, save, name &mdash; that is what exists.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Is the book split per advisor?</summary>
+    <div class="answer">
+      <div class="say">
+        <p>No. The advisor ID is shown, but nothing is scoped to it yet. Who owns which prospect is a data question we have not answered.</p>
+      </div>
+      <p><b>Never describe it as built.</b></p>
+    </div>
+  </details>
+
+  <details>
+    <summary>That dermatologist is nineteen years in &mdash; would she not already have an advisor?</summary>
+    <div class="answer">
+      <div class="say">
+        <p>Probably, yes. And the tool agrees &mdash; her timing score is five and a half out of a hundred. She ranks on fit, not on timing.</p>
+        <p>The honest gap is that our ownership signal comes from Medicare billing, which says who is paid today but carries no start date. So we cannot yet tell a practice formed last month from one formed in 2006. It is written up, and the fix is the state business registry.</p>
+      </div>
+    </div>
+  </details>
+
+  <h2>When you do not know the answer</h2>
+
+  <p style="font-size:15.5px;color:var(--ink-2);margin:0 0 14px;">Every one of these is a better answer than a guess. An engineer will remember a wrong number long after he has forgotten a confident delivery.</p>
+
+  <div class="card">
+    <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:var(--key);">THE MOVE THAT WORKS EVERY TIME</p>
+    <p style="margin:0 0 8px;font-size:16px;">Say what you <b>do</b> know, then name the edge of it.</p>
+    <p style="margin:0;font-size:16px;">&ldquo;What I can tell you is that recency drives most of the timing score. Where exactly the cut-offs sit, I would want to check rather than guess.&rdquo;</p>
+  </div>
+
+  <div class="card">
+    <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:var(--key);">IF YOU NEVER KNEW IT</p>
+    <p style="margin:0 0 6px;font-size:16px;">&ldquo;I do not know &mdash; that is Kelvin&rsquo;s part. Let me get you a proper answer rather than a guess.&rdquo;</p>
+    <p style="margin:0 0 6px;font-size:16px;">&ldquo;Good question, and I would be making it up. Can I come back to you on it?&rdquo;</p>
+    <p style="margin:0;font-size:14.5px;color:var(--ink-2);">Never leave it at &ldquo;I do not know.&rdquo; Always add what you will do about it. That turns a gap into a next step.</p>
+  </div>
+
+  <div class="card">
+    <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:var(--key);">IF YOU KNEW IT AND IT HAS GONE</p>
+    <p style="margin:0 0 6px;font-size:16px;">&ldquo;I have that written down &mdash; let me not misquote it at you.&rdquo;</p>
+    <p style="margin:0 0 6px;font-size:16px;">&ldquo;It is on the screen actually, let me pull it up.&rdquo;</p>
+    <p style="margin:0;font-size:14.5px;color:var(--ink-2);">Do not grope for it out loud. Reading a number off the screen looks careful; half-remembering one out loud looks shaky, even when you get it right.</p>
+  </div>
+
+  <div class="card">
+    <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:var(--key);">IF YOU KNOW IT BUT CANNOT PUT IT INTO WORDS</p>
+    <p style="margin:0 0 6px;font-size:16px;">&ldquo;Easier if I show you &mdash; give me one second.&rdquo;</p>
+    <p style="margin:0 0 6px;font-size:16px;">&ldquo;The short version is that it is two questions, sixty and forty. The full version I would rather walk you through than describe.&rdquo;</p>
+    <p style="margin:0;font-size:14.5px;color:var(--ink-2);">Drop one level of detail, do not reach for more. There is always a simpler sentence that is still true &mdash; and showing beats explaining every time.</p>
+  </div>
+
+  <div class="card">
+    <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:var(--ok);">THE ONE PEOPLE MISS &mdash; IT IS NOT A GAP, IT IS UNDECIDED</p>
+    <p style="margin:0 0 6px;font-size:16px;">&ldquo;We have not decided that yet &mdash; it is an open question, and honestly I would want an advisor&rsquo;s input on it.&rdquo;</p>
+    <p style="margin:0;font-size:14.5px;color:var(--ink-2);">A lot of what he might ask is genuinely undecided rather than unknown: the weights, whether the book is split by advisor, how ownership gets dated. Saying <b>&ldquo;we have not decided&rdquo;</b> is a completely different answer from &ldquo;I do not know&rdquo;, and on a proof of concept it is the correct one. Know which you are giving.</p>
+  </div>
+
+  <div class="card">
+    <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:var(--key);">TWO THINGS THAT BUY YOU TIME</p>
+    <p style="margin:0 0 6px;font-size:16px;">&ldquo;What is making you ask? I want to answer the right thing.&rdquo;</p>
+    <p style="margin:0 0 6px;font-size:16px;">&ldquo;Let me write that down.&rdquo; &mdash; then actually write it.</p>
+    <p style="margin:0;font-size:14.5px;color:var(--ink-2);">The first often reveals he is asking something simpler than you feared. The second shows the question landed, and gives you a reason to follow up afterwards.</p>
+  </div>
+
+  <div class="warn">
+    <p><b>Do not do these.</b> Do not guess at a number. Do not apologise for not being technical &mdash; it discounts everything you just showed him. And do not fill the silence with related facts he did not ask for; waffle reads worse than a clean &ldquo;I will check.&rdquo;</p>
+  </div>
+
+  <h2>4 &middot; Only if he asks how it is built</h2>
+
+  <p style="font-size:15.5px;color:var(--ink-2);margin:0 0 12px;">Show <b>this</b> first, not the full diagram. Four boxes, about twenty seconds. You can draw it on a whiteboard from memory. If he wants more, <b>Five Levels of the Same Diagram</b> steps up one idea at a time &mdash; stop wherever he stops nodding.</p>
+
+  <div class="simple">
+    <svg viewBox="0 0 780 250" role="img" aria-label="Four public data sources feed into working out who is the same person, then scoring what changed recently, producing a ranked list for the advisor.">
+      <defs>
+        <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="currentColor"></path>
+        </marker>
+      </defs>
+
+      <text class="sd-n" x="8" y="14">PUBLIC DATA</text>
+      <rect class="sd-src" x="8"  y="24" width="176" height="34" rx="5"></rect>
+      <text class="sd-t"  x="20" y="45">Doctor registry</text>
+      <rect class="sd-src" x="8"  y="66" width="176" height="34" rx="5"></rect>
+      <text class="sd-t"  x="20" y="87">State licensing</text>
+      <rect class="sd-src" x="8"  y="108" width="176" height="34" rx="5"></rect>
+      <text class="sd-t"  x="20" y="129">Medicare billing</text>
+      <rect class="sd-src" x="8"  y="150" width="176" height="34" rx="5"></rect>
+      <text class="sd-t"  x="20" y="171">Property records</text>
+
+      <path class="sd-line" d="M184 41 L214 41 L214 104 L244 104" marker-end="url(#a)"></path>
+      <path class="sd-line" d="M184 83 L214 83 L214 104 L244 104"></path>
+      <path class="sd-line" d="M184 125 L214 125 L214 104 L244 104"></path>
+      <path class="sd-line" d="M184 167 L214 167 L214 104 L244 104"></path>
+
+      <text class="sd-n" x="244" y="72">STEP 1</text>
+      <rect class="sd-key" x="244" y="82" width="164" height="46" rx="6"></rect>
+      <text class="sd-t"  x="258" y="102">Who is who?</text>
+      <text class="sd-s"  x="258" y="119">match the same person</text>
+
+      <line class="sd-line" x1="408" y1="105" x2="446" y2="105" marker-end="url(#a)"></line>
+
+      <text class="sd-n" x="446" y="72">STEP 2</text>
+      <rect class="sd-key" x="446" y="82" width="164" height="46" rx="6"></rect>
+      <text class="sd-t"  x="460" y="102">What changed?</text>
+      <text class="sd-s"  x="460" y="119">and how recently</text>
+
+      <line class="sd-line" x1="610" y1="105" x2="648" y2="105" marker-end="url(#a)"></line>
+
+      <text class="sd-n" x="612" y="72">OUT</text>
+      <rect class="sd-out" x="612" y="140" width="160" height="46" rx="6"></rect>
+      <text class="sd-t"  x="626" y="160">Ranked list</text>
+      <text class="sd-s"  x="626" y="177">best first, with reasons</text>
+      <path class="sd-line" d="M648 105 L692 105 L692 140" marker-end="url(#a)"></path>
+
+      <text class="sd-s" x="244" y="212">Two rows are the same doctor if the</text>
+      <text class="sd-s" x="244" y="228">license number or the name matches exactly.</text>
+      <text class="sd-s" x="446" y="212">A license from two months ago is</text>
+      <text class="sd-s" x="446" y="228">worth far more than one from 2008.</text>
+    </svg>
+  </div>
+
+  <div class="say">
+    <p>Four public sources go in. First we work out which records are the same human &mdash; that is the hard part, and we drop anything we cannot prove. Then we look at what changed for that person and how recently. And out comes a ranked list, with the reason attached to each name.</p>
+  </div>
+
+  <p style="font-size:15.5px;color:var(--ink-2);margin:18px 0 10px;"><b>Only if he wants more than that</b> &mdash; then open the full diagram.</p>
+
+  <div class="card">
+    <p style="margin:0 0 10px;font-size:15.5px;">Open <b>One Doctor, End to End</b> and use the &ldquo;Saying it out loud&rdquo; section at the bottom. Two things to say first, because both confused a reader:</p>
+    <ul>
+      <li><b>&ldquo;Row&rdquo; means a record, not a person.</b> Row 1 is her registry record, row 2 her license record. Five facts about one doctor &mdash; not five doctors.</li>
+      <li><b>This follows one person, but a real run does hundreds at once.</b></li>
+    </ul>
+  </div>
+  <div class="card">
+    <p style="margin:0;font-size:15.5px;">If he starts giving architecture feedback, that is a good sign. Write it down rather than defending it. You do not have to have every answer in a one-to-one.</p>
+  </div>
+
+  <footer>ProspectIQ &middot; built from a real dry run &middot; companion: KNOWN_GAPS.md</footer>
+
+</div>
