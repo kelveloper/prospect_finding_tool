@@ -104,16 +104,10 @@ export default function CandidateCard({
             {gated ? "not ranked" : candidate.tier}
           </Badge>
         </span>
-        {!gated && candidate.bookSize > 0 ? (
-          <span className="shrink-0 font-display text-[11px] font-semibold text-ink-faint">
-            Top{" "}
-            {Math.max(
-              1,
-              Math.ceil((candidate.rank / candidate.bookSize) * 100),
-            )}
-            %
-          </span>
-        ) : null}
+        {/* No "Top N%" chip here. The badge beside it already names the
+            band, its tooltip gives the full standing, and the panel prints
+            "#4 of 1,179 · Top 1%" in full — a percentile on every row was a
+            third telling, competing with the chips that carry the facts. */}
 
         <EvidenceChip evidence={candidate.evidence} />
         <TriggerChip trigger={candidate.trigger} />
