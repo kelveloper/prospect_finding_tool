@@ -34,6 +34,15 @@ class PECOSSyncResult:
     ownership_inferences: int
 
 
+def group_names_surname(group_name: str | None, last_name: str) -> bool:
+    """Billing under a group named after yourself ≈ you own the practice."""
+    last_norm = normalize_name_part(last_name)
+    if not group_name or not last_norm:
+        return False
+    name_norm = normalize_name_part(group_name)
+    return re.search(rf"\b{re.escape(last_norm)}\b", name_norm) is not None
+
+
 class PECOSService:
     def __init__(self, db: Session, client: PECOSClient | None = None):
         self.db = db
@@ -150,6 +159,13 @@ class PECOSService:
         )
         for e in events:
             first, last = npi_names[e.npi]
+            # Classified at read time, so stored events never need rewriting
+            if e.event_kind == "NEW_FACILITY":
+                career_kind = "FACILITY"
+            elif group_names_surname(e.organization, last):
+                career_kind = "OWN_PRACTICE"
+            else:
+                career_kind = "GROUP_CHANGE"
             records.append(
                 EnrichmentRecord(
                     source="pecos",
@@ -161,6 +177,7 @@ class PECOSService:
                     event_date=e.detected_at,
                     role_title=e.description,
                     organization=e.organization,
+                    career_kind=career_kind,
                 )
             )
         return records
@@ -174,12 +191,10 @@ class PECOSService:
         records = []
         for npi, items in current.items():
             first, last = npi_names[npi]
-            last_norm = normalize_name_part(last)
             for kind, key, name in items:
                 if kind != "group" or not name:
                     continue
-                name_norm = normalize_name_part(name)
-                if last_norm and re.search(rf"\b{re.escape(last_norm)}\b", name_norm):
+                if group_names_surname(name, last):
                     suffix = next(
                         (s for s in ENTITY_SUFFIXES if name.upper().rstrip(".").endswith(s)),
                         None,

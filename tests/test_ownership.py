@@ -84,8 +84,9 @@ def test_ownership_signal_emitted_and_scored():
     signals = SignalDetector().detect(smith, REF)
     ownership = [s for s in signals if s.signal_type == "OWNERSHIP"]
     assert len(ownership) == 1
-    # Billing inference: active PLLC = 0.8 strength, labeled as inference
-    assert ownership[0].strength == 0.8
+    # Billing inference: an active PLLC earns full strength, and Smith
+    # was enumerated this year so the tenure factor is 1.0
+    assert ownership[0].strength == 1.0
     assert "Bills Medicare under own entity" in ownership[0].description
     assert "Smith Orthopedics PLLC" in ownership[0].description
 
@@ -108,3 +109,19 @@ def test_generic_llc_scores_below_professional_entity():
     smith_own = [s for s in detector.detect(smith, REF) if s.signal_type == "OWNERSHIP"]
     okafor_own = [s for s in detector.detect(okafor, REF) if s.signal_type == "OWNERSHIP"]
     assert smith_own[0].strength > okafor_own[0].strength
+    assert okafor_own[0].strength == 0.6
+
+
+def test_ownership_is_discounted_by_tenure():
+    """The same PLLC on a physician twenty-five years in is evidence of an
+    established practice, not of emergence — the tenure factor says so."""
+    veteran = RawProviderRecord(
+        source="npi", source_record_id="1234567801", first_name="John",
+        last_name="Smith", specialty="Orthopaedic Surgery", state="IL",
+        npi="1234567801", enumeration_date=date(2001, 2, 1),
+    )
+    prospects = IdentityResolver().resolve([veteran])
+    EnrichmentMatcher().attach(prospects, ENTITY_RECORDS[:1])
+    own = [s for s in SignalDetector().detect(prospects[0], REF) if s.signal_type == "OWNERSHIP"]
+    assert own[0].strength == 0.3
+    assert "25 years in practice" in own[0].description

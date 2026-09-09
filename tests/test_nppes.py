@@ -108,5 +108,9 @@ def test_compound_specialty_maps_to_tier():
     assert specialty_tier(
         "Orthopaedic Surgery, Adult Reconstructive Orthopaedic Surgery"
     ) == 1.0
-    assert specialty_tier("Family Medicine") == 0.4
-    assert specialty_tier("Something Unrecognized") == 0.4
+    # Medscape over-$5M wealth share, scaled: family medicine 11% → 0.3;
+    # unlisted specialties take the chart's "Other" bucket (19% → 0.5)
+    assert specialty_tier("Family Medicine") == 0.3
+    assert specialty_tier("Something Unrecognized") == 0.5
+    assert specialty_tier("Radiology, Diagnostic Radiology") == 1.0
+    assert specialty_tier("Dermatology") == 0.35

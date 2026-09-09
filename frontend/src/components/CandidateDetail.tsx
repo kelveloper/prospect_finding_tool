@@ -12,7 +12,7 @@ import type {
   OutreachEntry,
   ScoreSnapshotItem,
 } from "@/lib/data";
-import { tierStyle } from "@/lib/tier";
+import { isLicenseGated, standingLabel, tierStyle } from "@/lib/tier";
 
 type Props = {
   candidate: Candidate;
@@ -52,8 +52,17 @@ export default function CandidateDetail({
   const style = tierStyle(candidate.tier);
   const Heading = headingLevel === 2 ? "h2" : "h1";
   const Subheading = headingLevel === 2 ? "h3" : "h2";
-  const percentile =
-    rank && total ? Math.max(1, Math.ceil((rank / total) * 100)) : null;
+  // Standing among everyone *ranked* — the API stamps it, so a filtered or
+  // gated view never renumbers anyone. The page's own rank/total is the
+  // fallback for lists that predate the stamp.
+  const gated = isLicenseGated(candidate.licenseStatus);
+  const standing = gated
+    ? `Not ranked — license ${candidate.licenseStatus}`
+    : candidate.bookSize > 0
+      ? standingLabel(candidate.rank, candidate.bookSize)
+      : rank && total
+        ? standingLabel(rank, total)
+        : null;
 
   // The record itself, rendered inside the trust line's disclosure.
   const dossierRecord = profile ? (
@@ -102,7 +111,8 @@ export default function CandidateDetail({
                         : "bg-tier-neutral-bg text-tier-neutral-fg")
                     }
                   >
-                    {profile.identityVerified ? "✓" : "◌"} {profile.identityLine}
+                    {profile.identityVerified ? "✓" : "◌"}{" "}
+                    {profile.identityLine}
                   </span>
                 </p>
 
@@ -137,12 +147,17 @@ export default function CandidateDetail({
             />
             <EvidenceBadge
               evidence={candidate.evidence}
-              qualification={candidate.qualificationScore}
+              value={candidate.qualificationScore}
               timing={candidate.timingScore}
             />
-            {percentile !== null ? (
-              <p className="font-display text-[12px] font-semibold text-ink-muted">
-                #{rank} of {total} · Top {percentile}%
+            {standing !== null ? (
+              <p
+                className={
+                  "font-display text-[12px] font-semibold " +
+                  (gated ? "text-tier-poor" : "text-ink-muted")
+                }
+              >
+                {standing}
               </p>
             ) : null}
           </div>

@@ -103,6 +103,25 @@ class Prospect(Base):
     def weakest_link(self):
         return self._identity_audit().weakest_link
 
+    # Standing in the ranked book, stamped per request by RankingService
+    # (never persisted): rank 1 = best, tier by share of the book
+    rank: int = 0
+    book_size: int = 0
+    tier: str = "poor"
+
+    @property
+    def signal_dates(self) -> dict:
+        """Latest event date per signal type (None for undated types), so
+        the board can gate "why now" chips on age."""
+        latest: dict = {}
+        for s in self.signals:
+            current = latest.get(s.signal_type)
+            if s.signal_type not in latest or (
+                s.event_date is not None and (current is None or s.event_date > current)
+            ):
+                latest[s.signal_type] = s.event_date
+        return latest
+
     @property
     def signal_strengths(self) -> dict[str, float]:
         """Strongest strength per signal type.

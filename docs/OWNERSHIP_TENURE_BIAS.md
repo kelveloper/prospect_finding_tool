@@ -1,6 +1,6 @@
 # Open question: ownership selects for the already-established
 
-**Status:** needs a decision. Found 2026-09-01 while checking a demo prospect.
+**Status:** resolved 2026-09-09 — option 1 shipped as the tenure factor on ownership (under 10 years 1.0 · 10–20 0.6 · 20+ 0.3), alongside a career-stage hump; see `RANKING.md`. Found 2026-09-01 while checking a demo prospect. The table below is the *before*.
 **Owner:** unassigned. **Blocking:** nothing today, but it undercuts the thesis.
 Companions: `RANKING.md` (the scoring math) · `HOW_IT_WORKS.md` (the hypothesis)
 · `RESEARCH_COMMERCIAL_SOURCES.md` (the paid fix) · [`KNOWN_GAPS.md`](KNOWN_GAPS.md)

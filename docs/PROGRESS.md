@@ -11,7 +11,7 @@ Status as of 2026-08-30. Spec: `PROJECT_SPEC.md` · Mechanics:
 - [x] Adapter architecture (`BaseDataSource`) — new sources plug in without touching scoring
 - [x] Identity resolution, tiered: license-number join (1.0) → deterministic name+state rules (0.85–0.95); every merge stored with score + reason in `identity_matches`
 - [x] Enrichment matching (entities/deeds/promotions → prospects), strict exact-name+state; near-miss traps rejected and tested
-- [x] All 7 signal types detected: PHYSICIAN, SPECIALTY, PRACTICE_ENTRY, NEW_LICENSE, OWNERSHIP, PROPERTY_EVENT, CAREER_ADVANCEMENT (practice entry split from new-license 2026-08-27 — 1:1 signals-to-components)
+- [x] All 7 signal types detected: PHYSICIAN, SPECIALTY, CAREER_STAGE, NEW_LICENSE, OWNERSHIP, PROPERTY_EVENT, CAREER_ADVANCEMENT (career stage replaced practice entry 2026-09-09 with the Value × Timing formula)
 - [x] Scoring engine with configurable weights (env settings)
 - [x] Deterministic plain-English reason summaries (no LLM)
 - [x] Feedback capture (`good_fit` / `revisit_later` / `not_fit` + notes + history)
@@ -111,7 +111,7 @@ Not planned: AI in scoring, ranking, or as the sole basis for any match.
 ## How the ranking works
 
 ```
-total = qualification × 0.60 + timing × 0.40
+priority = value × (0.60 + 0.40 × timing / 100)   # see RANKING.md
 ```
 
 Full explanation — component weights, decay curve, worked high/low

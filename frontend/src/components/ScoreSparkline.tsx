@@ -119,7 +119,7 @@ export default function ScoreSparkline({
               <span
                 tabIndex={0}
                 role="note"
-                aria-label={`${fmt(s.recordedAt)}: total ${s.total} of 100, qualification ${s.qualification}, timing ${s.timing}`}
+                aria-label={`${fmt(s.recordedAt)}: priority ${s.total}, value ${s.qualification}, timing ${s.timing}`}
                 className="absolute left-1/2 top-1/2 flex size-6 -translate-x-1/2 -translate-y-1/2 cursor-help items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
                 <span
@@ -142,7 +142,7 @@ export default function ScoreSparkline({
                 <span className="eyebrow block">{fmt(s.recordedAt)}</span>
 
                 <span className="mt-1.5 flex items-baseline justify-between gap-3">
-                  <span className="text-[12px] text-ink-muted">Total</span>
+                  <span className="text-[12px] text-ink-muted">Priority</span>
                   <span className="font-display text-[13px] font-bold tabular-nums text-ink">
                     {s.total}
                   </span>
@@ -150,7 +150,7 @@ export default function ScoreSparkline({
 
                 <span className="mt-1.5 block border-t border-surface-soft pt-1.5">
                   {[
-                    { label: "Qualification", value: s.qualification },
+                    { label: "Value", value: s.qualification },
                     { label: "Timing", value: s.timing },
                   ].map((row) => (
                     <span

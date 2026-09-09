@@ -83,7 +83,7 @@ Identity Resolution
 Signal Detection
    ↓  app/scoring/detector.py       facts → DetectedSignal(strength, confidence)
 Scoring
-   ↓  app/scoring/engine.py         total = qual*0.60 + timing*0.40
+   ↓  app/scoring/engine.py         priority = value × (0.6 + 0.4 × timing/100)
 Reason Summary
    ↓  app/scoring/reasons.py        deterministic plain English
 Persistence
@@ -244,7 +244,7 @@ Each component contributes `weight × strongest matching signal of that type`.
 | PROPERTY_EVENT | 30 | ❌ **dark — adapter unwired** |
 | CAREER_ADVANCEMENT | 15 | ❌ **dark — adapter unwired** |
 
-`total = qualification × 0.60 + timing × 0.40`, weights from settings.
+`priority = value × (0.60 + 0.40 × timing / 100)`, floor from settings. **Rewritten 2026-09-09** — the worked numbers below this line are from the previous 60/40 formula; `docs/RANKING.md` is current.
 
 **Worked example — John A Smith (verified live output):**
 
@@ -342,7 +342,7 @@ curl the ingest endpoint manually.
 
 **Derived UI concepts** (these live only in the frontend, not the backend):
 
-- **Tiers** — `≥80 strong` / `≥60 promising` / `≥50 neutral` / `≥35 weak` / else `poor`
+- **Tiers** — by standing in the book: top 5% `strong` / next 15% `promising` / next 30% `neutral` / next 30% `weak` / bottom 20% `poor` (stamped by `RankingService`, 2026-09-09)
 - **Tags** — "Practice Owner" (has OWNERSHIP), "Recently Licensed"
   (NEW_LICENSE ≥ 0.85), "High-Earning Specialty" (SPECIALTY ≥ 0.75), "Identity
   Verified" (confidence ≥ 0.9), "License Unverified" (NPI but no license)
@@ -523,8 +523,7 @@ Env vars or `.env` at the repo root (`app/config.py`):
 | Var | Default |
 |---|---|
 | `DATABASE_URL` | `sqlite:///./prospects.db` |
-| `QUALIFICATION_WEIGHT` | `0.60` |
-| `TIMING_WEIGHT` | `0.40` |
+| `TIMING_FLOOR` | `0.60` |
 | `IDENTITY_MATCH_THRESHOLD` | `0.80` |
 
 ⚠️ `get_settings()` is `@lru_cache`d and `engine` is created at import time —

@@ -37,7 +37,7 @@ Data Sources (NPPES, IDFPR, PECOS, Cook County — all live, free, no keys)
   → Ingestion & Normalization   app/adapters/
   → Identity Resolution         app/identity/      (license-number join + name rules)
   → Signal Detection            app/scoring/detector.py
-  → Scoring                     app/scoring/engine.py   total = qual*0.60 + timing*0.40
+  → Scoring                     app/scoring/engine.py   priority = value × (0.6 + 0.4 × timing/100)
   → Reason Summary              app/scoring/reasons.py  (deterministic, no LLM)
   → Prospect Records            PostgreSQL / SQLite
   → Ranking API + Feedback      app/api/
@@ -80,7 +80,7 @@ curl -X POST localhost:8000/ingest/run
 
 ## Scoring model
 
-**Total = Qualification ("should we care?") × 0.60 + Timing ("why now?") × 0.40**,
+**Priority = Value ("is there money here?") × (0.60 + 0.40 × Timing ("did something just happen?") / 100)**,
 built entirely from detected signals — every point traceable to a stored
 signal and a source record, with a deterministic plain-English reason
 summary. Full math, worked examples, and tuning guide: **[`docs/RANKING.md`](docs/RANKING.md)**.

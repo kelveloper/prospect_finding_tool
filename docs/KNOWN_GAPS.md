@@ -57,9 +57,9 @@ rule is defensible. The words around it are what need to change.
 
 ## 2. Evidence counts still ignore recency
 
-`NEW_LICENSE` and `PRACTICE_ENTRY` are emitted for anyone holding a date at all,
+`NEW_LICENSE` is emitted for anyone holding a licence date at all,
 with the recency living in the strength. The detail tooltip's **wording** now
-follows the strength — "Newly licensed" above the two-year step, "License date"
+follows the event's age — "Newly licensed" within twelve months, "License date"
 below it — and the board's trigger chip is gated the same way.
 
 **What was deliberately left alone:** the ✓ itself, and therefore the evidence

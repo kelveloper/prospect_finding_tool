@@ -2,7 +2,7 @@ import ScoreRing from "./ScoreRing";
 import { EvidenceChip, MovementChip, TriggerChip } from "./RowChips";
 import Badge from "./Badge";
 import IdentityBadge from "./IdentityBadge";
-import { tierStyle } from "@/lib/tier";
+import { isLicenseGated, standingLabel, tierStyle } from "@/lib/tier";
 import type { Candidate } from "@/lib/data";
 
 type Props = {
@@ -25,6 +25,7 @@ export default function CandidateCard({
   audit = false,
 }: Props) {
   const style = tierStyle(candidate.tier);
+  const gated = isLicenseGated(candidate.licenseStatus);
 
   return (
     <a
@@ -92,13 +93,27 @@ export default function CandidateCard({
           a size you could actually read. */}
       <div className="mt-3 flex items-center gap-1.5 border-t border-surface-soft pt-2.5">
         <span
-          title={`Tier — ${candidate.tierLabel}, from the fit score.`}
+          title={
+            gated
+              ? `${candidate.tierLabel} — priority 0, sorted last.`
+              : `${candidate.tierLabel} — ${standingLabel(candidate.rank, candidate.bookSize)}. Bands come from standing in the book: the top 5% are Top Prospects.`
+          }
           className="cursor-help"
         >
           <Badge bg={style.badgeBg} fg={style.badgeFg}>
-            {candidate.tier}
+            {gated ? "not ranked" : candidate.tier}
           </Badge>
         </span>
+        {!gated && candidate.bookSize > 0 ? (
+          <span className="shrink-0 font-display text-[11px] font-semibold text-ink-faint">
+            Top{" "}
+            {Math.max(
+              1,
+              Math.ceil((candidate.rank / candidate.bookSize) * 100),
+            )}
+            %
+          </span>
+        ) : null}
 
         <EvidenceChip evidence={candidate.evidence} />
         <TriggerChip trigger={candidate.trigger} />

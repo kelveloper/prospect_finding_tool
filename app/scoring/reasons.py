@@ -26,7 +26,9 @@ def build_reason_summary(
 
     sentences = [s.description.rstrip(".") + "." for s in top_signals if s.strength >= 0.3]
 
-    qual_phrase = _score_phrase("qualification score", breakdown.qualification_score)
+    if not breakdown.rankable:
+        sentences.insert(0, "Not ranked — license is not active.")
+    qual_phrase = _score_phrase("value score", breakdown.qualification_score)
     if qual_phrase:
         sentences.append(qual_phrase)
     if breakdown.timing_score >= 75:
