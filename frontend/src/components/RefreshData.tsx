@@ -344,7 +344,6 @@ export default function RefreshData({
           1 || stepCount,
       )
     : 0;
-  const runningPhase = phases.find((p) => p.status === "running");
   const report = status?.lastSweep ?? null;
 
   const header = sweeping
@@ -355,11 +354,13 @@ export default function RefreshData({
         ? `Sweep complete${report?.durationSeconds != null ? ` · ${duration(report.durationSeconds)}` : ""}`
         : "Last sweep";
 
-  const barText = sweeping
-    ? runningPhase
-      ? `Step ${currentStep} of ${stepCount} · ${runningPhase.label}…`
-      : "Sweeping four live sources…"
-    : banner;
+  // Nothing in the bar while a sweep runs. The button beside this already
+  // reads "Sweeping…", and the checklist — which opens on hover as well as
+  // on click while a sweep is going — heads itself with the same step count
+  // and then lists every step. Three copies of one fact; this was the one
+  // with the least room and the least detail. The banner stays: it is a
+  // transient result message the checklist does not carry.
+  const barText = sweeping ? null : banner;
 
   // The checklist shows when opened by a click, and — while a sweep runs —
   // on hover too, in place of the source-cadence panel: one click or one
