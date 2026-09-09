@@ -402,13 +402,12 @@ export default function RefreshData({
         }}
         aria-disabled={!sweeping && blocked}
         aria-expanded={sweeping ? open : undefined}
-        title={
-          sweeping
-            ? "See which step the sweep is on"
-            : lockedDays > 0
-              ? `Weekly cadence — the sources barely move faster. Unlocks in ${lockedDays}d.`
-              : "Run the weekly sweep"
-        }
+        // No `title`. The hover panel below already says when the data was
+        // updated and why the gate is on, and it appears on exactly the
+        // same hover — so the OS tooltip drew itself over the panel a
+        // second later, saying the same thing a third time in a font we do
+        // not control and cannot dismiss. The button's own text is its
+        // accessible name; nothing here needed a second one.
         className={
           "flex items-center gap-2 rounded-[8px] border border-hairline bg-white px-3 py-1.5 font-display text-[12px] font-semibold text-brand transition-colors " +
           (blocked ? "cursor-not-allowed opacity-60" : "hover:bg-surface-soft")
@@ -559,123 +558,160 @@ export default function RefreshData({
         </div>
       ) : null}
 
-      {/* Source-cadence tooltip. The offset is padding, not margin: as a
-          margin it was dead space, and crossing it left the group and shut the
-          panel before the pointer could land in it. Yields to the popover so
-          the two never stack. */}
+      {/* Status panel. Three lines an advisor can read at a glance —
+          how fresh the book is, what the last sweep did to it, and why the
+          button is locked — and everything else folded away behind one
+          disclosure. It used to show all of it at once: row counts, agency
+          cadences, dedup semantics, a dev-only sweep button and the
+          operator's audit toggle, in a 300px card on hover. The offset is
+          padding, not margin: as a margin it was dead space, and crossing
+          it left the group and shut the panel before the pointer could
+          land in it. Yields to the popover so the two never stack. */}
       {showPopover ? null : (
         <div className="absolute right-0 top-full z-20 hidden pt-2 group-hover:block group-focus-within:block">
-          <div className="w-[300px] rounded-[12px] border border-hairline bg-white p-3 shadow-panel">
+          <div className="w-[288px] rounded-[12px] border border-hairline bg-white p-3 shadow-panel">
             {lockedDays > 0 ? (
               <p className="mb-2 rounded-[8px] bg-surface-tint px-2.5 py-1.5 text-[11px] leading-[15px] text-brand-dark">
-                Locked for {lockedDays} more day{lockedDays === 1 ? "" : "s"} —
-                the sources barely move faster than weekly.
+                Locked {lockedDays} more day{lockedDays === 1 ? "" : "s"} — the
+                sources update weekly.
               </p>
             ) : null}
+
             <p className="text-[12px] text-ink-muted">
               {status?.lastRunAt
-                ? `Data updated ${ago(status.lastRunAt)}`
-                : "No ingest recorded yet"}
-              {status && status.staleSummaries > 0
-                ? ` · ${status.staleSummaries} summaries pending`
-                : ""}
+                ? `Updated ${ago(status.lastRunAt)}`
+                : "Never refreshed"}
             </p>
-
             {report ? (
-              <>
-                <p className="eyebrow mt-3">
-                  Last sweep
-                  {report.durationSeconds != null
-                    ? ` · ${duration(report.durationSeconds)}`
-                    : ""}
-                </p>
+              <p className="mt-1 text-[12px] text-ink">
+                Last sweep found{" "}
+                <span className="font-display font-semibold">
+                  {report.prospectsCreated ?? 0} new
+                </span>
+                , checked {report.prospectsUpdated ?? 0}.
+              </p>
+            ) : null}
+
+            {/* Everything below is for whoever runs this thing, not the
+                advisor reading the board. Closed by default: the audit
+                toggle is the only way to turn operator mode on — it lives
+                in localStorage with no URL or shortcut to reach it — so it
+                is folded away rather than removed. */}
+            <details className="group mt-2.5 border-t border-hairline/60 pt-2">
+              <summary className="flex cursor-pointer list-none items-center gap-1 text-[11px] text-ink-faint transition-colors hover:text-ink-muted [&::-webkit-details-marker]:hidden">
+                <span
+                  aria-hidden
+                  className="text-[9px] transition-transform group-open:rotate-90"
+                >
+                  ▶
+                </span>
+                Operator tools
+              </summary>
+
+              <div className="mt-2">
+                {status && status.staleSummaries > 0 ? (
+                  <p className="text-[11px] text-ink-muted">
+                    {status.staleSummaries} summaries pending
+                  </p>
+                ) : null}
+
+                {report ? (
+                  <>
+                    <p className="eyebrow mt-2">
+                      Last sweep
+                      {report.durationSeconds != null
+                        ? ` · ${duration(report.durationSeconds)}`
+                        : ""}
+                    </p>
+                    <dl className="mt-1.5 space-y-1">
+                      {/* Rows only for what the run recorded — older runs
+                          predate the per-source counts */}
+                      {REPORT_ROWS.filter((r) => report[r.key] != null).map(
+                        (r) => (
+                          <div
+                            key={r.key}
+                            className="flex justify-between gap-3 text-[11px]"
+                          >
+                            <dt className="text-ink-muted">{r.label}</dt>
+                            <dd className="shrink-0 font-display font-semibold text-ink">
+                              {report[r.key]}{" "}
+                              {report[r.key] === 1 ? "row" : "rows"}
+                            </dd>
+                          </div>
+                        ),
+                      )}
+                    </dl>
+                    <p className="mt-1.5 text-[11px] leading-[15px] text-ink">
+                      →{" "}
+                      {bookChanges(
+                        report.prospectsCreated,
+                        report.prospectsUpdated,
+                        report.prospectsSkipped,
+                        report.prospectsMoved,
+                        true,
+                      )}
+                    </p>
+                    {report.enrichmentRecords != null &&
+                    report.enrichmentMatched != null ? (
+                      <p className="text-[11px] leading-[15px] text-ink">
+                        → {report.enrichmentMatched} events attached ·{" "}
+                        {report.enrichmentRecords - report.enrichmentMatched}{" "}
+                        discarded (no identity match)
+                      </p>
+                    ) : null}
+                  </>
+                ) : null}
+
+                <p className="eyebrow mt-3">Source Update Cadence</p>
                 <dl className="mt-1.5 space-y-1">
-                  {/* Rows only for what the run recorded — older runs
-                    predate the per-source counts */}
-                  {REPORT_ROWS.filter((r) => report[r.key] != null).map((r) => (
+                  {SOURCE_CADENCE.map((s) => (
                     <div
-                      key={r.key}
+                      key={s.name}
                       className="flex justify-between gap-3 text-[11px]"
                     >
-                      <dt className="text-ink-muted">{r.label}</dt>
+                      <dt className="text-ink-muted">{s.name}</dt>
                       <dd className="shrink-0 font-display font-semibold text-ink">
-                        {report[r.key]} {report[r.key] === 1 ? "row" : "rows"}
+                        {s.cadence}
                       </dd>
                     </div>
                   ))}
                 </dl>
-                <p className="mt-1.5 text-[11px] leading-[15px] text-ink">
-                  →{" "}
-                  {bookChanges(
-                    report.prospectsCreated,
-                    report.prospectsUpdated,
-                    report.prospectsSkipped,
-                    report.prospectsMoved,
-                    true,
-                  )}
+                <p className="mt-2 text-[10px] leading-[14px] text-ink-muted">
+                  Existing prospects update in place (no duplicates); only fresh
+                  entrants (&lt;6 mo NPI or license) join.
                 </p>
-                {report.enrichmentRecords != null &&
-                report.enrichmentMatched != null ? (
-                  <p className="text-[11px] leading-[15px] text-ink">
-                    → {report.enrichmentMatched} events attached ·{" "}
-                    {report.enrichmentRecords - report.enrichmentMatched}{" "}
-                    discarded (no identity match)
-                  </p>
-                ) : null}
-              </>
-            ) : null}
 
-            <p className="eyebrow mt-3">Source Update Cadence</p>
-            <dl className="mt-1.5 space-y-1">
-              {SOURCE_CADENCE.map((s) => (
-                <div
-                  key={s.name}
-                  className="flex justify-between gap-3 text-[11px]"
+                {/* Dev/test escape hatch: same sweep, bypasses the weekly
+                    lock. */}
+                <button
+                  type="button"
+                  onClick={() => runIngest(true)}
+                  disabled={sweeping}
+                  title="Test sweep — bypasses the weekly lock (dev only)"
+                  className="mt-3 w-full rounded-[8px] border border-dashed border-hairline bg-white px-2.5 py-1.5 font-display text-[11px] font-semibold text-ink-muted transition-colors hover:bg-surface-soft hover:text-brand disabled:opacity-60"
                 >
-                  <dt className="text-ink-muted">{s.name}</dt>
-                  <dd className="shrink-0 font-display font-semibold text-ink">
-                    {s.cadence}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-            <p className="mt-2 text-[10px] leading-[14px] text-ink-muted">
-              Weekly refresh recommended — existing prospects update in place
-              (no duplicates); only fresh entrants (&lt;6 mo NPI or license)
-              join.
-            </p>
+                  Test sweep — ignore the weekly lock
+                </button>
 
-            {/* Dev/test escape hatch: same sweep, bypasses the weekly lock. Lives
-              here rather than in the bar — it is not advisor-facing. */}
-            <button
-              type="button"
-              onClick={() => runIngest(true)}
-              disabled={sweeping}
-              title="Test sweep — bypasses the weekly lock (dev only)"
-              className="mt-3 w-full rounded-[8px] border border-dashed border-hairline bg-white px-2.5 py-1.5 font-display text-[11px] font-semibold text-ink-muted transition-colors hover:bg-surface-soft hover:text-brand disabled:opacity-60"
-            >
-              Test sweep — ignore the weekly lock
-            </button>
-
-            {/* Operator-only, like the button above. Hidden from the board
-              rather than protected — there are no accounts to protect it
-              with. */}
-            <label className="mt-2.5 flex cursor-pointer items-start gap-2 text-[10px] leading-[14px] text-ink-muted">
-              <input
-                type="checkbox"
-                checked={audit}
-                onChange={(e) => setAuditMode(e.target.checked)}
-                className="mt-[1px] accent-brand"
-              />
-              <span>
-                <span className="font-display text-[11px] font-semibold text-ink">
-                  Identity audit
-                </span>{" "}
-                — badge and filter the board by how each profile was merged. Off
-                for advisors; on stays on in this browser. Hides, does not
-                protect.
-              </span>
-            </label>
+                {/* Hidden from the board rather than protected — there are
+                    no accounts to protect it with. */}
+                <label className="mt-2.5 flex cursor-pointer items-start gap-2 text-[10px] leading-[14px] text-ink-muted">
+                  <input
+                    type="checkbox"
+                    checked={audit}
+                    onChange={(e) => setAuditMode(e.target.checked)}
+                    className="mt-[1px] accent-brand"
+                  />
+                  <span>
+                    <span className="font-display text-[11px] font-semibold text-ink">
+                      Identity audit
+                    </span>{" "}
+                    — badge and filter the board by how each profile was merged.
+                    Stays on in this browser.
+                  </span>
+                </label>
+              </div>
+            </details>
           </div>
         </div>
       )}
