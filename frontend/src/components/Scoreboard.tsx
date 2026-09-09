@@ -189,6 +189,21 @@ export default function Scoreboard({
     );
   }, [visible, query]);
 
+  // Which controls are actually narrowing the list. The empty state has to
+  // name the real cause: four things can empty this rail, and offering to
+  // clear the search when the search is blank is a button that does nothing.
+  const narrowing: string[] = [];
+  if (onlyChanged) narrowing.push("Only new or moved");
+  if (triggerFilter !== "all") narrowing.push(triggerFilter);
+  if (audit && auditFilter !== "all") narrowing.push("Identity audit");
+  const searching = query.trim() !== "";
+  function clearAll() {
+    setQuery("");
+    setOnlyChanged(false);
+    setTriggerFilter("all");
+    setAuditFilter("all");
+  }
+
   // A card's rank is its place in the whole book, not in the search result.
   // Filtering to three cardiologists must not renumber them 1-2-3.
   const rankOf = useMemo(() => {
@@ -489,21 +504,45 @@ export default function Scoreboard({
 
         {shown.length === 0 ? (
           <div className="mt-3 rounded-[12px] border border-dashed border-hairline px-4 py-6 text-center">
-            <p className="text-[13px] text-ink-muted">
-              No prospects match “{query.trim()}”.
+            {/* An empty book is not a filtered-out book: with nothing set
+                there is nothing to clear, so no button is offered. */}
+            {/* The sentence is a fixed length; what is switched on goes on
+                its own line below. Inlining the filter names grew the
+                sentence by whatever you happened to pick, so in a rail this
+                narrow it habitually left one word stranded on line two. */}
+            <p className="text-balance text-[13px] text-ink-muted">
+              {!searching && narrowing.length === 0
+                ? "No prospects in this book yet."
+                : searching
+                  ? "Nothing matches your search."
+                  : "Nothing matches these filters."}
             </p>
-            <button
-              type="button"
-              onClick={() => setQuery("")}
-              className="mt-2 text-[13px] font-semibold text-brand hover:underline"
-            >
-              Clear search
-            </button>
+            {searching || narrowing.length > 0 ? (
+              <>
+                <p className="mt-1.5 break-words text-[12px] leading-[17px] text-ink-faint">
+                  {[
+                    ...(searching ? [`“${query.trim()}”`] : []),
+                    ...narrowing,
+                  ].join(" · ")}
+                </p>
+                <button
+                  type="button"
+                  onClick={clearAll}
+                  className="mt-2 text-[13px] font-semibold text-brand hover:underline"
+                >
+                  {searching && narrowing.length > 0
+                    ? "Clear search and filters"
+                    : searching
+                      ? "Clear search"
+                      : "Clear filters"}
+                </button>
+              </>
+            ) : null}
           </div>
         ) : (
           <div
             ref={listRef}
-            className="relative mt-3"
+            className="relative mt-2.5"
             style={{ height: Math.max(0, shown.length * rowHeight - CARD_GAP) }}
           >
             {shown.slice(range.start, range.end).map((candidate, i) => {
