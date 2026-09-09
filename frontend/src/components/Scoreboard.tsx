@@ -309,24 +309,55 @@ export default function Scoreboard({
         // the cards scroll through. The heading carries the spacing instead.
         className="border-l border-hairline/60 px-6 pb-8 lg:sticky lg:top-16 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto"
       >
-        <h2 className="pt-8 font-display text-[16px] font-bold text-ink">
-          All Prospects
-        </h2>
-        <p className="eyebrow mt-3">Ranked by fit score</p>
+        {/* One left edge for the whole column: heading, subtitle, search,
+            filter and the cards all start at the same x. The subtitle sat
+            right-aligned opposite the heading for a while, which read as a
+            second column that nothing below it continued. Stacked tight —
+            a 2px gap, not the 12px it used to take. */}
+        <div className="pt-5">
+          <h2 className="font-display text-[16px] font-bold text-ink">
+            All Prospects
+          </h2>
+          <p className="eyebrow mt-0.5">Ranked by fit score</p>
+        </div>
 
         {/* ── Search ──────────────────────────────────
             Sticky, because the rail scrolls 219 cards under it and a field
             you have to scroll back up to reach is a field you stop using. */}
-        <search className="sticky top-0 z-10 -mx-6 mt-3 bg-canvas px-6 pb-3 pt-1">
+        <search className="sticky top-0 z-10 -mx-6 mt-2 bg-canvas px-6 pb-2.5 pt-1">
           <div className="relative">
+            {/* The field looked like any other text input: the placeholder
+                named what you could type but never said it would search.
+                The glyph and the verb answer that before you click in. */}
+            <svg
+              aria-hidden
+              viewBox="0 0 14 14"
+              className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-faint"
+            >
+              <circle
+                cx="6"
+                cy="6"
+                r="4.25"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              />
+              <path
+                d="M9.2 9.2 12.2 12.2"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+            </svg>
             <input
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Name, specialty or city"
+              placeholder="Search name, specialty or city"
               aria-label="Search prospects by name, specialty or city"
               // The native search clear sits on top of ours; only one × should show.
-              className="w-full appearance-none rounded-[8px] border border-hairline bg-white px-3 py-2 pr-8 text-[13px] text-ink placeholder:text-ink-faint focus:border-brand focus:outline-none [&::-webkit-search-cancel-button]:appearance-none"
+              className="w-full appearance-none rounded-[8px] border border-hairline bg-white py-2 pl-8 pr-8 text-[13px] text-ink placeholder:text-ink-faint focus:border-brand focus:outline-none [&::-webkit-search-cancel-button]:appearance-none"
             />
             {query ? (
               <button
@@ -348,68 +379,100 @@ export default function Scoreboard({
           ) : null}
         </search>
 
-        {/* What changed since the last sweep — the alert is the filter.
-            Only rendered when something did; the unchanged majority is the
-            default list, not a view of its own. */}
-        {changes.total > 0 ? (
-          <div className="mt-3 flex items-center justify-between gap-3 rounded-[12px] bg-tier-strong-bg px-4 py-2.5">
-            <span className="font-display text-[13px] font-semibold text-tier-strong-fg">
-              ✨ {describeChanges(changes)} since the last sweep
-            </span>
-            <button
-              type="button"
-              onClick={() => setOnlyChanged((v) => !v)}
-              aria-pressed={onlyChanged}
-              title={
-                onlyChanged
-                  ? `Back to all ${ranked.length} prospects`
-                  : "Show only the prospects that are new or whose score moved"
-              }
-              className={
-                "shrink-0 rounded-full border px-2.5 py-1 font-display text-[11px] font-semibold transition-colors " +
-                (onlyChanged
-                  ? "border-tier-strong-fg bg-tier-strong-fg text-white"
-                  : "border-tier-strong-fg/40 bg-white text-tier-strong-fg hover:bg-tier-strong-bg")
-              }
-            >
-              {onlyChanged ? "Show all" : "Only these"}
-            </button>
-          </div>
-        ) : null}
-
-        {/* ── Why now — the tag on each card, as a filter ── */}
-        {triggerChips.length > 0 ? (
-          <div className="mt-3 flex flex-wrap items-center gap-1.5">
-            <span className="eyebrow mr-1">Why now</span>
-            {[
-              { label: "all", count: ranked.length, hint: "Every prospect" },
-              ...triggerChips,
-            ].map((chip) => (
-              <button
-                key={chip.label}
-                type="button"
-                onClick={() => setTriggerFilter(chip.label)}
-                aria-pressed={triggerFilter === chip.label}
-                title={chip.hint}
-                className={
-                  "rounded-full border px-2.5 py-1 font-display text-[11px] font-semibold transition-colors " +
-                  (triggerFilter === chip.label
-                    ? "border-brand bg-brand text-white"
-                    : "border-hairline bg-white text-ink-muted hover:bg-surface-soft")
-                }
-              >
-                {chip.label === "all" ? "All" : chip.label}{" "}
+        {/* ── Filters ──────────────────────────────────────
+            Two controls, both of them obviously controls. The tags were
+            five filled pills and the sweep was a coloured alert whose
+            headline doubled as a button — you could read either without
+            realising it did anything. A select and a checkbox say what
+            they are before you touch them, and hold any number of tags
+            without spending a line each. */}
+        {triggerChips.length > 0 || changes.total > 0 ? (
+          <div className="mt-2 flex flex-col gap-2 border-b border-hairline/60 pb-2.5">
+            {triggerChips.length > 0 ? (
+              <div className="relative">
+                {/* The label sits inside the box, so this control keeps the
+                    same left and right edges as the search above it —
+                    an outside label pushed the select in and gave the
+                    column a second, ragged edge. Prefixing every option
+                    instead would repeat "Why now" five times in the open
+                    menu; here it is written once and always visible. */}
                 <span
-                  className={
-                    triggerFilter === chip.label
-                      ? "text-white/70"
-                      : "text-ink-faint"
-                  }
+                  aria-hidden
+                  // Sentence case, not the eyebrow's uppercase tracking: set
+                  // in caps it read as a system tag stamped on the control
+                  // rather than the question the advisor is actually asking.
+                  // The colon carries it into the value, so the closed
+                  // control reads as one phrase — "Why now: Bought a home".
+                  className="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-[12px] text-ink-faint"
                 >
-                  · {chip.count}
+                  Why now:
                 </span>
-              </button>
-            ))}
+                <select
+                  value={triggerFilter}
+                  onChange={(e) => setTriggerFilter(e.target.value)}
+                  aria-label="Filter by why now"
+                  title="Show only prospects carrying this trigger"
+                  // appearance-none so the caret below is the only one; the
+                  // native arrow differs on every platform and the rail is
+                  // too narrow to lose the width twice.
+                  className="w-full appearance-none rounded-[8px] border border-hairline bg-white py-1.5 pl-[66px] pr-7 font-display text-[12px] font-semibold text-ink focus:border-brand focus:outline-none"
+                >
+                  <option value="all">Any reason · {ranked.length}</option>
+                  {triggerChips.map((chip) => (
+                    <option key={chip.label} value={chip.label}>
+                      {chip.label} · {chip.count}
+                    </option>
+                  ))}
+                </select>
+                {/* An SVG, not a ▾ glyph — that character carries so much of
+                    its own whitespace that it reads as a speck at this size,
+                    and growing the font to fix it drags the line height with
+                    it. A stroked chevron is exactly the size it is set to. */}
+                <svg
+                  aria-hidden
+                  viewBox="0 0 12 12"
+                  className="pointer-events-none absolute right-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-ink-muted"
+                >
+                  <path
+                    d="M2.5 4.5 6 8l3.5-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+            ) : null}
+
+            {/* Only when a sweep actually moved something. The headline it
+                used to shout — "2 new · 3 moved" — is the tooltip now; the
+                checkbox says what ticking it does, which the headline
+                never did. */}
+            {changes.total > 0 ? (
+              <label
+                title={`${describeChanges(changes)} since the last sweep`}
+                // Full width, so the whole line is the target: a checkbox
+                // and six words is a small thing to hit, and the empty
+                // space beside them was doing nothing. select-none because
+                // a click that lands a fraction long otherwise highlights
+                // the label instead of reading as a press.
+                className="flex w-full cursor-pointer select-none items-center gap-2 text-[12px] text-ink-muted transition-colors hover:text-ink"
+              >
+                <input
+                  type="checkbox"
+                  checked={onlyChanged}
+                  onChange={(e) => setOnlyChanged(e.target.checked)}
+                  className="h-3.5 w-3.5 shrink-0 accent-brand"
+                />
+                <span>
+                  Only new or moved
+                  <span className="ml-1 tabular-nums text-ink-faint">
+                    · {changes.total}
+                  </span>
+                </span>
+              </label>
+            ) : null}
           </div>
         ) : null}
 
