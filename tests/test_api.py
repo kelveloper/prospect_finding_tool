@@ -264,6 +264,10 @@ def test_new_property_raises_score_and_shows_movement(client, live_stub):
         p for p in client.get("/prospects/ranked").json() if p["name"] == "John Smith"
     )
     assert smith_after["score"] > smith_before["score"]
+    # The move is explained: it came from timing (a property event), not value
+    assert smith_after["timing_change"] > 0
+    assert smith_after["value_change"] == 0
+    assert smith_after["score_change_note"] is None
     assert smith_after["score_change"] > 0
 
     detail = client.get(f"/prospects/{smith_after['id']}").json()

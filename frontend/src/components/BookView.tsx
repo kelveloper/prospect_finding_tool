@@ -1135,6 +1135,9 @@ function BookEntry({
           <MovementChip
             change={candidate.scoreChange}
             isNew={candidate.isNew}
+            valueChange={candidate.valueChange}
+            timingChange={candidate.timingChange}
+            note={candidate.scoreChangeNote}
           />
         </span>
       ) : null}

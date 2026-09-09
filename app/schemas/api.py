@@ -22,6 +22,9 @@ class ScoreSnapshotOut(BaseModel):
     timing_score: float
     total_score: float
     recorded_at: datetime
+    # Set when the snapshot came from something other than a sweep — a
+    # rescore under a new formula — so the UI can explain a step change
+    note: str | None = None
 
 
 class WeakestLinkOut(BaseModel):
@@ -63,8 +66,13 @@ class RankedProspect(BaseModel):
     # over reason_summary when present
     advisor_summary: str | None = None
     summary_source: str | None = None
-    # Movement since the previous ingest; None until two snapshots exist
+    # Movement since the previous ingest; None until two snapshots exist —
+    # split into its two causes, plus the snapshot's note when the move was
+    # a rescore rather than the world changing
     score_change: float | None = None
+    value_change: float | None = None
+    timing_change: float | None = None
+    score_change_note: str | None = None
     # Distinct detected signal types — powers the scoreboard category chips
     signal_types: list[str] = []
     # Strongest strength per type; the board gates recency claims on this,

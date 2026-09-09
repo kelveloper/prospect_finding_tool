@@ -209,7 +209,11 @@ class IngestionPipeline:
         ]
 
     def store_scores(
-        self, prospect: Prospect, profile: ResolvedProspect, reference_date: date
+        self,
+        prospect: Prospect,
+        profile: ResolvedProspect,
+        reference_date: date,
+        note: str | None = None,
     ) -> None:
         """Detect, score, and store — the part of `_apply` a rescore can
         redo from stored data (python -m app.scoring --rescore). Reads the
@@ -234,6 +238,7 @@ class IngestionPipeline:
                 qualification_score=breakdown.qualification_score,
                 timing_score=breakdown.timing_score,
                 total_score=breakdown.total_score,
+                note=note,
             )
         )
 

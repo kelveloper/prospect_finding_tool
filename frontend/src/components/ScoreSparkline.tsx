@@ -1,4 +1,6 @@
-import type { ScoreSnapshotItem } from "@/lib/data";
+import type { FieldChangeItem, ScoreSnapshotItem } from "@/lib/data";
+import { FIELD_LABELS } from "./WhatChangedCard";
+import { explainMove, signed } from "@/lib/movement";
 
 const W = 260;
 const H = 44;
@@ -7,21 +9,49 @@ const PAD = 4;
 const fmt = (iso: string) =>
   new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
-/** Score trajectory across ingests. Single series: brand line + faint area,
- *  emphasized endpoint colored by the last move (status green/red).
- *
- *  The line and fill are drawn in SVG; the points are HTML dots laid over it,
- *  which is what lets each one carry a real hover card instead of the native
- *  <title> tooltip the browser renders slowly, unstyled, and never on focus.
- *  That overlay is why the SVG stretches with preserveAspectRatio="none" —
- *  the drawing then fills the box exactly, so the dots' percentage positions
- *  land on the line at every width. The stroke is pinned to a true 2px with
- *  vectorEffect so the stretch can't thicken it. No JavaScript: hover and
- *  focus states come from CSS, the same way the score badge's card does. */
+const round1 = (n: number) => Math.round(n * 10) / 10;
+
+/** Why a point sits where it does. Each snapshot is written in the same
+ *  transaction as the ingest that produced it, so the facts that changed
+ *  "at" this point are the field changes recorded between the previous
+ *  snapshot and this one. */
+function explain(
+  s: ScoreSnapshotItem,
+  prev: ScoreSnapshotItem | null,
+  changes: FieldChangeItem[],
+): string[] {
+  if (!prev) return ["First score on record."];
+  const from = new Date(prev.recordedAt).getTime();
+  const to = new Date(s.recordedAt).getTime() + 60_000;
+  const facts = changes
+    .filter((c) => {
+      const t = new Date(c.changedAt).getTime();
+      return t > from && t <= to;
+    })
+    .sort(
+      (a, b) => (a.tier === "score" ? -1 : 1) - (b.tier === "score" ? -1 : 1),
+    )
+    .slice(0, 3)
+    .map(
+      (c) =>
+        `${FIELD_LABELS[c.field] ?? c.field}: ${c.oldValue ?? "—"} → ${c.newValue ?? "—"}`,
+    );
+  return explainMove({
+    change: round1(s.total - prev.total),
+    valueChange: round1(s.qualification - prev.qualification),
+    timingChange: round1(s.timing - prev.timing),
+    note: s.note,
+    facts,
+  });
+}
+
 export default function ScoreSparkline({
   history,
+  changes = [],
 }: {
   history: ScoreSnapshotItem[];
+  /** Recorded field changes, so a point can say which fact moved it. */
+  changes?: FieldChangeItem[];
 }) {
   if (history.length < 2) {
     return (
@@ -96,6 +126,9 @@ export default function ScoreSparkline({
 
         {history.map((s, i) => {
           const isLast = i === history.length - 1;
+          const before = i > 0 ? history[i - 1] : null;
+          const move = before ? round1(s.total - before.total) : 0;
+          const why = explain(s, before, changes);
           // Edge points would push their card off the card's edge, so the
           // first and last anchor to their own side instead of centering.
           const align =
@@ -119,7 +152,7 @@ export default function ScoreSparkline({
               <span
                 tabIndex={0}
                 role="note"
-                aria-label={`${fmt(s.recordedAt)}: priority ${s.total}, value ${s.qualification}, timing ${s.timing}`}
+                aria-label={`${fmt(s.recordedAt)}: priority ${s.total}${before ? `, ${signed(move)} since the previous ingest` : ""}, value ${s.qualification}, timing ${s.timing}. ${why.join(" ")}`}
                 className="absolute left-1/2 top-1/2 flex size-6 -translate-x-1/2 -translate-y-1/2 cursor-help items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
                 <span
@@ -135,11 +168,27 @@ export default function ScoreSparkline({
 
               <span
                 className={
-                  "pointer-events-none invisible absolute bottom-full z-30 mb-3 w-[164px] rounded-[10px] border border-hairline bg-white p-2.5 text-left opacity-0 shadow-panel transition-opacity group-hover/pt:visible group-hover/pt:opacity-100 group-focus-within/pt:visible group-focus-within/pt:opacity-100 " +
+                  "pointer-events-none invisible absolute bottom-full z-30 mb-3 w-[236px] rounded-[10px] border border-hairline bg-white p-2.5 text-left opacity-0 shadow-panel transition-opacity group-hover/pt:visible group-hover/pt:opacity-100 group-focus-within/pt:visible group-focus-within/pt:opacity-100 " +
                   align
                 }
               >
-                <span className="eyebrow block">{fmt(s.recordedAt)}</span>
+                <span className="flex items-baseline justify-between gap-3">
+                  <span className="eyebrow">{fmt(s.recordedAt)}</span>
+                  {before ? (
+                    <span
+                      className={
+                        "font-display text-[11px] font-bold tabular-nums " +
+                        (move > 0
+                          ? "text-tier-strong-fg"
+                          : move < 0
+                            ? "text-tier-poor"
+                            : "text-ink-faint")
+                      }
+                    >
+                      {move > 0 ? "▲" : move < 0 ? "▼" : "="} {Math.abs(move)}
+                    </span>
+                  ) : null}
+                </span>
 
                 <span className="mt-1.5 flex items-baseline justify-between gap-3">
                   <span className="text-[12px] text-ink-muted">Priority</span>
@@ -163,6 +212,18 @@ export default function ScoreSparkline({
                       <span className="font-display text-[11px] font-semibold tabular-nums text-ink">
                         {row.value}
                       </span>
+                    </span>
+                  ))}
+                </span>
+
+                {/* Why it moved — the part a number alone cannot say */}
+                <span className="mt-1.5 block border-t border-surface-soft pt-1.5">
+                  {why.map((line) => (
+                    <span
+                      key={line}
+                      className="block text-[11px] leading-[15px] text-ink-muted"
+                    >
+                      {line}
                     </span>
                   ))}
                 </span>

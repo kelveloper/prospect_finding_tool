@@ -145,7 +145,12 @@ def main(argv: list[str] | None = None) -> int:
         gated = moved = 0
         for prospect in prospects:
             profile = _profile(prospect, pecos)
-            pipeline.store_scores(prospect, profile, reference_date)
+            pipeline.store_scores(
+                prospect,
+                profile,
+                reference_date,
+                note="Rescored under the Value × Timing formula — the move is the formula, not the world",
+            )
             if prospect.total_score == 0.0:
                 gated += 1
             if abs(prospect.total_score - before[prospect.id]) >= 0.05:

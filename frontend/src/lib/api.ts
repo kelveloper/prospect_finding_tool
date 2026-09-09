@@ -48,6 +48,9 @@ type ApiRanked = {
   signal_types: string[];
   signal_strengths?: Record<string, number>;
   score_change: number | null;
+  value_change?: number | null;
+  timing_change?: number | null;
+  score_change_note?: string | null;
   outreach_status: string | null;
   is_new: boolean;
   created_at: string;
@@ -96,6 +99,7 @@ type ApiScoreSnapshot = {
   timing_score: number;
   total_score: number;
   recorded_at: string;
+  note?: string | null;
 };
 
 type ApiFieldChange = {
@@ -384,6 +388,9 @@ function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
       dates,
     ),
     scoreChange: p.score_change ?? null,
+    valueChange: p.value_change ?? null,
+    timingChange: p.timing_change ?? null,
+    scoreChangeNote: p.score_change_note ?? null,
     isNew: p.is_new ?? false,
     createdAt: p.created_at,
     identity: {
@@ -681,6 +688,7 @@ export async function fetchCandidateDetail(id: string): Promise<
         timing: s.timing_score,
         total: s.total_score,
         recordedAt: s.recorded_at,
+        note: s.note ?? null,
       })),
     };
   } catch (err) {

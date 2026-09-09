@@ -43,6 +43,11 @@ export type Candidate = {
   };
   /** Points moved since the previous ingest; null until two snapshots exist. */
   scoreChange: number | null;
+  /** How much of that came from value and from timing, and the snapshot's
+   *  note when the move was a rescore rather than the world changing. */
+  valueChange: number | null;
+  timingChange: number | null;
+  scoreChangeNote: string | null;
   isNew: boolean;
   /** ISO timestamp of when ingestion first located this prospect. */
   createdAt: string;
@@ -83,6 +88,9 @@ export type ScoreSnapshotItem = {
   timing: number;
   total: number;
   recordedAt: string;
+  /** Set when the snapshot did not come from a sweep — a rescore under a new
+   *  formula — so a step change can be explained as such. */
+  note: string | null;
 };
 
 export type FieldChangeItem = {
