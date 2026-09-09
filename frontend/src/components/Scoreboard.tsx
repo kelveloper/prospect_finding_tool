@@ -19,8 +19,9 @@ import {
   type AuditFilter,
 } from "@/lib/audit";
 import {
-  changedSinceSweep,
-  describeChanges,
+  changeHint,
+  changeLabel,
+  changeMatcher,
   summarizeChanges,
 } from "@/lib/changes";
 import type { Candidate, OutreachEntry } from "@/lib/data";
@@ -86,6 +87,9 @@ export default function Scoreboard({
   // "What changed" — new arrivals and movers. The alert above the list
   // doubles as the toggle; nothing renders when nothing changed.
   const changes = useMemo(() => summarizeChanges(ranked), [ranked]);
+  // Derived from the same summary as the count beside the checkbox, so the
+  // list can never hold more than the number promised.
+  const isChanged = useMemo(() => changeMatcher(changes), [changes]);
   const [onlyChanged, setOnlyChanged] = useState(false);
 
   // Why now — filter by the tag each card shows. Counts follow the tag,
@@ -124,7 +128,7 @@ export default function Scoreboard({
   );
 
   const visible = useMemo(() => {
-    let list = onlyChanged ? ranked.filter(changedSinceSweep) : ranked;
+    let list = onlyChanged ? ranked.filter(isChanged) : ranked;
     if (triggerFilter !== "all")
       list = list.filter((c) => c.trigger?.label === triggerFilter);
     if (audit && auditFilter !== "all")
@@ -136,7 +140,15 @@ export default function Scoreboard({
         (a, b) => a.identity.identityConfidence - b.identity.identityConfidence,
       );
     return list;
-  }, [ranked, onlyChanged, triggerFilter, audit, auditFilter, weakestFirst]);
+  }, [
+    ranked,
+    onlyChanged,
+    isChanged,
+    triggerFilter,
+    audit,
+    auditFilter,
+    weakestFirst,
+  ]);
 
   async function show(id: string, pushUrl: boolean) {
     selectedRef.current = id;
@@ -193,7 +205,7 @@ export default function Scoreboard({
   // name the real cause: four things can empty this rail, and offering to
   // clear the search when the search is blank is a button that does nothing.
   const narrowing: string[] = [];
-  if (onlyChanged) narrowing.push("Only new or moved");
+  if (onlyChanged) narrowing.push(changeLabel(changes));
   if (triggerFilter !== "all") narrowing.push(triggerFilter);
   if (audit && auditFilter !== "all") narrowing.push("Identity audit");
   const searching = query.trim() !== "";
@@ -451,7 +463,7 @@ export default function Scoreboard({
                 never did. */}
             {changes.total > 0 ? (
               <label
-                title={`${describeChanges(changes)} since the last sweep`}
+                title={changeHint(changes)}
                 // Full width, so the whole line is the target: a checkbox
                 // and six words is a small thing to hit, and the empty
                 // space beside them was doing nothing. select-none because
@@ -466,7 +478,7 @@ export default function Scoreboard({
                   className="h-3.5 w-3.5 shrink-0 accent-brand"
                 />
                 <span>
-                  Only new or moved
+                  {changeLabel(changes)}
                   <span className="ml-1 tabular-nums text-ink-faint">
                     · {changes.total}
                   </span>

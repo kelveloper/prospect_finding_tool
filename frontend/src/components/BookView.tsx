@@ -4,11 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { EvidenceChip, MovementChip, TriggerChip } from "./RowChips";
 import { ChevronLeft, ChevronRight } from "./icons";
-import {
-  changedSinceSweep,
-  describeChanges,
-  summarizeChanges,
-} from "@/lib/changes";
+import { changeHint, changeMatcher, summarizeChanges } from "@/lib/changes";
 import type { Candidate } from "@/lib/data";
 import { tierStyle } from "@/lib/tier";
 import { BOOK_VIEW, viewHref } from "@/lib/view";
@@ -245,6 +241,9 @@ export default function BookView({ ranked, selectedId }: Props) {
     [ranked],
   );
   const changes = useMemo(() => summarizeChanges(entries), [entries]);
+  // Same summary drives the chip's count and the rows it selects, so a
+  // formula-wide rescore cannot make this chip claim the whole book.
+  const isChanged = useMemo(() => changeMatcher(changes), [changes]);
 
   /** Commonest first, so the value that matches most of the board is the
    *  first thing you see. Ties fall back to alphabetical. */
@@ -292,7 +291,7 @@ export default function BookView({ ranked, selectedId }: Props) {
       .filter(
         (e) =>
           (!onlyNew || e.isNew) &&
-          (!onlyChanged || changedSinceSweep(e)) &&
+          (!onlyChanged || isChanged(e)) &&
           (specialty === "all" || e.specialty === specialty) &&
           (location === "all" || e.location === location) &&
           (tier === "all" || e.tier === tier) &&
@@ -314,6 +313,7 @@ export default function BookView({ ranked, selectedId }: Props) {
       });
   }, [
     entries,
+    isChanged,
     specialty,
     tier,
     location,
@@ -447,7 +447,7 @@ export default function BookView({ ranked, selectedId }: Props) {
                 onClick={() =>
                   applyState({ ...EMPTY_STATE, onlyChanged: true })
                 }
-                title={`${describeChanges(changes)} since the last sweep — new arrivals and prospects whose score moved`}
+                title={changeHint(changes)}
               />
             ) : null}
 
@@ -459,7 +459,7 @@ export default function BookView({ ranked, selectedId }: Props) {
                   entries.filter(
                     (e) =>
                       (!view.state.onlyNew || e.isNew) &&
-                      (!view.state.onlyChanged || changedSinceSweep(e)) &&
+                      (!view.state.onlyChanged || isChanged(e)) &&
                       (view.state.specialty === "all" ||
                         e.specialty === view.state.specialty) &&
                       (view.state.tier === "all" ||
