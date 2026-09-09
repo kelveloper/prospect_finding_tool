@@ -8,13 +8,13 @@ easy to tangle; this is the untangled version.
 > "We track **seven signals** about each physician, organized into **three
 > categories**: their profession, their practice ownership, and their
 > financial activity. Every signal answers one of two questions — *is this
-> a valuable prospect?* and *is now the right moment?* — and the score is
-> **60% the first, 40% the second**."
+> a valuable prospect?* and *is now the right moment?* — and the priority is
+> **the first, multiplied by how fresh the second is**."
 
 ## The elevator version (one sentence)
 
-> "Seven public-record signals, three categories, one auditable score —
-> 60% how valuable the prospect is, 40% how hot the timing is."
+> "Seven public-record signals, three categories, one auditable number —
+> how much money is there, times how recently something happened."
 
 ## Drilling down, one layer at a time
 
@@ -31,16 +31,16 @@ section cards on the candidate profile page:
 
 | Category | Signals |
 |---|---|
-| Profession | Active license · Specialty tier · Entered practice (NPI) · Newly licensed · Career move |
+| Profession | Active license · Specialty wealth tier · Career stage (years in) · Newly licensed · Career move |
 | Ownership | Bills Medicare under their own PLLC |
 | Financial activity | Recent property purchase (≥ $100k, Cook County deeds) |
 
 **Layer 3 — the scoring (how it becomes a rank):**
 
-| Question | Weight | Signals that answer it |
+| Question | How it combines | Signals that answer it |
 |---|---|---|
-| Is this a valuable prospect? (**Qualification**) | 60% | Licensed physician (40) + high-earning specialty (35) + practice owner (25) |
-| Is now the right moment? (**Timing**) | 40% | Entered practice (15) + new license (40) + property purchase (30) + career move (15) — all fade as they age |
+| Is there money here? (**Value**, adds to 100) | the base | Specialty wealth tier (45) + practice owner, discounted by tenure (25) + career stage, peaking at 5–15 years in (30) |
+| Did something just happen? (**Timing**, strongest event) | a multiplier from ×0.6 to ×1.0 | Formed own practice (100) · property purchase (80) · relocation licence (60) · first licence (30) · employer group change (30) — halving every year |
 
 ## The trap to avoid
 

@@ -6,6 +6,7 @@
  * for outreach posts) and finally localhost.
  */
 import type { IdentityTier } from "@/lib/audit";
+import { TIER_LABELS, isLicenseGated } from "@/lib/tier";
 import type {
   Candidate,
   CandidateProfile,
@@ -36,12 +37,20 @@ type ApiRanked = {
   score: number;
   qualification_score: number;
   timing_score: number;
+  rank: number;
+  book_size: number;
+  tier: Tier;
+  license_status: string | null;
+  signal_dates?: Record<string, string | null>;
   reason_summary: string | null;
   advisor_summary: string | null;
   summary_source: string | null;
   signal_types: string[];
   signal_strengths?: Record<string, number>;
   score_change: number | null;
+  value_change?: number | null;
+  timing_change?: number | null;
+  score_change_note?: string | null;
   outreach_status: string | null;
   is_new: boolean;
   created_at: string;
@@ -90,6 +99,7 @@ type ApiScoreSnapshot = {
   timing_score: number;
   total_score: number;
   recorded_at: string;
+  note?: string | null;
 };
 
 type ApiFieldChange = {
@@ -162,12 +172,13 @@ function toContactKit(k: ApiContactKit): ContactKit {
 
 /* ── Mapping helpers ─────────────────────────────────────── */
 
-export function tierFromScore(score: number): { tier: Tier; label: string } {
-  if (score >= 80) return { tier: "strong", label: "Top Prospect" };
-  if (score >= 60) return { tier: "promising", label: "Promising Prospect" };
-  if (score >= 50) return { tier: "neutral", label: "Neutral Prospect" };
-  if (score >= 35) return { tier: "weak", label: "Weak Prospect" };
-  return { tier: "poor", label: "Poor Fit" };
+/** The band and its name. The API stamps the band from the prospect's
+ *  standing in the whole book; a gated licence overrides it with the reason. */
+function tierOf(p: ApiRanked): { tier: Tier; label: string } {
+  if (isLicenseGated(p.license_status))
+    return { tier: "poor", label: `Not ranked — license ${p.license_status}` };
+  const tier: Tier = p.tier ?? "poor";
+  return { tier, label: TIER_LABELS[tier] };
 }
 
 function initialsOf(name: string): string {
@@ -202,7 +213,7 @@ const SIGNAL_LABELS: [string, string][] = [
   ["PHYSICIAN", "Active license"],
   ["SPECIALTY", "Specialty tier"],
   ["NEW_LICENSE", "License date"],
-  ["PRACTICE_ENTRY", "Entered practice"],
+  ["CAREER_STAGE", "Career stage"],
   ["CAREER_ADVANCEMENT", "Career move"],
   ["OWNERSHIP", "Practice ownership"],
   ["PROPERTY_EVENT", "Property purchase"],
@@ -218,20 +229,33 @@ const SIGNAL_LABELS: [string, string][] = [
  *  Holding a license date is evidence either way, so the tick — and the
  *  evidence count with it — stays put. What moves is the claim: a two-month
  *  registration earns "Newly licensed", a seventeen-year one is just a date
- *  we hold. Same threshold the trigger chip uses. */
+ *  we hold. Same age gate the trigger chip uses. */
 const RECENCY_LABELS: Record<string, { fresh: string; stale: string }> = {
   NEW_LICENSE: { fresh: "Newly licensed", stale: "License date" },
 };
 
-function labelFor(type: string, base: string, strength: number | undefined) {
+/** "Recent" for a why-now chip: the event happened within a year. Under a
+ *  half-life the strength alone cannot say this — a first licence issued
+ *  today and a relocation two years ago both sit near 0.5 — so the board
+ *  gates on the event's date instead. */
+const RECENT_WITHIN_MONTHS = 12;
+
+function isRecent(iso: string | null | undefined): boolean {
+  if (!iso) return false;
+  const months =
+    (Date.now() - new Date(iso).getTime()) / (1000 * 60 * 60 * 24 * 30.44);
+  return months >= 0 && months <= RECENT_WITHIN_MONTHS;
+}
+
+function labelFor(type: string, base: string, date: string | null | undefined) {
   const pair = RECENCY_LABELS[type];
   if (!pair) return base;
-  return (strength ?? 0) >= (RECENCY_GATED[type] ?? 0.6) ? pair.fresh : pair.stale;
+  return isRecent(date) ? pair.fresh : pair.stale;
 }
 
 function toEvidence(
   signalTypes: string[],
-  strengths: Record<string, number> = {},
+  dates: Record<string, string | null> = {},
 ): Candidate["evidence"] {
   const present = new Set(signalTypes);
   const found = SIGNAL_LABELS.filter(([type]) => present.has(type));
@@ -243,7 +267,7 @@ function toEvidence(
     found: found.length,
     total: SIGNAL_LABELS.length,
     signals: SIGNAL_LABELS.map(([type, label]) => ({
-      label: labelFor(type, label, strengths[type]),
+      label: labelFor(type, label, dates[type]),
       present: present.has(type),
     })),
   };
@@ -263,7 +287,7 @@ const TRIGGERS: { type: string; label: string; hint: string; hot?: boolean }[] =
       // "New practice" and "went independent" both asserted a recent switch.
       // PECOS records who is paid today and carries no formation date, so we
       // cannot date this — see docs/OWNERSHIP_TENURE_BIAS.md.
-      hint: "Bills Medicare under their own entity. The billing record carries no formation date, so we cannot say when.",
+      hint: "Bills Medicare under their own entity. Worth the most early in a career; the billing record carries no formation date, so it is discounted by years in practice.",
       hot: true,
     },
     {
@@ -275,33 +299,28 @@ const TRIGGERS: { type: string; label: string; hint: string; hot?: boolean }[] =
     {
       type: "CAREER_ADVANCEMENT",
       label: "Career move",
-      hint: "Changed billing group or facility since the last sync.",
+      hint: "Changed billing group — or formed their own practice — since the last sync.",
     },
     {
       type: "NEW_LICENSE",
       label: "New license",
-      hint: "Recently licensed in Illinois — the first attending years.",
+      hint: "Recently licensed in Illinois — a relocation if they were already in practice, a first licence if not.",
     },
   ];
 
 /** Signals that only mean something if they happened recently. A license is
  *  emitted for everyone who holds one, so presence alone would print "New
- *  license" on a seventeen-year-old registration. 0.6 is the detector's
- *  two-year step on the recency curve. */
-const RECENCY_GATED: Record<string, number> = {
-  NEW_LICENSE: 0.6,
-  CAREER_ADVANCEMENT: 0.6,
-};
+ *  license" on a seventeen-year-old registration. Gated on the event's age. */
+const RECENCY_GATED = new Set(["NEW_LICENSE", "CAREER_ADVANCEMENT"]);
 
 function toTrigger(
   signalTypes: string[],
-  strengths: Record<string, number> = {},
+  dates: Record<string, string | null> = {},
 ): Candidate["trigger"] {
   const present = new Set(signalTypes);
   const hit = TRIGGERS.find((t) => {
     if (!present.has(t.type)) return false;
-    const floor = RECENCY_GATED[t.type];
-    return floor === undefined || (strengths[t.type] ?? 0) >= floor;
+    return !RECENCY_GATED.has(t.type) || isRecent(dates[t.type]);
   });
   return hit
     ? { label: hit.label, hint: hit.hint, hot: hit.hot ?? false }
@@ -309,7 +328,14 @@ function toTrigger(
 }
 
 function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
-  const { tier, label } = tierFromScore(p.score);
+  const { tier, label } = tierOf(p);
+  // Latest event date per signal type — the detail has the rows, the board
+  // gets the map on the ranked payload
+  const dates: Record<string, string | null> = detail
+    ? Object.fromEntries(
+        detail.signals.map((sig) => [sig.signal_type, sig.event_date]),
+      )
+    : (p.signal_dates ?? {});
   const specialty = p.specialty ?? "Physician";
   // Prefer the practice address's own state; `p.state` is only the state we
   // searched, so pairing it with a city from elsewhere invents a place.
@@ -338,6 +364,9 @@ function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
     score: p.score,
     tier,
     tierLabel: label,
+    rank: p.rank ?? 0,
+    bookSize: p.book_size ?? 0,
+    licenseStatus: p.license_status ?? null,
     qualificationScore: p.qualification_score,
     timingScore: p.timing_score,
     licenseHeld: tenure(detail?.license_issue_date ?? null),
@@ -350,25 +379,18 @@ function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
       detail
         ? detail.signals.map((sig) => sig.signal_type)
         : (p.signal_types ?? []),
-      // On the detail view the real strengths are to hand; on the board they
-      // ride along on the ranked payload.
-      detail
-        ? Object.fromEntries(
-            detail.signals.map((sig) => [sig.signal_type, sig.strength]),
-          )
-        : (p.signal_strengths ?? {}),
+      dates,
     ),
     evidence: toEvidence(
       detail
         ? detail.signals.map((sig) => sig.signal_type)
         : (p.signal_types ?? []),
-      detail
-        ? Object.fromEntries(
-            detail.signals.map((sig) => [sig.signal_type, sig.strength]),
-          )
-        : (p.signal_strengths ?? {}),
+      dates,
     ),
     scoreChange: p.score_change ?? null,
+    valueChange: p.value_change ?? null,
+    timingChange: p.timing_change ?? null,
+    scoreChangeNote: p.score_change_note ?? null,
     isNew: p.is_new ?? false,
     createdAt: p.created_at,
     identity: {
@@ -538,8 +560,9 @@ function toProfile(d: ApiDetail): CandidateProfile {
     portrait: "",
     stats: [
       { label: "License Held", value: tenure(d.license_issue_date) },
-      { label: "Qualification", value: `${d.qualification_score}` },
+      { label: "Value", value: `${d.qualification_score}` },
       { label: "Timing", value: `${d.timing_score}` },
+      { label: "Priority", value: `${d.score}` },
     ],
     sections,
   };
@@ -665,6 +688,7 @@ export async function fetchCandidateDetail(id: string): Promise<
         timing: s.timing_score,
         total: s.total_score,
         recordedAt: s.recorded_at,
+        note: s.note ?? null,
       })),
     };
   } catch (err) {

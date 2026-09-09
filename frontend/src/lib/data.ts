@@ -13,10 +13,19 @@ export type Candidate = {
    *  e.g. "IL license" on a row whose location reads Boston, MA. Null when
    *  the two agree, which is the ordinary case — 183 of 219 rows. */
   licenseNote: string | null;
+  /** Priority = value × (0.6 + 0.4 × timing/100). 0 when the licence gate holds. */
   score: number;
+  /** Band by standing in the whole book (top 5% strong … bottom 20% poor). */
   tier: Tier;
   tierLabel: string;
+  /** Position in the ranked book, 1 = best, and how many are ranked. */
+  rank: number;
+  bookSize: number;
+  /** IDFPR status; a present, non-active status means "not ranked". */
+  licenseStatus: string | null;
+  /** Value — "is there money here", 0–100. Wire name: qualification_score. */
   qualificationScore: number;
+  /** Timing — "did something just happen", 0–100. */
   timingScore: number;
   /** Human-readable license tenure, e.g. "8 Months" — "—" when unknown. */
   licenseHeld: string;
@@ -34,6 +43,11 @@ export type Candidate = {
   };
   /** Points moved since the previous ingest; null until two snapshots exist. */
   scoreChange: number | null;
+  /** How much of that came from value and from timing, and the snapshot's
+   *  note when the move was a rescore rather than the world changing. */
+  valueChange: number | null;
+  timingChange: number | null;
+  scoreChangeNote: string | null;
   isNew: boolean;
   /** ISO timestamp of when ingestion first located this prospect. */
   createdAt: string;
@@ -74,6 +88,9 @@ export type ScoreSnapshotItem = {
   timing: number;
   total: number;
   recordedAt: string;
+  /** Set when the snapshot did not come from a sweep — a rescore under a new
+   *  formula — so a step change can be explained as such. */
+  note: string | null;
 };
 
 export type FieldChangeItem = {
@@ -94,7 +111,8 @@ export type MatchEvidenceItem = {
 export type ScoreComponentItem = {
   category: "qualification" | "timing";
   label: string;
-  /** Signal strength 0–1 — recency decay, specialty tier, entity type. */
+  /** Signal strength 0–1 — wealth tier, tenure-adjusted ownership, career-stage
+   *  band, or an event's half-life decay. */
   strength: number;
   points: number;
   maxPoints: number;

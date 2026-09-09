@@ -33,7 +33,8 @@ def test_summary_is_plain_english_and_mentions_key_signals():
 
     assert "Licensed physician" in summary
     assert "license issued 8 month(s) ago" in summary
-    assert "High qualification score." in summary
+    # Value = 45 (orthopaedics) + 5 (first attending years) = 50
+    assert "Moderate value score." in summary
     assert 0 < confidence <= 1
 
 

@@ -22,7 +22,10 @@ type Props = {
  *  the ring at the top of the profile already carries the qualification and
  *  timing split, and printing it twice made this look like new information
  *  when half of it was a copy. */
-export default function CandidateDossier({ fieldChanges, scoreHistory }: Props) {
+export default function CandidateDossier({
+  fieldChanges,
+  scoreHistory,
+}: Props) {
   const hasChanges = fieldChanges.length > 0;
   // One snapshot is a dot, not a trajectory — there is nothing to plot yet.
   const hasTrajectory = scoreHistory.length > 1;
@@ -43,11 +46,11 @@ export default function CandidateDossier({ fieldChanges, scoreHistory }: Props) 
             </span>
           </div>
           <p className="mt-0.5 text-[12px] text-ink-muted">
-            Hover a point for that ingest&rsquo;s scores
+            Hover a point for that ingest&rsquo;s scores and why they moved
           </p>
 
           <div className="mt-3">
-            <ScoreSparkline history={scoreHistory} />
+            <ScoreSparkline history={scoreHistory} changes={fieldChanges} />
           </div>
         </section>
       ) : null}

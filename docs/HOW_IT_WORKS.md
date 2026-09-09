@@ -15,7 +15,7 @@ The system finds those people in public data and ranks them.
 ## The engine in one line
 
 ```
-sources → three gate layers → signals → strength × weight → 60/40 blend
+sources → three gate layers → signals → value × timing multiplier
         → score history → contact kit
 ```
 
@@ -72,7 +72,7 @@ is running gets a 409.
               PHYSICIAN, SPECIALTY, NEW_LICENSE, OWNERSHIP,
               PROPERTY_EVENT, CAREER_ADVANCEMENT
 
-5. SCORE      Qualification (60%) + Timing (40%) → total  (math: RANKING.md)
+5. SCORE      Priority = Value × (0.6 + 0.4 × Timing/100)  (math: RANKING.md)
 
 6. EXPLAIN    A plain-English reason summary is generated from the signals
               (deterministic templates — no LLM in scoring; a grounded
@@ -159,20 +159,16 @@ cases (proposes; rules + human dispose) and a grounded LLM-written
 narrative in the UI — never inside scoring or as the sole basis of a
 match. See PROGRESS.md.
 
-**Q: What counts as a 100% prospect — and when could we ever see one?**
-Never on first ingestion — by design. The day-one ceiling is **91**: a newly
-licensed tier-1 specialist (qualification 95: physician 40 + specialty 35 +
-own-PLLC billing inference 20) who just bought property (timing 85: IDFPR
-license 40 + NPI enumeration 15 + property 30). The missing 9 points are two
-kinds of honest headroom. Six points of CAREER_ADVANCEMENT can only be
-*earned over time* — the first PECOS sync seeds a baseline and events come
-from diffing later syncs, so a single snapshot can never prove "they just
-changed jobs." Three points of OWNERSHIP need registry-grade proof (the paid
-business-registry source) beyond our billing inference, which caps at 0.8
-strength. So a score above 91 certifies longitudinal evidence: we watched
-this person move. The presentation phrasing: "scores are out of 100, but 91
-is the day-one maximum — points above that can only be earned by monitoring
-a prospect over time."
+**Q: What counts as a 100 — and when could we ever see one?**
+Only with longitudinal evidence, by design. Value can reach 100 on day one
+(a radiologist or surgeon 5–15 years in who bills under his own active
+PLLC: 45 + 25 + 30). But the 100-point timing event — forming his own
+practice — is detected by comparing this month's Medicare billing groups
+with last month's, so it cannot exist on a first sweep. A day-one prospect
+tops out at Value 100 × (0.6 + 0.4 × 0.8) = **92** with a property purchase
+this month. Priority 100 certifies that we watched the person move. The
+presentation phrasing: "100 is reachable, but the last eight points can only
+be earned by monitoring a prospect over time."
 
 **Q: Why don't most prospects score above ~62?**
 Missing data, not missing logic: full registry ownership records await the

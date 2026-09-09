@@ -684,7 +684,7 @@ export default function BookView({ ranked, selectedId }: Props) {
                       <ColumnMenu
                         sortKey="tier"
                         heading="Fit"
-                        hint="The score out of 100 and the band it falls in. The board is ranked by it."
+                        hint="Priority — value × how fresh the trigger is — and the band it falls in by standing. The board is ranked by it."
                         align="right"
                         filters={[
                           {
@@ -1135,6 +1135,9 @@ function BookEntry({
           <MovementChip
             change={candidate.scoreChange}
             isNew={candidate.isNew}
+            valueChange={candidate.valueChange}
+            timingChange={candidate.timingChange}
+            note={candidate.scoreChangeNote}
           />
         </span>
       ) : null}
@@ -1142,7 +1145,7 @@ function BookEntry({
       {/* Score and band together: the band is a function of the score, so two
           columns were one fact printed twice. */}
       <span
-        title={`${candidate.score} out of 100 — ${candidate.tierLabel}.`}
+        title={`Priority ${candidate.score} — ${candidate.tierLabel}.`}
         className="flex w-[104px] shrink-0 cursor-help items-baseline justify-end gap-1.5"
       >
         <span

@@ -62,12 +62,12 @@ const JOINS: Join[] = [
     matched: {
       found: "License confirmed in the state register",
       effect:
-        "Because we confirmed his license, he can earn the full 40 points for being a licensed doctor, and his license date counts toward timing — up to another 40.",
+        "Because we confirmed his license is active, he is ranked at all — a lapsed one would set his priority to zero — and his license date can be a trigger worth up to 60.",
     },
     missed: {
       found: "Not found in the state register",
       effect:
-        "Without a confirmed license he would top out at 28 points instead of 40, and his license date would not count at all.",
+        "Without a state record we still rank him, but we cannot confirm the license or use its date as a trigger (worth up to 60).",
     },
     inSentence: "the state license register",
     footnote:
@@ -89,12 +89,12 @@ const JOINS: Join[] = [
     matched: {
       found: "Billing records attached",
       effect:
-        "With his billing records we can tell whether he owns his practice — up to 20 points — and spot job changes from the next monthly update, up to another 15.",
+        "With his billing records we can tell whether he owns his practice — up to 25 value points, scaled by years in practice — and spot moves from the next monthly update: a new group is a trigger worth 30, or 100 if the group carries his own name.",
     },
     missed: {
       found: "No billing records for him",
       effect:
-        "So he gets 0 out of 25 for owning a practice and 0 out of 15 for job changes. This is normal for doctors who do not bill Medicare through a group.",
+        "So he gets 0 of 25 for owning a practice and no career trigger. This is normal for doctors who do not bill Medicare through a group.",
     },
     inSentence: "Medicare billing",
     footnote:
@@ -116,12 +116,12 @@ const JOINS: Join[] = [
     matched: {
       found: "A home purchase in his name",
       effect:
-        "His purchase date counts toward timing — up to 30 points, worth less the older the sale gets.",
+        "His purchase is a trigger worth up to 80, halving in value every year since the sale.",
     },
     missed: {
       found: "No purchase in his name",
       effect:
-        "He gets 0 out of 30 for property. If a buyer name is close but not exact, we drop it rather than guess.",
+        "He gets no property trigger. If a buyer name is close but not exact, we drop it rather than guess.",
     },
     inSentence: "Cook County property records",
     footnote:
@@ -143,12 +143,21 @@ function tierOf(m: MatchEvidenceItem): TierKey {
 /** A panel-weight disclosure. `Collapsible` is a full white card with its own
  *  shadow — too heavy to nest inside a drawer — so this borrows the same
  *  native <details> idea at the smaller scale. */
-export function Fold({ label, children }: { label: string; children: ReactNode }) {
+export function Fold({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
   return (
     <details className="group rounded-[10px] border border-hairline bg-canvas">
       <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2 font-display text-[12px] font-semibold text-brand transition-colors hover:bg-surface-soft [&::-webkit-details-marker]:hidden">
         {label}
-        <span aria-hidden className="ml-auto transition-transform group-open:rotate-180">
+        <span
+          aria-hidden
+          className="ml-auto transition-transform group-open:rotate-180"
+        >
           ▾
         </span>
       </summary>
@@ -162,9 +171,18 @@ export function Fold({ label, children }: { label: string; children: ReactNode }
 export type RowStatus = "found" | "none" | "pending" | "passed";
 
 const STATUS: Record<RowStatus, { label: string; className: string }> = {
-  found: { label: "✓ Found him", className: "bg-tier-strong-bg text-tier-strong-fg" },
-  none: { label: "✗ No match", className: "bg-tier-neutral-bg text-tier-neutral-fg" },
-  pending: { label: "— Can't check yet", className: "bg-surface-soft text-ink-muted" },
+  found: {
+    label: "✓ Found him",
+    className: "bg-tier-strong-bg text-tier-strong-fg",
+  },
+  none: {
+    label: "✗ No match",
+    className: "bg-tier-neutral-bg text-tier-neutral-fg",
+  },
+  pending: {
+    label: "— Can't check yet",
+    className: "bg-surface-soft text-ink-muted",
+  },
   passed: { label: "✓ Passed", className: "bg-surface-soft text-ink-muted" },
 };
 
@@ -216,15 +234,21 @@ export function LedgerRow({ row }: { row: LedgerRowData }) {
           <span className="block font-display text-[14.5px] font-bold tracking-[-0.2px] text-ink">
             {row.where}
           </span>
-          <span className="block text-[11.5px] text-ink-muted">{row.whereSub}</span>
+          <span className="block text-[11.5px] text-ink-muted">
+            {row.whereSub}
+          </span>
         </span>
 
         <span className="text-[13.5px] leading-[19px] text-ink">
           {row.found}
-          {row.worth ? <span className="text-ink-muted"> · {row.worth}</span> : null}
+          {row.worth ? (
+            <span className="text-ink-muted"> · {row.worth}</span>
+          ) : null}
         </span>
 
-        <span className="text-[13px] leading-[19px] text-ink-muted">{row.how}</span>
+        <span className="text-[13px] leading-[19px] text-ink-muted">
+          {row.how}
+        </span>
 
         <span className="font-display text-[14.5px] font-bold tabular-nums text-ink md:text-right">
           {row.score ?? <span className="font-normal text-ink-muted">—</span>}
@@ -246,7 +270,13 @@ export function LedgerRow({ row }: { row: LedgerRowData }) {
 }
 
 /** One box inside a row's drawer. */
-export function Drawer({ title, children }: { title: string; children: ReactNode }) {
+export function Drawer({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
   return (
     <div className="rounded-[10px] bg-canvas px-4 py-3.5">
       <p className="eyebrow">{title}</p>
@@ -256,7 +286,9 @@ export function Drawer({ title, children }: { title: string; children: ReactNode
 }
 
 export function DrawerNote({ children }: { children: ReactNode }) {
-  return <p className="text-[13px] leading-[20px] text-ink-muted">{children}</p>;
+  return (
+    <p className="text-[13px] leading-[20px] text-ink-muted">{children}</p>
+  );
 }
 
 function TierRow({ tier, used }: { tier: Tier; used: boolean }) {
@@ -281,12 +313,16 @@ function TierRow({ tier, used }: { tier: Tier; used: boolean }) {
             </span>
           )}
         </p>
-        <p className="text-[12.5px] leading-[18px] text-ink-muted">{tier.note}</p>
+        <p className="text-[12.5px] leading-[18px] text-ink-muted">
+          {tier.note}
+        </p>
       </div>
       <span
         className={
           "shrink-0 rounded-full px-2 py-0.5 font-display text-[12px] font-bold tabular-nums " +
-          (used ? "bg-white text-tier-strong-fg" : "bg-surface-soft text-ink-muted")
+          (used
+            ? "bg-white text-tier-strong-fg"
+            : "bg-surface-soft text-ink-muted")
         }
       >
         {tier.score}
@@ -315,7 +351,9 @@ export function identityRows(
     const landed = join.tiers.find((t) => used.has(t.key));
     const others = join.tiers.filter((t) => t !== landed);
     const outcome = isOpen ? join.matched : join.missed;
-    const hit = matches.find((m) => join.tiers.some((t) => t.key === tierOf(m)));
+    const hit = matches.find((m) =>
+      join.tiers.some((t) => t.key === tierOf(m)),
+    );
 
     return {
       key: join.key,
@@ -348,8 +386,12 @@ export function identityRows(
 
           <Drawer title={isOpen ? "What this is worth" : "What we lost"}>
             <DrawerNote>{outcome.effect}</DrawerNote>
-            <Fold label={isOpen ? "If it had not matched" : "If it had matched"}>
-              <DrawerNote>{(isOpen ? join.missed : join.matched).effect}</DrawerNote>
+            <Fold
+              label={isOpen ? "If it had not matched" : "If it had matched"}
+            >
+              <DrawerNote>
+                {(isOpen ? join.missed : join.matched).effect}
+              </DrawerNote>
             </Fold>
             {scoringHref ? (
               <a

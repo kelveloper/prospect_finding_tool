@@ -22,6 +22,9 @@ class ScoreSnapshotOut(BaseModel):
     timing_score: float
     total_score: float
     recorded_at: datetime
+    # Set when the snapshot came from something other than a sweep — a
+    # rescore under a new formula — so the UI can explain a step change
+    note: str | None = None
 
 
 class WeakestLinkOut(BaseModel):
@@ -46,21 +49,38 @@ class RankedProspect(BaseModel):
     # another — pairing their city with `state` prints a place that does not
     # exist. See docs/KNOWN_GAPS.md.
     address_state: str | None = None
+    # Priority = Value × (0.6 + 0.4 × Timing/100); 0 when the licence gate
+    # holds (see license_status). Stored names predate the formula.
     score: float = Field(validation_alias="total_score")
-    qualification_score: float
-    timing_score: float
+    qualification_score: float   # Value — "is there money here", 0–100
+    timing_score: float          # Timing — "did something just happen", 0–100
+    # Standing in the whole ranked book, stamped per request: rank 1 = best,
+    # tier by share of the book (top 5% strong … bottom 20% poor). A gated
+    # prospect has rank but is "poor" and not counted in book_size.
+    rank: int = 0
+    book_size: int = 0
+    tier: Literal["strong", "promising", "neutral", "weak", "poor"] = "poor"
+    license_status: str | None = None
     reason_summary: str | None
     # Advisor-facing narrative (python -m app.summaries); UI prefers this
     # over reason_summary when present
     advisor_summary: str | None = None
     summary_source: str | None = None
-    # Movement since the previous ingest; None until two snapshots exist
+    # Movement since the previous ingest; None until two snapshots exist —
+    # split into its two causes, plus the snapshot's note when the move was
+    # a rescore rather than the world changing
     score_change: float | None = None
+    value_change: float | None = None
+    timing_change: float | None = None
+    score_change_note: str | None = None
     # Distinct detected signal types — powers the scoreboard category chips
     signal_types: list[str] = []
     # Strongest strength per type; the board gates recency claims on this,
     # since holding a license date says nothing about when it was issued
     signal_strengths: dict[str, float] = {}
+    # Latest event date per signal type; the board gates "why now" chips on
+    # age (≤ 12 months), which strength alone cannot say under a half-life
+    signal_dates: dict[str, date | None] = {}
     # Latest logged outreach event type; None until the advisor acts
     outreach_status: str | None = None
     # Arrived in the book within the last 48 hours — NEW badge + alert
@@ -77,6 +97,7 @@ class RankedProspect(BaseModel):
 
 
 class ScoreComponent(BaseModel):
+    # "qualification" is the Value group (wire name kept from the old formula)
     category: Literal["qualification", "timing"]
     label: str
     signal_type: str

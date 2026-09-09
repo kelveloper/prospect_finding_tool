@@ -3,6 +3,7 @@ import Header from "@/components/Header";
 import ScoreRing from "@/components/ScoreRing";
 import SourcesDocument from "@/components/SourcesDocument";
 import { fetchCandidateDetail } from "@/lib/api";
+import { isLicenseGated, standingLabel, tierStyle } from "@/lib/tier";
 
 /** One document answering one question: how do we know this? It reads in
  *  pipeline order — the raw facts, then how we knew they were his, then what
@@ -25,12 +26,9 @@ export default async function SourcesPage({
   } = detail;
   const signalTypesCount = new Set(signals.map((s) => s.type)).size;
 
-  const ringAccent =
-    candidate.score >= 75
-      ? "var(--color-tier-strong)"
-      : candidate.score >= 50
-        ? "var(--color-tier-neutral)"
-        : "var(--color-tier-poor)";
+  const ringAccent = tierStyle(candidate.tier).accent;
+  const gated = isLicenseGated(candidate.licenseStatus);
+  const multiplier = (0.6 + 0.4 * (candidate.timingScore / 100)).toFixed(2);
 
   const contents = [
     { href: "#what-we-found", label: "What we found" },
@@ -53,7 +51,7 @@ export default async function SourcesPage({
           How we know this about {candidate.name}
         </h1>
         <p className="mt-1 max-w-[78ch] text-[14px] text-ink-muted">
-          Every fact behind his {candidate.score} out of 100 — where it came
+          Every fact behind his priority of {candidate.score} — where it came
           from, how we knew it was him, and what it was worth.
         </p>
 
@@ -66,13 +64,24 @@ export default async function SourcesPage({
                 size={92}
                 stroke={7}
                 accent={ringAccent}
-                caption="/ 100"
+                caption="priority"
                 valueSize={24}
               />
               <div className="min-w-0">
-                <span className="rounded-full bg-tier-strong-bg px-2.5 py-1 font-display text-[11px] font-semibold text-tier-strong-fg">
+                <span
+                  className="rounded-full px-2.5 py-1 font-display text-[11px] font-semibold"
+                  style={{
+                    backgroundColor: tierStyle(candidate.tier).badgeBg,
+                    color: tierStyle(candidate.tier).badgeFg,
+                  }}
+                >
                   {candidate.tierLabel}
                 </span>
+                {!gated ? (
+                  <p className="mt-1.5 font-display text-[12px] font-semibold text-ink">
+                    {standingLabel(candidate.rank, candidate.bookSize)}
+                  </p>
+                ) : null}
                 <p className="mt-2 text-[13px] text-ink-muted">
                   {profile.practice}
                 </p>
@@ -82,13 +91,14 @@ export default async function SourcesPage({
             <div className="mt-5 flex flex-col gap-2">
               {[
                 {
-                  label: "Worth approaching",
-                  value: `${candidate.qualificationScore}/100`,
+                  label: "Value · money here",
+                  value: `${candidate.qualificationScore}`,
                 },
                 {
-                  label: "Right time now",
-                  value: `${candidate.timingScore}/100`,
+                  label: "Timing · why now",
+                  value: `${candidate.timingScore}`,
                 },
+                { label: "Multiplier", value: `×${multiplier}` },
                 { label: "License held", value: candidate.licenseHeld },
               ].map((stat) => (
                 <div
@@ -142,6 +152,7 @@ export default async function SourcesPage({
             identityConfidence={identityConfidence}
             signalTypesCount={signalTypesCount}
             signals={signals}
+            licenseStatus={candidate.licenseStatus}
           />
         </div>
       </div>

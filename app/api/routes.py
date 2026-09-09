@@ -169,10 +169,11 @@ def prospect_detail(prospect_id: str, db: Session = Depends(get_db)):
     # Recompute per-component contributions from the stored signals so the
     # UI can show exactly where each point came from
     settings = get_settings()
-    engine = ScoringEngine(settings.qualification_weight, settings.timing_weight)
+    engine = ScoringEngine(settings.timing_floor)
     detail = ProspectDetail.model_validate(prospect)
     detail.score_components = [
-        ScoreComponent(**c) for c in engine.components(prospect.signals)
+        ScoreComponent(**c)
+        for c in engine.components(prospect.signals, prospect.identity_confidence)
     ]
     return detail
 

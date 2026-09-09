@@ -85,6 +85,9 @@ class EnrichmentRecord:
     # CAREER fields
     role_title: str | None = None
     organization: str | None = None
+    # "OWN_PRACTICE" | "GROUP_CHANGE" | "FACILITY" | "PARTNER" — what kind of
+    # move this is; decides its timing weight (app/scoring/detector.py)
+    career_kind: str | None = None
 
 
 class BaseDataSource(ABC):

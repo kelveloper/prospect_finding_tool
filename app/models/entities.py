@@ -103,6 +103,25 @@ class Prospect(Base):
     def weakest_link(self):
         return self._identity_audit().weakest_link
 
+    # Standing in the ranked book, stamped per request by RankingService
+    # (never persisted): rank 1 = best, tier by share of the book
+    rank: int = 0
+    book_size: int = 0
+    tier: str = "poor"
+
+    @property
+    def signal_dates(self) -> dict:
+        """Latest event date per signal type (None for undated types), so
+        the board can gate "why now" chips on age."""
+        latest: dict = {}
+        for s in self.signals:
+            current = latest.get(s.signal_type)
+            if s.signal_type not in latest or (
+                s.event_date is not None and (current is None or s.event_date > current)
+            ):
+                latest[s.signal_type] = s.event_date
+        return latest
+
     @property
     def signal_strengths(self) -> dict[str, float]:
         """Strongest strength per signal type.
@@ -147,6 +166,32 @@ class Prospect(Base):
             self.score_history[-1].total_score - self.score_history[-2].total_score, 1
         )
 
+    @property
+    def value_change(self) -> float | None:
+        """How much of the movement came from Value (money here)."""
+        if len(self.score_history) < 2:
+            return None
+        return round(
+            self.score_history[-1].qualification_score
+            - self.score_history[-2].qualification_score,
+            1,
+        )
+
+    @property
+    def timing_change(self) -> float | None:
+        """How much of the movement came from Timing (why now)."""
+        if len(self.score_history) < 2:
+            return None
+        return round(
+            self.score_history[-1].timing_score - self.score_history[-2].timing_score, 1
+        )
+
+    @property
+    def score_change_note(self) -> str | None:
+        """The latest snapshot's note — set when the move was a rescore
+        under a new formula rather than the world changing."""
+        return self.score_history[-1].note if self.score_history else None
+
 
 class Signal(Base):
     __tablename__ = "signals"
@@ -177,6 +222,9 @@ class ScoreSnapshot(Base):
     prospect_id: Mapped[str] = mapped_column(ForeignKey("prospects.id"), index=True)
     qualification_score: Mapped[float] = mapped_column(Float)
     timing_score: Mapped[float] = mapped_column(Float)
+    # Why this snapshot differs from an ordinary sweep, when it does — e.g.
+    # "Rescored under the Value × Timing formula". None for a normal sweep.
+    note: Mapped[str | None] = mapped_column(String(200), nullable=True)
     total_score: Mapped[float] = mapped_column(Float)
     recorded_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
 

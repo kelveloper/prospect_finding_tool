@@ -1,4 +1,5 @@
 import type { Candidate } from "@/lib/data";
+import { explainMove } from "@/lib/movement";
 
 /** The small print of a row, each piece saying what it is on hover.
  *
@@ -33,11 +34,21 @@ export function TriggerChip({ trigger }: { trigger: Candidate["trigger"] }) {
 export function MovementChip({
   change,
   isNew = false,
+  valueChange = null,
+  timingChange = null,
+  note = null,
 }: {
   change: number | null;
   /** A new arrival has no earlier score — say so instead of "no change yet". */
   isNew?: boolean;
+  /** Where the move came from, so the hover can say why, not just how much. */
+  valueChange?: number | null;
+  timingChange?: number | null;
+  note?: string | null;
 }) {
+  const why = explainMove({ change, valueChange, timingChange, note }).join(
+    " ",
+  );
   if (change === null && isNew) {
     return (
       <span
@@ -63,7 +74,7 @@ export function MovementChip({
   if (change === 0) {
     return (
       <span
-        title="Score has not moved since the last data refresh."
+        title={`Priority has not moved since the last data refresh. ${why}`}
         className="shrink-0 cursor-help font-display text-[11px] font-medium text-ink-faint"
       >
         no change
@@ -74,9 +85,9 @@ export function MovementChip({
   const up = change > 0;
   return (
     <span
-      title={`Score moved ${up ? "up" : "down"} ${Math.abs(change)} ${
+      title={`Priority moved ${up ? "up" : "down"} ${Math.abs(change)} ${
         Math.abs(change) === 1 ? "point" : "points"
-      } since the last data refresh.`}
+      } since the last data refresh. ${why}`}
       className={
         "shrink-0 cursor-help font-display text-[11px] font-bold tabular-nums " +
         (up ? "text-tier-strong-fg" : "text-tier-poor")

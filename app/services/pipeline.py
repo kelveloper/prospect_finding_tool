@@ -46,7 +46,7 @@ def _canon(value) -> str | None:
         return None
     return " ".join(str(value).split()).casefold() or None
 from app.repositories import ProspectRepository
-from app.scoring import ScoringEngine, SignalDetector, build_reason_summary
+from app.scoring import ScoringEngine, SignalDetector, build_reason_summary, is_rankable
 
 
 @dataclass(frozen=True)
@@ -74,9 +74,7 @@ class IngestionPipeline:
         self.resolver = resolver or IdentityResolver(settings.identity_match_threshold)
         self.matcher = EnrichmentMatcher(settings.identity_match_threshold)
         self.detector = detector or SignalDetector()
-        self.engine = engine or ScoringEngine(
-            settings.qualification_weight, settings.timing_weight
-        )
+        self.engine = engine or ScoringEngine(settings.timing_floor)
 
     def run(
         self,
@@ -179,10 +177,6 @@ class IngestionPipeline:
     def _apply(
         self, prospect: Prospect, profile: ResolvedProspect, reference_date: date
     ) -> None:
-        signals = self.detector.detect(profile, reference_date)
-        breakdown = self.engine.score(signals)
-        summary, _confidence = build_reason_summary(signals, breakdown)
-
         prospect.first_name = profile.first_name
         prospect.last_name = profile.last_name
         prospect.full_name = profile.full_name
@@ -199,11 +193,43 @@ class IngestionPipeline:
         prospect.address_state = profile.address_state
         prospect.zip_code = profile.zip_code
         prospect.phone = profile.phone
+        prospect.identity_confidence = profile.identity_confidence
+
+        self.store_scores(prospect, profile, reference_date)
+        prospect.identity_matches = [
+            IdentityMatch(
+                source_a=m.source_a,
+                record_a_id=m.record_a_id,
+                source_b=m.source_b,
+                record_b_id=m.record_b_id,
+                score=m.score,
+                reason=m.reason,
+            )
+            for m in profile.matches
+        ]
+
+    def store_scores(
+        self,
+        prospect: Prospect,
+        profile: ResolvedProspect,
+        reference_date: date,
+        note: str | None = None,
+    ) -> None:
+        """Detect, score, and store — the part of `_apply` a rescore can
+        redo from stored data (python -m app.scoring --rescore). Reads the
+        licence gate and identity confidence from the profile."""
+        signals = self.detector.detect(profile, reference_date)
+        breakdown = self.engine.score(
+            signals,
+            identity_confidence=profile.identity_confidence,
+            rankable=is_rankable(profile.license_status),
+        )
+        summary, _confidence = build_reason_summary(signals, breakdown)
+
         prospect.qualification_score = breakdown.qualification_score
         prospect.timing_score = breakdown.timing_score
         prospect.total_score = breakdown.total_score
         prospect.reason_summary = summary
-        prospect.identity_confidence = profile.identity_confidence
 
         # Append (never replace) — the score trajectory across ingests is
         # what makes rising/falling prospects visible
@@ -212,6 +238,7 @@ class IngestionPipeline:
                 qualification_score=breakdown.qualification_score,
                 timing_score=breakdown.timing_score,
                 total_score=breakdown.total_score,
+                note=note,
             )
         )
 
@@ -225,15 +252,4 @@ class IngestionPipeline:
                 confidence=s.confidence,
             )
             for s in signals
-        ]
-        prospect.identity_matches = [
-            IdentityMatch(
-                source_a=m.source_a,
-                record_a_id=m.record_a_id,
-                source_b=m.source_b,
-                record_b_id=m.record_b_id,
-                score=m.score,
-                reason=m.reason,
-            )
-            for m in profile.matches
         ]

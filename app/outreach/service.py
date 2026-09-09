@@ -10,8 +10,8 @@ from app.models import Prospect
 
 # Which trigger the advisor leads with, best first. PROPERTY_EVENT is
 # deliberately absent — it raises urgency but is never mentioned to the
-# prospect. PRACTICE_ENTRY is the last resort.
-TRIGGER_PRIORITY = ("OWNERSHIP", "CAREER_ADVANCEMENT", "NEW_LICENSE", "PRACTICE_ENTRY")
+# prospect. CAREER_STAGE is a state, not an event, so it is not a trigger.
+TRIGGER_PRIORITY = ("OWNERSHIP", "CAREER_ADVANCEMENT", "NEW_LICENSE")
 
 
 @dataclass(frozen=True)

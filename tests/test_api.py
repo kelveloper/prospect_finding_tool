@@ -264,6 +264,10 @@ def test_new_property_raises_score_and_shows_movement(client, live_stub):
         p for p in client.get("/prospects/ranked").json() if p["name"] == "John Smith"
     )
     assert smith_after["score"] > smith_before["score"]
+    # The move is explained: it came from timing (a property event), not value
+    assert smith_after["timing_change"] > 0
+    assert smith_after["value_change"] == 0
+    assert smith_after["score_change_note"] is None
     assert smith_after["score_change"] > 0
 
     detail = client.get(f"/prospects/{smith_after['id']}").json()
@@ -527,3 +531,52 @@ def test_ranked_board_does_not_lazy_load_per_row(client, db_session):
     # One SELECT for prospects plus one per eager-loaded relationship —
     # never one per prospect
     assert len(statements) <= 6, statements
+
+
+# ── Value × Timing: the gate and bands by standing ──
+def test_ranked_rows_carry_standing_and_bands(client):
+    _ingest(client)
+    rows = client.get("/prospects/ranked").json()
+    assert [r["rank"] for r in rows] == list(range(1, len(rows) + 1))
+    assert all(r["book_size"] == len(rows) for r in rows)
+    assert rows[0]["tier"] == "strong"          # #1 is always Top Prospect
+    assert all(r["tier"] in {"strong", "promising", "neutral", "weak", "poor"} for r in rows)
+    # Every row carries its latest event date per signal type, undated ones as null
+    assert "signal_dates" in rows[0]
+    assert rows[0]["signal_dates"].get("PHYSICIAN", "missing") is None
+    # A filtered list keeps true standing
+    certain = client.get("/prospects/ranked?tier=certain").json()
+    by_id = {r["id"]: r for r in rows}
+    assert all(r["rank"] == by_id[r["id"]]["rank"] for r in certain)
+
+
+def test_non_active_license_is_not_ranked(client, live_stub):
+    from app.adapters.base import RawProviderRecord
+    live_stub["feeds"]["nppes"].append(
+        RawProviderRecord(
+            source="npi", source_record_id="1234567899", first_name="Lapsed",
+            last_name="Lloyd", specialty="Orthopaedic Surgery", state="IL",
+            npi="1234567899", license_number="036-999999",
+            enumeration_date=TODAY - timedelta(days=30),
+        )
+    )
+    live_stub["feeds"]["idfpr"].append(
+        RawProviderRecord(
+            source="idfpr", source_record_id="036-999999", first_name="Lapsed",
+            last_name="Lloyd", specialty="Orthopaedic Surgery", state="IL",
+            license_number="036-999999", license_issue_date=TODAY - timedelta(days=20),
+            license_status="NOT RENEWED",
+        )
+    )
+    _ingest(client)
+    rows = client.get("/prospects/ranked").json()
+    lloyd = next(r for r in rows if r["name"] == "Lapsed Lloyd")
+    assert lloyd["score"] == 0
+    assert lloyd["license_status"] == "NOT RENEWED"
+    assert lloyd["tier"] == "poor"
+    assert rows[-1]["id"] == lloyd["id"]                       # sorted last
+    assert all(r["book_size"] == len(rows) - 1 for r in rows)  # not counted in the book
+    # Value and timing survive on the detail — only the priority is zeroed
+    detail = client.get(f"/prospects/{lloyd['id']}").json()
+    assert detail["qualification_score"] > 0
+    assert "Not ranked" in detail["reason_summary"]

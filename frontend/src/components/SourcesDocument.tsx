@@ -1,4 +1,9 @@
-import type { MatchEvidenceItem, ScoreComponentItem, SignalItem } from "@/lib/data";
+import type {
+  MatchEvidenceItem,
+  ScoreComponentItem,
+  SignalItem,
+} from "@/lib/data";
+import { isLicenseGated } from "@/lib/tier";
 import {
   AuditTrail,
   Drawer,
@@ -19,43 +24,85 @@ function entityFrom(description: string): string | null {
 
 type Rule = { label: string; value: number | null };
 
-const RECENCY_LADDER: Rule[] = [
-  { label: "In the last 6 months", value: 1.0 },
-  { label: "6 to 12 months ago", value: 0.85 },
-  { label: "1 to 2 years ago", value: 0.6 },
-  { label: "2 to 3 years ago", value: 0.3 },
-  { label: "More than 3 years ago", value: 0.1 },
+/** An event loses half its value every year (0.5 ^ months/12). These rows
+ *  are landmarks on that curve; a signal lands on the nearest one. */
+const HALF_LIFE_LADDER: Rule[] = [
+  { label: "This month", value: 1.0 },
+  { label: "About six months ago", value: 0.71 },
+  { label: "About a year ago", value: 0.5 },
+  { label: "About two years ago", value: 0.25 },
+  { label: "Three years ago or more", value: 0.13 },
   { label: "Nothing on record", value: 0 },
 ];
 
 const RULEBOOK: Record<string, Rule[]> = {
-  "Physician standing": [
-    { label: "License confirmed with the state", value: 1.0 },
-    { label: "Only in the national register, license unconfirmed", value: 0.7 },
-    { label: "License is not active", value: 0.5 },
+  // Medscape over-$5M wealth share, scaled so the top is 1.0
+  "Specialty wealth tier": [
+    { label: "Radiology, orthopedic or neurological surgery", value: 1.0 },
+    { label: "Cardiology", value: 0.9 },
+    { label: "Anesthesiology", value: 0.8 },
+    { label: "Plastic surgery", value: 0.75 },
+    { label: "Otolaryngology", value: 0.7 },
+    { label: "Ob/gyn, urology or general surgery", value: 0.65 },
+    { label: "Gastroenterology or ophthalmology", value: 0.6 },
+    { label: "Nephrology, pathology or public health", value: 0.55 },
+    {
+      label: "Emergency medicine, or a specialty not on the chart",
+      value: 0.5,
+    },
+    { label: "Allergy and immunology", value: 0.45 },
+    { label: "Internal medicine and its subspecialties", value: 0.4 },
+    { label: "Dermatology, oncology or neurology", value: 0.35 },
+    { label: "Psychiatry, critical care or family medicine", value: 0.3 },
+    { label: "Pediatrics, rehabilitation or rheumatology", value: 0.25 },
   ],
-  "Specialty earning tier": [
-    { label: "Orthopedic, neurological or plastic surgery", value: 1.0 },
-    { label: "Cardiology", value: 0.95 },
-    { label: "Dermatology or gastroenterology", value: 0.9 },
-    { label: "Anesthesiology or radiology", value: 0.85 },
-    { label: "Urology", value: 0.8 },
-    { label: "Oncology", value: 0.75 },
-    { label: "Emergency medicine", value: 0.6 },
-    { label: "Internal medicine", value: 0.45 },
-    { label: "Family medicine, pediatrics or other", value: 0.4 },
-  ],
+  // entity strength × tenure factor (under 10 yrs 1.0 · 10–20 yrs 0.6 · 20+ yrs 0.3)
   "Practice ownership": [
-    { label: "Bills through his own practice", value: 0.8 },
-    { label: "Bills through his own company", value: 0.55 },
-    { label: "His own practice, but it is not active", value: null },
+    { label: "His own practice, under ten years in", value: 1.0 },
+    { label: "His own practice, ten to twenty years in", value: 0.6 },
+    {
+      label: "His own company (not a medical practice), under ten years in",
+      value: 0.6,
+    },
+    { label: "His own practice, over twenty years in", value: 0.3 },
+    {
+      label: "Discounted further — inactive entity, or tenure unknown",
+      value: null,
+    },
     { label: "No practice in his own name", value: 0 },
   ],
-  "License recency": RECENCY_LADDER,
-  "Practice entry (NPI enumeration)": RECENCY_LADDER,
-  "Property purchase recency": RECENCY_LADDER,
+  // points out of 30 by years since NPI enumeration
+  "Career stage": [
+    { label: "5 to 15 years in — peak accumulation years", value: 1.0 },
+    { label: "15 to 20 years in — established", value: 0.67 },
+    {
+      label: "3 to 5 years in — early attending, or years unknown",
+      value: 0.5,
+    },
+    { label: "Over 20 years in — late career", value: 0.33 },
+    { label: "Under 3 years in — first attending years", value: 0.17 },
+  ],
+  "License recency": [
+    {
+      label: "Relocation this month (3+ years already in practice)",
+      value: 1.0,
+    },
+    { label: "Relocation about six months ago", value: 0.71 },
+    {
+      label: "Relocation about a year ago, or a first license this month",
+      value: 0.5,
+    },
+    { label: "A first license about six months ago", value: 0.35 },
+    { label: "Older than that", value: null },
+    { label: "No license date on record", value: 0 },
+  ],
+  "Property purchase recency": HALF_LIFE_LADDER,
   "Career advancement": [
-    { label: "A new practice or hospital showed up", value: null },
+    { label: "Formed his own practice this month", value: 1.0 },
+    { label: "Formed his own practice about a year ago", value: 0.5 },
+    { label: "Changed billing group this month", value: 0.3 },
+    { label: "Changed billing group about a year ago", value: 0.15 },
+    { label: "Older than that", value: null },
     { label: "No move yet — we need next month\u2019s data", value: 0 },
   ],
 };
@@ -80,16 +127,17 @@ const NARRATION_FLOOR = 0.3;
 /** What each scored line actually asks, in the reader's words. The keys are
  *  the internal labels the API sends. */
 const QUESTIONS: Record<string, string> = {
-  "Physician standing": "Is he a licensed doctor?",
-  "Specialty earning tier": "How well does his specialty pay?",
+  "Specialty wealth tier": "How wealthy does his specialty get?",
   "Practice ownership": "Does he own his practice?",
-  "Practice entry (NPI enumeration)": "How long has he been practicing?",
+  "Career stage": "Where is he in his career?",
   "License recency": "How new is his Illinois license?",
   "Property purchase recency": "How recently did he buy a home?",
   "Career advancement": "Has he changed jobs?",
 };
 
-/** Which rulebook row this component's strength lands on. */
+/** Which rulebook row this component's strength lands on: an exact match
+ *  when there is one, otherwise the nearest landmark — the half-life curve
+ *  is continuous, so most timing rows land between two. */
 function currentRow(label: string, strength: number): number {
   const rules = RULEBOOK[label] ?? [];
   const exact = rules.findIndex(
@@ -97,8 +145,19 @@ function currentRow(label: string, strength: number): number {
   );
   if (exact >= 0) return exact;
   if (strength === 0) return rules.findIndex((r) => r.value === 0);
-  // Non-zero, no exact value (career × recency, inactive multiplier)
-  return rules.findIndex((r) => r.value === null);
+  const wildcard = rules.findIndex((r) => r.value === null);
+  let best = -1;
+  let bestGap = Infinity;
+  rules.forEach((r, i) => {
+    if (r.value === null || r.value === 0) return;
+    const gap = Math.abs(r.value - strength);
+    if (gap < bestGap) {
+      bestGap = gap;
+      best = i;
+    }
+  });
+  // Far from every landmark: the "older than that / discounted" row
+  return bestGap <= 0.12 || wildcard < 0 ? best : wildcard;
 }
 
 /* ── UI ─────────────────────────────────────────────────────────── */
@@ -106,12 +165,22 @@ function currentRow(label: string, strength: number): number {
 /** One scored line, in the same row-plus-drawer shape as the gates ledger so
  *  the page only has one reading pattern. No master-detail selection: every
  *  line's rulebook lives in its own drawer. */
-function ScoreRow({ item, color }: { item: ScoreComponentItem; color: string }) {
+function ScoreRow({
+  item,
+  color,
+  confidence = 1,
+}: {
+  item: ScoreComponentItem;
+  color: string;
+  /** Identity confidence — multiplies timing rows only. */
+  confidence?: number;
+}) {
   const rules = RULEBOOK[item.label] ?? [];
   const current = currentRow(item.label, item.strength);
   const landed = rules[current]?.label;
   const pct = item.maxPoints > 0 ? (item.points / item.maxPoints) * 100 : 0;
   const empty = item.points === 0;
+  const discounted = item.category === "timing" && confidence < 0.999;
 
   return (
     <details className="group border-b border-surface-soft last:border-b-0">
@@ -120,10 +189,17 @@ function ScoreRow({ item, color }: { item: ScoreComponentItem; color: string }) 
           <span className="block font-display text-[14.5px] font-bold tracking-[-0.2px] text-ink">
             {QUESTIONS[item.label] ?? item.label}
           </span>
-          <span className="block text-[11.5px] text-ink-muted">{item.label}</span>
+          <span className="block text-[11.5px] text-ink-muted">
+            {item.label}
+          </span>
         </span>
 
-        <span className={"text-[13.5px] leading-[19px] " + (empty ? "text-ink-muted" : "text-ink")}>
+        <span
+          className={
+            "text-[13.5px] leading-[19px] " +
+            (empty ? "text-ink-muted" : "text-ink")
+          }
+        >
           {landed ?? "—"}
         </span>
 
@@ -136,7 +212,10 @@ function ScoreRow({ item, color }: { item: ScoreComponentItem; color: string }) 
           </span>
           <span className="shrink-0 font-display text-[14px] font-bold tabular-nums text-ink">
             {item.points}
-            <span className="font-normal text-ink-muted"> / {item.maxPoints}</span>
+            <span className="font-normal text-ink-muted">
+              {" "}
+              / {item.maxPoints}
+            </span>
           </span>
         </span>
 
@@ -162,13 +241,17 @@ function ScoreRow({ item, color }: { item: ScoreComponentItem; color: string }) 
                   }
                   style={
                     active
-                      ? { backgroundColor: "color-mix(in srgb, " + color + " 12%, white)" }
+                      ? {
+                          backgroundColor:
+                            "color-mix(in srgb, " + color + " 12%, white)",
+                        }
                       : undefined
                   }
                 >
                   <span
                     className={
-                      "text-[13px] " + (active ? "font-semibold text-ink" : "text-ink-muted")
+                      "text-[13px] " +
+                      (active ? "font-semibold text-ink" : "text-ink-muted")
                     }
                   >
                     {rule.label}
@@ -184,10 +267,16 @@ function ScoreRow({ item, color }: { item: ScoreComponentItem; color: string }) 
                   <span
                     className={
                       "shrink-0 rounded-full px-2 py-0.5 font-display text-[12px] font-bold tabular-nums " +
-                      (active ? "bg-white text-ink" : "bg-surface-soft text-ink-muted")
+                      (active
+                        ? "bg-white text-ink"
+                        : "bg-surface-soft text-ink-muted")
                     }
                   >
-                    {rule.value === null ? "×" : rule.value === 0 ? "0" : rule.value.toFixed(2)}
+                    {rule.value === null
+                      ? "×"
+                      : rule.value === 0
+                        ? "0"
+                        : rule.value.toFixed(2)}
                   </span>
                 </div>
               );
@@ -220,9 +309,16 @@ function ScoreRow({ item, color }: { item: ScoreComponentItem; color: string }) 
           <DrawerNote>
             This question is worth up to {item.maxPoints} points, so{" "}
             <span className="font-display font-semibold text-ink tabular-nums">
-              {item.strength.toFixed(2)} × {item.maxPoints} = {item.points}
+              {item.strength.toFixed(2)} × {item.maxPoints}
+              {discounted
+                ? ` × ${confidence.toFixed(2)} identity confidence`
+                : ""}{" "}
+              = {item.points}
             </span>{" "}
             points.
+            {discounted
+              ? " The confidence factor is how sure we are these records are his — a single-source profile keeps 60%."
+              : ""}
           </DrawerNote>
         </Drawer>
       </div>
@@ -235,27 +331,33 @@ function ScoreGroup({
   question,
   subtitle,
   subtotal,
-  weight,
+  rule,
   items,
   color,
+  confidence = 1,
 }: {
   question: string;
   subtitle: string;
   subtotal: number;
-  weight: number;
+  /** How the lines combine — "adds up to 100" or "strongest one counts". */
+  rule: string;
   items: ScoreComponentItem[];
   color: string;
+  confidence?: number;
 }) {
   return (
     <section className="rounded-[16px] bg-white px-6 py-5 shadow-card">
       <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b border-surface-soft pb-4">
-        <span className="h-4 w-[3px] shrink-0 self-center rounded-full" style={{ backgroundColor: color }} />
+        <span
+          className="h-4 w-[3px] shrink-0 self-center rounded-full"
+          style={{ backgroundColor: color }}
+        />
         <h2 className="font-display text-[19px] font-bold tracking-[-0.4px] text-ink">
           {question}
         </h2>
         <p className="ml-auto font-display text-[14px] text-ink-muted tabular-nums">
-          <span className="font-bold text-ink">{subtotal}</span> out of 100 ·
-          counts for {weight}% of the score
+          <span className="font-bold text-ink">{subtotal}</span> out of 100 ·{" "}
+          {rule}
         </p>
         <p className="w-full max-w-[86ch] text-[14px] leading-[21px] text-ink-muted">
           {subtitle}
@@ -263,13 +365,17 @@ function ScoreGroup({
       </div>
       <div className="mt-3">
         {items.map((item) => (
-          <ScoreRow key={item.label} item={item} color={color} />
+          <ScoreRow
+            key={item.label}
+            item={item}
+            color={color}
+            confidence={confidence}
+          />
         ))}
       </div>
     </section>
   );
 }
-
 
 export default function SourcesDocument({
   qualificationScore,
@@ -280,6 +386,7 @@ export default function SourcesDocument({
   identityConfidence,
   signalTypesCount,
   signals,
+  licenseStatus = null,
 }: {
   qualificationScore: number;
   timingScore: number;
@@ -289,11 +396,14 @@ export default function SourcesDocument({
   identityConfidence: number;
   signalTypesCount: number;
   signals: SignalItem[];
+  licenseStatus?: string | null;
 }) {
   const qual = components.filter((c) => c.category === "qualification");
   const timing = components.filter((c) => c.category === "timing");
   const QUAL = "var(--color-brand)";
   const TIMING = "var(--color-tier-strong)";
+  const gated = isLicenseGated(licenseStatus);
+  const multiplier = 0.6 + 0.4 * (timingScore / 100);
 
   /* ── Every check we ran on this prospect, as ledger rows ─────────
      Three gates used to be three different layouts. They are all the same
@@ -335,6 +445,41 @@ export default function SourcesDocument({
     ),
   };
 
+  const licenseRow: LedgerRowData = {
+    key: "license-gate",
+    status: gated ? "none" : licenseStatus ? "found" : "pending",
+    where: "Is his license active?",
+    whereSub: "Illinois medical board",
+    found: gated
+      ? `No — ${licenseStatus}. Not ranked.`
+      : licenseStatus
+        ? `Yes — ${licenseStatus}`
+        : "No state record — ranked, but unverified",
+    how: "A present, non-active status sets his priority to zero",
+    drawer: (
+      <>
+        <Drawer title="The rule">
+          <DrawerNote>
+            The gate sits outside the arithmetic. An expired, inactive or
+            suspended license means he cannot be a prospect right now, whatever
+            his value, so his priority is zero and he sorts last. No state
+            record at all is not a verdict — he stays ranked, and his identity
+            confidence already discounts what the records can claim.
+          </DrawerNote>
+        </Drawer>
+        <Drawer title="What happened here">
+          <DrawerNote>
+            {gated
+              ? "His license status is not active, so nothing below changes his place on the board until it is renewed."
+              : licenseStatus
+                ? "His license is active, so he is ranked and the rest of this page applies."
+                : "We never found him in the state register, so there was nothing to gate on."}
+          </DrawerNote>
+        </Drawer>
+      </>
+    ),
+  };
+
   const ownershipRow: LedgerRowData = {
     key: "ownership",
     status: ownSignal ? "found" : hasBilling ? "none" : "pending",
@@ -345,7 +490,9 @@ export default function SourcesDocument({
       : hasBilling
         ? "No — he bills through someone else's group"
         : "Nothing to check",
-    worth: ownComp ? `${ownComp.points} of ${ownComp.maxPoints} points` : undefined,
+    worth: ownComp
+      ? `${ownComp.points} of ${ownComp.maxPoints} points`
+      : undefined,
     how: "His own name has to be in the business name",
     drawer: (
       <>
@@ -381,7 +528,9 @@ export default function SourcesDocument({
     where: "Has he changed jobs?",
     whereSub: "Medicare records, month to month",
     found: careerSignal ? careerSignal.description : "Nothing to compare yet",
-    worth: careerComp ? `${careerComp.points} of ${careerComp.maxPoints} points` : undefined,
+    worth: careerComp
+      ? `${careerComp.points} of ${careerComp.maxPoints} points`
+      : undefined,
     how: "Not a match — a comparison against last month",
     drawer: (
       <>
@@ -439,6 +588,7 @@ export default function SourcesDocument({
   const rows: LedgerRowData[] = [
     eligibilityRow,
     ...sources,
+    licenseRow,
     ownershipRow,
     jobRow,
     summaryRow,
@@ -454,7 +604,10 @@ export default function SourcesDocument({
   return (
     <div className="mt-6 flex flex-col gap-8">
       {/* ── 1 · What we found ─────────────────────────────────────── */}
-      <section id="what-we-found" className="scroll-mt-24 rounded-[16px] bg-white px-6 py-5 shadow-card">
+      <section
+        id="what-we-found"
+        className="scroll-mt-24 rounded-[16px] bg-white px-6 py-5 shadow-card"
+      >
         <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b border-surface-soft pb-4">
           <span className="h-4 w-[3px] shrink-0 self-center rounded-full bg-brand" />
           <h2 className="font-display text-[19px] font-bold tracking-[-0.4px] text-ink">
@@ -517,7 +670,9 @@ export default function SourcesDocument({
                     <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-soft">
                       <span
                         className="block h-full rounded-full bg-brand"
-                        style={{ width: `${Math.round(signal.strength * 100)}%` }}
+                        style={{
+                          width: `${Math.round(signal.strength * 100)}%`,
+                        }}
                       />
                     </span>
                     <span className="shrink-0 font-display text-[13.5px] font-bold text-ink tabular-nums">
@@ -532,7 +687,10 @@ export default function SourcesDocument({
       </section>
 
       {/* ── 2 · How we knew it was him ────────────────────────────── */}
-      <section id="how-we-matched" className="scroll-mt-24 rounded-[16px] bg-white px-6 py-5 shadow-card">
+      <section
+        id="how-we-matched"
+        className="scroll-mt-24 rounded-[16px] bg-white px-6 py-5 shadow-card"
+      >
         <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b border-surface-soft pb-4">
           <span className="h-4 w-[3px] shrink-0 self-center rounded-full bg-brand" />
           <h2 className="font-display text-[19px] font-bold tracking-[-0.4px] text-ink">
@@ -541,8 +699,8 @@ export default function SourcesDocument({
               : "This match is uncertain"}
           </h2>
           <p className="ml-auto font-display text-[13px] text-ink-muted tabular-nums">
-            {Math.round(identityConfidence * 100)}% sure · {signalTypesCount} of 7
-            kinds of signal
+            {Math.round(identityConfidence * 100)}% sure · {signalTypesCount} of
+            7 kinds of signal
           </p>
           <p className="w-full max-w-[86ch] text-[14px] leading-[21px] text-ink-muted">
             {hits.length > 0
@@ -566,21 +724,40 @@ export default function SourcesDocument({
           <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
             <span className="h-4 w-[3px] shrink-0 self-center rounded-full bg-brand" />
             <h2 className="font-display text-[19px] font-bold tracking-[-0.4px] text-ink">
-              He scores {totalScore} out of 100
+              {gated
+                ? `Not ranked — license ${licenseStatus}`
+                : `His priority is ${totalScore}`}
             </h2>
           </div>
           <p className="mt-2 max-w-[86ch] text-[14px] leading-[21px] text-ink-muted">
-            Two separate questions, blended. How good a prospect he is counts
-            for most of it; how well-timed the approach is counts for the rest.
+            Two separate questions, multiplied. Value asks whether there is
+            money here and adds up three facts. Timing asks whether something
+            just happened and rates the single strongest fresh event. Timing
+            decides how much of his value he keeps — 60% when nothing has
+            happened, all of it when something big just did — and can never lift
+            a poor fit above a strong one.
           </p>
           <div className="mt-4 flex flex-col gap-2">
             {[
-              { label: "Is he worth approaching?", score: qualificationScore, weight: 60, color: QUAL },
-              { label: "Is now the right time?", score: timingScore, weight: 40, color: TIMING },
+              {
+                label: "Value — is there money here?",
+                score: qualificationScore,
+                color: QUAL,
+                note: "adds up to 100",
+              },
+              {
+                label: "Timing — did something just happen?",
+                score: timingScore,
+                color: TIMING,
+                note:
+                  identityConfidence < 0.999
+                    ? `strongest event × ${identityConfidence.toFixed(2)} identity confidence`
+                    : "the strongest single event",
+              },
             ].map((half) => (
               <div
                 key={half.label}
-                className="grid grid-cols-1 items-center gap-2 rounded-[10px] bg-canvas px-4 py-3 md:grid-cols-[minmax(190px,1fr)_1fr_210px] md:gap-4"
+                className="grid grid-cols-1 items-center gap-2 rounded-[10px] bg-canvas px-4 py-3 md:grid-cols-[minmax(230px,1fr)_1fr_250px] md:gap-4"
               >
                 <span className="font-display text-[14.5px] font-bold text-ink">
                   {half.label}
@@ -588,43 +765,67 @@ export default function SourcesDocument({
                 <span className="h-1.5 overflow-hidden rounded-full bg-surface-soft">
                   <span
                     className="block h-full rounded-full"
-                    style={{ width: `${half.score}%`, backgroundColor: half.color }}
+                    style={{
+                      width: `${half.score}%`,
+                      backgroundColor: half.color,
+                    }}
                   />
                 </span>
                 <span className="font-display text-[13.5px] text-ink-muted tabular-nums md:text-right">
-                  <span className="font-bold text-ink">{half.score}</span> out of 100,
-                  counted at {half.weight}% ={" "}
-                  <span className="font-bold text-ink">
-                    {Math.round(half.score * (half.weight / 100) * 10) / 10}
-                  </span>
+                  <span className="font-bold text-ink">{half.score}</span> out
+                  of 100 · {half.note}
                 </span>
               </div>
             ))}
+            <div className="grid grid-cols-1 gap-1 px-4 pt-1 text-[13.5px] text-ink-muted tabular-nums md:grid-cols-[minmax(230px,1fr)_1fr_250px] md:gap-4">
+              <span className="eyebrow self-center">Multiplier</span>
+              <span className="font-display">
+                0.60 + 0.40 × {timingScore} / 100 ={" "}
+                <span className="font-bold text-ink">
+                  ×{multiplier.toFixed(2)}
+                </span>
+              </span>
+              <span className="md:text-right">
+                he keeps {Math.round(multiplier * 100)}% of his value
+              </span>
+            </div>
             <div className="flex items-baseline justify-between gap-4 px-4 pt-1">
-              <span className="eyebrow">Total</span>
+              <span className="eyebrow">Priority</span>
               <span className="font-display text-[16px] font-bold text-ink tabular-nums">
-                {totalScore}
-                <span className="font-normal text-ink-muted"> / 100</span>
+                {gated ? (
+                  <>
+                    0{" "}
+                    <span className="font-normal text-ink-muted">
+                      — license gate
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    {qualificationScore} × {multiplier.toFixed(2)} ={" "}
+                    {totalScore}
+                  </>
+                )}
               </span>
             </div>
           </div>
         </div>
 
         <ScoreGroup
-          question="Is he worth approaching?"
-          subtitle="Whether he is the kind of doctor worth a conversation at all — real, licensed, well paid, and running his own practice."
+          question="Value — is there money here?"
+          subtitle="Three facts that are all true at once, so their points add: what his specialty tends to accumulate, whether he owns his practice (worth less the longer he has been in), and where he is in his career — the points peak between five and fifteen years in."
           subtotal={qualificationScore}
-          weight={60}
+          rule="adds up to 100"
           items={qual}
           color={QUAL}
         />
         <ScoreGroup
-          question="Is now the right time?"
-          subtitle="Whether something has just changed in his life that makes this a good moment to reach out."
+          question="Timing — did something just happen?"
+          subtitle="Only the strongest fresh event counts, and every event loses half its value each year. Two events do not make him twice as timely."
           subtotal={timingScore}
-          weight={40}
+          rule="strongest one counts"
           items={timing}
           color={TIMING}
+          confidence={identityConfidence}
         />
       </section>
     </div>

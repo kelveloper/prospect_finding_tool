@@ -52,6 +52,8 @@ def test_group_change_detected_on_second_sync(db_session):
     assert "Smith Orthopedics PLLC" in career[0].role_title
     assert career[0].npi == NPI
     assert career[0].event_date == REF
+    # The new group carries his surname: he formed his own practice
+    assert career[0].career_kind == "OWN_PRACTICE"
 
     # Third sync with unchanged data: no duplicate events
     svc3 = PECOSService(
@@ -116,17 +118,39 @@ def test_detector_renders_pecos_signals(db_session):
 
     prospects = IdentityResolver().resolve([
         RawProviderRecord(source="npi", source_record_id=NPI, npi=NPI,
-                          first_name="John", last_name="Smith", state="IL"),
+                          first_name="John", last_name="Smith", state="IL",
+                          enumeration_date=date(2024, 1, 1)),
     ])
     EnrichmentMatcher().attach(prospects, records)
     signals = SignalDetector().detect(prospects[0], REF)
 
     career = [s for s in signals if s.signal_type == "CAREER_ADVANCEMENT"]
     ownership = [s for s in signals if s.signal_type == "OWNERSHIP"]
-    assert career and "Started billing under new group" in career[0].description
-    assert career[0].strength == 0.8  # job move × fresh detection
+    assert career and "Formed own practice" in career[0].description
+    assert career[0].strength == 1.0  # own practice × detected today
     assert ownership and "Bills Medicare under own entity" in ownership[0].description
-    assert ownership[0].strength == 0.8  # PLLC inference, active
+    assert ownership[0].strength == 1.0  # active PLLC, under ten years in
+
+
+def test_employer_group_change_is_a_weak_trigger(db_session):
+    """A move between groups that are not the doctor's own is worth 0.3 of
+    the career weight — the employer's paperwork, not a wealth event."""
+    svc1 = PECOSService(db_session, FakeClient([_group("Old Group")]))
+    svc1.sync(NAMES, date(2026, 7, 21))
+    svc2 = PECOSService(db_session, FakeClient([_group("Northwestern Medical Group", pac="P2")]))
+    records, _ = svc2.sync(NAMES, REF)
+    career = [r for r in records if r.kind == "CAREER"]
+    assert career[0].career_kind == "GROUP_CHANGE"
+
+    prospects = IdentityResolver().resolve([
+        RawProviderRecord(source="npi", source_record_id=NPI, npi=NPI,
+                          first_name="John", last_name="Smith", state="IL"),
+    ])
+    EnrichmentMatcher().attach(prospects, records)
+    signals = SignalDetector().detect(prospects[0], REF)
+    move = [s for s in signals if s.signal_type == "CAREER_ADVANCEMENT"][0]
+    assert move.strength == 0.3
+    assert "Started billing under new group" in move.description
 
 
 def test_client_batches_and_filters():

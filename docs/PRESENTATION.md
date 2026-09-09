@@ -78,7 +78,7 @@ change, and every number is explainable to a compliance officer.
 ### 2.1 The engine in one line
 
 ```
-sources → three gate layers → signals → strength × weight → 60/40 blend
+sources → three gate layers → signals → value × timing multiplier
         → score history → contact kit
 ```
 
@@ -125,7 +125,7 @@ Data Sources — all live, free, no API keys
         ▼
 4. DETECT SIGNALS       seven signal types, each with a strength and a confidence
         ▼
-5. SCORE                Qualification (60%) + Timing (40%)
+5. SCORE                Priority = Value × (0.6 + 0.4 × Timing/100)
         ▼
 6. EXPLAIN              plain-English summary, generated deterministically
         ▼
@@ -191,7 +191,7 @@ State these out loud — they are the reason a bank could adopt this.
 - **Traceable.** Every point on a score maps to a stored signal row; every
   signal maps to a source record; every identity merge and every attach
   stores its score and a human-readable reason.
-- **Tunable without code changes.** The 60/40 weights and the merge threshold
+- **Tunable without code changes.** The timing floor and the merge threshold
   are environment settings, not constants buried in logic.
 - **Targeted, not scraped.** Every source after NPPES is queried *by key* —
   license number, NPI, buyer name — so we never bulk-download data about
@@ -265,58 +265,55 @@ why the honest ceiling on day one is 91, not 100 (see §4.5).
 
 ### 4.1 Two questions, one number
 
-| Score | The question it answers | Weight |
+| Number | The question it answers | How it is built |
 |---|---|---|
-| **Qualification** (0–100) | *Should we care about this person?* | **60%** |
-| **Timing** (0–100) | *Why now?* | **40%** |
+| **Value** (0–100) | *Is there money here?* | Three facts that are all true at once — their points add |
+| **Timing** (0–100) | *Did something just happen?* | The single strongest fresh event, never a sum |
 
 ```
-TOTAL = (Qualification × 0.60) + (Timing × 0.40)
+Priority = Value × (0.60 + 0.40 × Timing / 100)
 ```
 
-**Why 60/40:** a great prospect at an okay moment is still a great prospect;
-a mediocre prospect at a perfect moment is still mediocre. Both weights are
-environment variables (`QUALIFICATION_WEIGHT`, `TIMING_WEIGHT`) — a business
-owner can retune them without an engineering ticket.
+**Why multiply:** timing decides how much of a prospect's own value they
+keep — 60% when nothing has happened, all of it when something big just did.
+It can never lift a poor fit above a strong one. The 0.60 floor is an
+environment variable (`TIMING_FLOOR`). A licence that is present and not
+active gates the prospect out entirely (Priority 0, "Not ranked").
 
-### 4.2 Qualification — "should we care?" (100 points)
+### 4.2 Value — "is there money here?" (adds to 100)
 
 | Component | Max points | How strength (0–1) is decided |
 |---|---:|---|
-| **Physician standing** | 40 | Active IDFPR-verified license = 1.0 · NPI only, license unverified = 0.7 · license present but not active = 0.5 |
-| **Specialty earning tier** | 35 | Orthopedic / neurological / plastic surgery = 1.0 · cardiovascular disease = 0.95 · dermatology, gastroenterology = 0.9 · anesthesiology, radiology = 0.85 · urology = 0.8 · oncology = 0.75 · emergency medicine = 0.6 · internal medicine = 0.45 · family medicine, pediatrics, unknown = 0.4 |
-| **Practice ownership** | 25 | Bills under own PLLC / PC / SC = 0.8 · own generic LLC = 0.55 · × 0.6 if the entity is inactive · none found = 0 |
+| **Specialty wealth tier** | 45 | Share of the specialty with net worth over $5M (Medscape), scaled so the top is 1.0: radiology, orthopaedic and neurological surgery 1.0 · cardiology 0.9 · anesthesiology 0.8 · plastic surgery 0.75 · … · internal medicine 0.4 · dermatology 0.35 · family medicine 0.3 · pediatrics 0.25 |
+| **Practice ownership** | 25 | Active PLLC / PC / SC = 1.0, other entity 0.6, × 0.6 if inactive — then × a tenure factor: under 10 years in 1.0 · 10–20 years 0.6 · over 20 years 0.3 |
+| **Career stage** | 30 | A hump by years since NPI enumeration: under 3 → 5 · 3–5 → 15 · **5–15 → 30** · 15–20 → 20 · 20+ → 10 |
 
 `points = max_points × strength`
 
-The first two components say *high earner*. The third says *business owner,
-not employee* — the point in the hypothesis where wealth starts compounding.
+The target is stated once and every constant follows from it: physicians
+5–15 years in, in high-earning specialties. Under 35, 96% of physicians are
+below $1M net worth; at 17+ years in, two thirds already use an advisor.
 
-> Ownership tops out at 0.8, never 1.0, because today's evidence is a billing
-> inference rather than a registry filing. When the paid registry source lands
-> (§14), that ceiling lifts to 0.9. **The scoring engine already handles both.**
+### 4.3 Timing — "did something just happen?" (strongest event only)
 
-### 4.3 Timing — "why now?" (100 points)
+Every dated event scores `weight × 0.5^(months/12) × identity confidence`,
+and Timing is the highest one. An event loses half its value every year:
 
-Timing is entirely about recency. Every date-driven component runs through
-one shared decay curve:
-
-| Event happened | ≤ 6 mo | ≤ 12 mo | ≤ 24 mo | ≤ 36 mo | older |
+| Event happened | this month | 6 mo | 1 yr | 2 yrs | 3 yrs |
 |---|---:|---:|---:|---:|---:|
-| **Strength** | 1.0 | 0.85 | 0.6 | 0.3 | 0.1 |
+| **Decay** | 1.0 | 0.71 | 0.50 | 0.25 | 0.13 |
 
-Components, in career chronology:
-
-| Component | Max points | The date that drives it |
+| Event | Weight | The date that drives it |
 |---|---:|---|
-| **Practice entry** (NPI enumeration) | 15 | NPPES enumeration date |
-| **License recency** | 40 | IDFPR original license issue date |
-| **Property purchase** | 30 | Deed transfer date |
-| **Career advancement** | 15 | Detection date of a new billing group or facility, × 0.8 role weight |
+| **Formed own practice** | 100 | Detection date of a new billing group carrying the doctor's surname |
+| **Property purchase** | 80 | Deed transfer date |
+| **New licence, 3+ years after entering practice** (a relocation) | 60 | IDFPR licence issue date |
+| **New licence, under 3 years** (a residency graduate) | 30 | IDFPR licence issue date |
+| **Employer billing-group or facility change** | 30 | Detection date |
 
-**Why licenses dominate timing:** a new license is the cleanest public marker
-of "this person's physician income starts now." Licensed 8 months ago →
-40 × 0.85 = 34 points. Licensed in 2018 → 40 × 0.1 = 4 points.
+**Why the split on licences:** a first licence is graduation — debt, not
+assets. A licence issued years into a career is an established physician
+relocating, exactly when financial relationships get rebuilt.
 
 ### 4.4 Worked example — the full chain
 
@@ -605,7 +602,7 @@ One card per dimension of evidence:
   strength.
 - **Contact Kit** — mail address, practice phone, the primary trigger, and the
   letter draft behind a Copy button (§9).
-- **Score Breakdown** — the 60/40 math, with each group expandable to show
+- **Score Breakdown** — value × timing, with each group expandable to show
   every tier in the rulebook and which one this prospect landed on.
 
 Cards with no evidence say **"None on record"** rather than hiding. An empty
@@ -998,15 +995,15 @@ tests/               60 tests across identity, scoring, reasons, all four
 
 | What | File |
 |---|---|
-| Component point values | `app/scoring/engine.py` (`QUAL_WEIGHTS`, `TIMING_WEIGHTS`) |
-| Specialty tiers, recency decay curve | `app/scoring/detector.py` (`SPECIALTY_TIERS`, `recency_strength`) |
-| The 60/40 top-level weights, merge threshold | `app/config.py` (environment-overridable) |
+| Component point values, timing weights, the floor, band shares | `app/scoring/engine.py` (`VALUE_WEIGHTS`, `TIMING_WEIGHTS`, `TIMING_FLOOR`, `TIER_SHARES`) |
+| Specialty tiers, tenure factors, career-stage bands, the half-life | `app/scoring/detector.py` |
+| The timing floor, merge threshold | `app/config.py` (environment-overridable) |
 | Plain-English summary templates | `app/scoring/reasons.py` |
 | Outreach letter templates and rules | `app/outreach/templates.py`, `app/outreach/service.py` |
 | Match thresholds and rules | `app/identity/resolver.py`, `app/identity/enrichment.py` |
 | Which specialties get swept | `app/adapters/npi/live.py` (`DEFAULT_SPECIALTIES`) |
 | Property price floor and lookback | `app/adapters/cook_county/live.py` |
-| Tier labels shown in the UI | `frontend/src/lib/api.ts` (`tierFromScore`) |
+| Tier names shown in the UI (bands come from standing, stamped by the API) | `frontend/src/lib/tier.ts` (`TIER_LABELS`) |
 | The rulebook shown in the scoring section | `frontend/src/components/SourcesDocument.tsx` (`RULEBOOK`) |
 
 **To retune and see it move:** edit a tier or weight → `pytest tests/ -q` →

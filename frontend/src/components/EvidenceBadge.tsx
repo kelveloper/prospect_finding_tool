@@ -33,24 +33,27 @@ const STATES = {
 
 export default function EvidenceBadge({
   evidence,
-  qualification,
+  value,
   timing,
 }: {
   evidence: Candidate["evidence"];
-  qualification: number;
+  /** Value — is there money here, 0–100. */
+  value: number;
+  /** Timing — did something just happen, 0–100; sets the multiplier. */
   timing: number;
 }) {
   const thin = evidence.level === "thin";
   const state = STATES[evidence.level];
 
+  const multiplier = (0.6 + 0.4 * (timing / 100)).toFixed(2);
   const halves = [
-    { label: "Qualification", weight: "60%", value: qualification },
-    { label: "Timing", weight: "40%", value: timing },
+    { label: "Value", weight: "money here", value },
+    { label: "Timing", weight: `×${multiplier}`, value: timing },
   ];
 
   const spoken =
-    `What makes this score. Qualification ${qualification} of 100, weighted 60 percent. ` +
-    `Timing ${timing} of 100, weighted 40 percent. ` +
+    `What makes this score. Value ${value} of 100. ` +
+    `Timing ${timing} of 100, which sets the multiplier to ${multiplier}. ` +
     `Built on ${evidence.found} of ${evidence.total} signals: ` +
     evidence.signals
       .map((s) => `${s.label} ${s.present ? "found" : "not found"}`)

@@ -1,6 +1,6 @@
 import type { FieldChangeItem } from "@/lib/data";
 
-const FIELD_LABELS: Record<string, string> = {
+export const FIELD_LABELS: Record<string, string> = {
   specialty: "Specialty",
   license_status: "License status",
   license_issue_date: "License issue date",
