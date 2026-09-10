@@ -27,15 +27,19 @@ Companion to `one-doctor-trace.html`. Main script ≈3 minutes; Q&A ammunition a
 - "And every row walks through that gate — even the ones matched by licence number, where the check is trivial. That's deliberate, and I'm happy to say why." *(← planted hook)*
 
 ## Steps 6–7 — facts become claims
-- "Step 6 is the last moment everything is a quote — four rows, each with a receipt. Step 7 is where the system forms opinions: this licence date *means* a career just started; this PLLC *means* she's an owner. Seven signals, and every one carries two honesty numbers — how much it matters if true, and how sure we are it's true."
-- "Notice the licence feeds both sides of the scorecard, and that's not double-counting: that it's *active* answers 'should we care'; that it's *eight months old* answers 'why now.' What a thing is, versus when it happened."
+- "Step 6 is the last moment everything is a quote — four rows, each with a receipt. Step 7 is where the system forms opinions: this NPI date *means* she is seven months into her career; this PLLC *means* she's an owner; this deed *means* money just moved. Seven signals, and every one carries two honesty numbers — how much it matters if true, and how sure we are it's true."
+- "Notice the licence does two different jobs, and that's not double-counting: that it's *active* is the gate — a lapsed licence and she isn't ranked at all, whatever else is true. That it's *eight months old* is a timing event. What a thing is, versus when it happened."
 
 ## Gate 3 and the score
-- "Seven claims reach the last gate. Six are backed and earn points. The seventh — career move — would be worth fifteen and scores exactly zero, because proving someone *moved* takes two photographs and we've taken one. Valuable-but-unproven earns nothing."
-- "Should we care: 95. Why now: 76.8. Weighted 60/40 → **87.7**. Worth gets the bigger weight because worth is durable; timing decays."
+- "Seven claims reach the last gate. Six are backed. The seventh — career move — would be worth the most of anything here, a hundred, and scores exactly zero, because proving someone *moved* takes two photographs and we've taken one. Valuable-but-unproven earns nothing."
+- "Two questions, two numbers. **Is there money here?** Three facts that are all true at once, so they add: orthopaedics is the top wealth tier, forty-five; she bills under her own PLLC, twenty-five; she is seven months in — first attending years — five. **Value 75.** The money isn't all there yet, and the score says so."
+- "**Did something just happen?** Not a sum — the single strongest fresh event. The house, two months ago, eighty times a freshness of point-eight-nine: **71**. The licence is the runner-up at nineteen, and it only counts at half weight because it's a *first* licence — graduation, not a relocation. Every event halves in value each year."
+- "Then the two multiply. Timing sets how much of her value she keeps: sixty percent when nothing has happened, all of it when something big just did. Point-six plus point-four times point-seven-one is **×0.885**. Seventy-five times that: **66.4**."
+- "Why multiply and not add? Because adding lets a broke doctor with a fresh event outrank a wealthy one having a quiet month. Multiplying means timing can only decide how much of *her own* value she keeps. You can wait for a good prospect; you can't turn a bad one into a good one by calling at the right moment."
+- "And sixty-six is not a grade. The best number on a quiet week sits in the sixties by design, so the label comes from standing: the top five percent of the book are Top Prospects, and on today's book 66.4 is #1 of 1,088."
 
 ## Close — the three outputs
-- "The advisor gets a ranked board — who to look at first; a dossier — an LLM-written summary of who she is and why now, with every point of the score traced to its source row; and a contact kit — the practical opener, leading with the new PLLC. One handwritten question, four public sources, one defensible score."
+- "The advisor gets a ranked board — who to look at first, with the band from where she stands; a dossier — an LLM-written summary of who she is and why now, with every point of the priority traced to its source row and every move in her score explained; and a contact kit — the practical opener, leading with the new PLLC. One handwritten question, four public sources, one defensible number."
 
 **If asked "so is the summary AI-generated?"** — "Two tiers, on purpose. The moment a prospect is created, a deterministic composer writes a first narrative from the signals — so no prospect ever shows raw pipeline text. An offline LLM pass then upgrades summaries in batches, and an LLM summary is never silently overwritten by a sweep: if the underlying facts change, the summary is flagged *stale* until the next LLM refresh rewrites it. The facts and the score are never LLM-generated — only the prose that explains them. The LLM writes the sentences; the pipeline supplies every fact in them."
 
@@ -56,11 +60,17 @@ Concede: "It is — that check would be safe at the door." Fine print: "But 'uni
 "A written ladder in one file: licence number 1.0, exact name + state 0.95, first initial 0.70 — and 0.70 is under the 0.80 bar unless something corroborates (same specialty adds 0.15 → 0.85, merges barely). A barely-merge is remembered: a profile's identity confidence is its *weakest* merge, forever."
 
 **"What's the highest score possible?" — THE CEILINGS**
-- **New prospect ceiling: exactly 91.0.** Qualification maxes at 95 (ownership is a billing inference, permanently capped at 0.8 strength → 20 of 25 points). Timing maxes at 85 on a first run (career move locked at 0; everything else at full strength if under 6 months old — the recency cliff). 95×0.6 + 85×0.4 = 91.0.
-- **All-time ceiling: 97.** Even with a proven career move (timing 100), the ownership cap holds: 95×0.6 + 100×0.4 = 97.
-- **100 is unreachable by design.** Every missing point marks something the system refuses to claim without better evidence.
-- Dr Reyes at 87.7 is 3.3 under the new-prospect ceiling — all recency decay (licence 8 months, enumeration 7 months → 0.85 strength past the 6-month cliff).
-- So the bands mean something: **>91 = observed changing over time; 97 = perfection under current sources.**
+- **Value can hit 100 on day one:** a top-tier surgeon 5–15 years in who bills under her own active PLLC — 45 + 25 + 30.
+- **Day-one priority ceiling: 92.** The hundred-point timing event is *forming her own practice*, and that is detected by comparing this month's billing groups with last month's — it cannot exist on a first sweep. The best day-one event is a house bought this month: 80. So 100 × (0.6 + 0.4 × 0.8) = 92.
+- **100 is reachable, but only over time.** It certifies that we watched her move. The presentation phrasing: "the last eight points can only be earned by monitoring a prospect."
+- **Dr Reyes at 66.4:** seven months in, so career stage is 5 of 30 — the money isn't there yet, on purpose. Her Value is 75; a fresh house keeps 88.5% of it. Ten years from now with the same PLLC she would be Value 100.
+- **The floor:** a quiet prospect keeps 60% of Value. A quiet Dr Reyes would be 45. The best number on a quiet week sits in the sixties — which is why bands come from standing, not the number.
+
+**"Why does the number look low — is 66 failing?"**
+"No. Nothing recent means sixty percent of value, so sixty-something is where the best quiet prospects live. The label answers the advisor's real question — where does she sit among everyone I could call — and the top five percent of the book are Top Prospects. #1 is always Top."
+
+**"Isn't ownership at seven months suspicious rather than promising?"**
+"It's exactly what we're looking for — emergence. Ownership at three years in is a doctor whose wealth is starting to compound; ownership at twenty is an established practice the pitch is too late for, and the tenure factor discounts it to thirty percent. Same fact, different meaning depending on when."
 
 **"What if a source is down?"**
 "Every batch request gets one retry — free public APIs hiccup. Fail twice and the whole sweep fails loudly, nothing saved. We'd rather fail loud than save half a picture quietly."

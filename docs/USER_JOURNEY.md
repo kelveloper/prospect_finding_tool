@@ -14,7 +14,7 @@ instant.
 **Persona:** a wealth-management advisor looking for their next client.
 
 1. **Scoreboard (`/`)** — real Illinois physicians ranked by fit. The
-   featured panel shows the #1 prospect: score ring, tier, qualification/
+   featured panel shows the #1 prospect: priority ring, band by standing, value/
    timing stats, plain-English summary, signal tags.
 
 2. **Click "View More" → Candidate dossier (`/prospect/{id}`)** — the
@@ -40,7 +40,7 @@ fixed names. On the 2026-08 pull these were:
 |---|---|---|
 | **New-to-market surgeon** | Plastic surgeon, Rockford — IL license issued *this month*, NPI 15 yrs old | Experienced physician who just relocated to Illinois: new income, no local advisor |
 | **Fresh attending** | Ortho surgeon, Chicago — licensed 3 months ago, NPI 5 yrs | Just finished training; surgeon income starts now |
-| **Practice owner** | Dermatologist, Chicago — bills Medicare under her own PLLC | PECOS ownership inference; elite qualification, weak timing |
+| **Practice owner** | Dermatologist, Chicago — bills Medicare under her own PLLC | PECOS ownership inference; high value, nothing recent — keeps 60% of it |
 | **Property buyer** | Ortho surgeon — $1.6M Cook County purchase 15 months ago | The financial-event signal lifting a mid-board prospect |
 | **Low-signal contrast** | Pediatrics, enumerated 2017, nothing recent | Why the bottom of the board is the bottom |
 

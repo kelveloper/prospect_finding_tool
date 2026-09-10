@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>One Doctor, End to End</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -244,7 +245,7 @@
         </tr>
       </tbody>
       <tfoot>
-        <tr><td colspan="4">Four rows survive to become one profile</td><td class="num">87.7</td></tr>
+        <tr><td colspan="4">Four rows survive to become one profile</td><td class="num">66.4</td></tr>
       </tfoot>
     </table>
   </div>
@@ -309,18 +310,19 @@ flowchart TB
   E6 -->|"row 3 by NPI, row 4 by exact name, so ATTACH"| S6
 
   M1 --> S6["STEP 6 · One profile — 4 rows kept, each logged with its match reason"]
-  S6 --> S7["STEP 7 · Signals — physician, orthopaedics, new license, practice entry, owns practice, bought property"]
+  S6 --> S7["STEP 7 · Signals — active license, orthopaedics, career stage, owns practice, new license, bought property"]
 
   S7 --> E7{"GATE 3 · DERIVATION — strong enough to claim?"}
   E7 -.->|"career move needs a second monthly snapshot"| X7(["not claimed on her dossier"])
-  E7 -->|"6 of 7 signals pass"| Q1["Should we care? · physician 40 + orthopaedics 35 + own PLLC 20 = 95"]
-  E7 -->|"6 of 7 signals pass"| Q2["Why now? · license 34 + property 30 + practice entry 12.8 = 76.8"]
+  E7 -.->|"license not active would stop here"| X8(["not ranked at all — priority 0"])
+  E7 -->|"6 of 7 signals pass"| Q1["VALUE · is there money here? · orthopaedics 45 + own PLLC 25 + first attending years 5 = 75"]
+  E7 -->|"6 of 7 signals pass"| Q2["TIMING · did something just happen? · strongest event: house 2 months ago, 80 × 0.89 = 71.3"]
 
-  Q1 -->|"95 × 0.60 = 57.0"| T1
-  Q2 -->|"76.8 × 0.40 = 30.7"| T1
+  Q1 -->|"keeps the value"| T1
+  Q2 -->|"multiplier 0.60 + 0.40 × 0.713 = ×0.885"| T1
 
-  T1(["STEP 8 · SCORE 87.7 OUT OF 100"])
-  T1 --> O1["Ranked board — near the top of the list"]
+  T1(["STEP 8 · PRIORITY 75 × 0.885 = 66.4 — Top Prospect by standing"])
+  T1 --> O1["Ranked board — #1 of 1,088 on today's book"]
   T1 --> O2["Dossier — every fact traced back to its row"]
   T1 --> O3["Contact kit — practice address, lead with the new PLLC"]
 
@@ -334,7 +336,7 @@ flowchart TB
   class A0,R1,R2,R3,D0,R4,R5,SEED source
   style PAR fill:#EEF4F4,stroke:#0B6B70,stroke-width:1.4px,color:#08383B
   class E1,E2,E3,E4,E5,E6,E7 gate
-  class X1,X2,X3,X4,X5,X6,X7 reject
+  class X1,X2,X3,X4,X5,X6,X7,X8 reject
   class Q1,Q2,O1,O2,O3 shape
   class S5,M1,S6,S7 core
   class T1 out
@@ -440,38 +442,43 @@ flowchart TB
     <div class="talk-step">
       <div class="talk-cue">If pushed</div>
       <div>
-        <p class="talk-say">One thing worth saying yourself before anyone asks: she can&rsquo;t reach a
-        hundred, and that&rsquo;s deliberate. Proving somebody <em>moved</em> takes comparing two months
-        of data, so on a first run those points simply can&rsquo;t be earned. Anything above ninety-one
-        means we watched a person change over time.</p>
+        <p class="talk-say">One thing worth saying yourself before anyone asks: her sixty-six is not a
+        grade. A prospect with nothing recent keeps sixty percent of their value, so the best number on
+        a quiet week sits in the sixties, and the label comes from where she stands in the book &mdash;
+        the top five percent are Top Prospects. And she can&rsquo;t reach a hundred today: the
+        hundred-point event is forming her own practice, and proving that takes comparing two months of
+        billing data. A hundred means we watched her do it.</p>
       </div>
     </div>
   </div>
 
-  <h2>Where the 87.7 comes from</h2>
-  <p class="sub">Points = the maximum for that row, multiplied by how strong the signal is.</p>
+  <h2>Where the 66.4 comes from</h2>
+  <p class="sub">Two questions, kept as two numbers. Value adds three facts. Timing takes the single strongest fresh event &mdash; never a sum &mdash; and every event halves in value each year. Timing then decides how much of her value she keeps: sixty percent when nothing has happened, all of it when something big just did.</p>
   <div class="table-scroll">
     <table>
       <thead>
         <tr><th scope="col">Question</th><th scope="col">Component</th><th scope="col">Max</th><th scope="col">Strength</th><th scope="col">Points</th></tr>
       </thead>
       <tbody>
-        <tr><td>Should we care?</td><td>Licensed physician, active</td><td class="num">40</td><td class="num">1.00</td><td class="num">40.0</td></tr>
-        <tr><td></td><td>Orthopaedic surgery, top pay tier</td><td class="num">35</td><td class="num">1.00</td><td class="num">35.0</td></tr>
-        <tr><td></td><td>Owns her practice, billing inference</td><td class="num">25</td><td class="num">0.80</td><td class="num">20.0</td></tr>
-        <tr><td>Why now?</td><td>Licensed 8 months ago</td><td class="num">40</td><td class="num">0.85</td><td class="num">34.0</td></tr>
-        <tr><td></td><td>Bought property 2 months ago</td><td class="num">30</td><td class="num">1.00</td><td class="num">30.0</td></tr>
-        <tr><td></td><td>Entered practice 7 months ago</td><td class="num">15</td><td class="num">0.85</td><td class="num">12.8</td></tr>
-        <tr><td></td><td>Career move — no second snapshot yet</td><td class="num">15</td><td class="num">0.00</td><td class="num">0.0</td></tr>
+        <tr><td>The gate</td><td>Licensed physician, active &mdash; ranked at all</td><td class="num">&mdash;</td><td class="num">pass</td><td class="num">&mdash;</td></tr>
+        <tr><td>Value &mdash; is there money here?</td><td>Orthopaedic surgery, top wealth tier</td><td class="num">45</td><td class="num">1.00</td><td class="num">45.0</td></tr>
+        <tr><td></td><td>Owns her practice, billing inference &mdash; under ten years in, full tenure factor</td><td class="num">25</td><td class="num">1.00</td><td class="num">25.0</td></tr>
+        <tr><td></td><td>Career stage &mdash; seven months in, first attending years</td><td class="num">30</td><td class="num">0.17</td><td class="num">5.0</td></tr>
+        <tr><td></td><td><em>Value, added</em></td><td class="num"></td><td class="num"></td><td class="num"><strong>75.0</strong></td></tr>
+        <tr><td>Timing &mdash; did something just happen?</td><td>Bought property 2 months ago</td><td class="num">80</td><td class="num">0.89</td><td class="num"><strong>71.3</strong></td></tr>
+        <tr><td></td><td>Licensed 8 months ago &mdash; a first license, half weight</td><td class="num">60</td><td class="num">0.32</td><td class="num">18.9</td></tr>
+        <tr><td></td><td>Career move &mdash; no second snapshot yet</td><td class="num">100</td><td class="num">0.00</td><td class="num">0.0</td></tr>
+        <tr><td></td><td><em>Timing, the strongest one</em> &times; identity confidence 1.00</td><td class="num"></td><td class="num"></td><td class="num"><strong>71.3</strong></td></tr>
       </tbody>
       <tfoot>
-        <tr><td colspan="4">95.0 &times; 0.60  +  76.8 &times; 0.40</td><td class="num">87.7</td></tr>
+        <tr><td colspan="4">Multiplier 0.60 + 0.40 &times; 71.3 / 100 = &times;0.885 &nbsp;&middot;&nbsp; Priority 75.0 &times; 0.885</td><td class="num">66.4</td></tr>
       </tfoot>
     </table>
   </div>
 
   <div class="rulebox">
-    <p><strong>Why she cannot reach 100 today.</strong> Her missing points are the career-move signal, and proving someone moved takes comparing two months of billing data. On a first run there is only one snapshot, so those points are unearnable by design. A score above 91 means the system watched a person change over time.</p>
+    <p><strong>Why she is a Top Prospect at 66.</strong> The band comes from standing, not the number: the top five percent of the ranked book are Top Prospects, and on today&rsquo;s book 66.4 is #1 of 1,088. A quiet prospect keeps sixty percent of their value, so the best number on a quiet week sits in the sixties by design.</p>
+    <p><strong>Why she cannot reach 100 today.</strong> Her career-stage points are low on purpose &mdash; seven months in, the money is not there yet &mdash; and the hundred-point timing event is forming her own practice, which is proven by comparing two months of billing data. On a first run there is only one snapshot. A day-one prospect tops out at 92; a hundred means the system watched her move.</p>
   </div>
 
   <footer>
