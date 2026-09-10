@@ -125,6 +125,17 @@ class IdentityMatchOut(BaseModel):
     reason: str
 
 
+class AffiliationOut(BaseModel):
+    """A billing group the physician bills Medicare through — who they work
+    for. Facility rows are deliberately not exposed: PECOS names them by
+    type ("Hospital", "Nursing home"), never by which one, so there is
+    nothing an advisor could act on."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    name: str
+
+
 class ProspectDetail(RankedProspect):
     profession: str
     npi: str | None
@@ -144,6 +155,10 @@ class ProspectDetail(RankedProspect):
     identity_matches: list[IdentityMatchOut] = []
     # Captured-field changes across ingests, oldest first
     field_changes: list[FieldChangeOut] = []
+    # Billing groups from PECOS. Ownership scores only a group carrying the
+    # doctor's own surname, so "Practice Entity — none" needs these beside
+    # it to read as "two practices, neither theirs" rather than "nothing found".
+    affiliations: list[AffiliationOut] = []
 
 
 class MailChannelOut(BaseModel):

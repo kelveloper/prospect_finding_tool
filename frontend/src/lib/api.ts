@@ -91,6 +91,8 @@ type ApiDetail = ApiRanked & {
   score_components: ApiScoreComponent[];
   identity_matches: ApiIdentityMatch[];
   field_changes: ApiFieldChange[];
+  /** Billing groups from PECOS — groups only; facilities are named by type. */
+  affiliations?: { name: string }[];
   score_history: ApiScoreSnapshot[];
 };
 
@@ -496,6 +498,31 @@ function toProfile(d: ApiDetail): CandidateProfile {
                 pill: "neutral" as const,
               },
             ]),
+        // Ownership scores only a group carrying the doctor's own surname, so
+        // "Practice Entity — none on record" above can sit beside two real
+        // practices. Naming them is the difference between "we found nothing"
+        // and "we found these, neither is his".
+        ...(d.affiliations && d.affiliations.length > 0
+          ? [
+              {
+                // Capped at two. Most have one or two, but a locum
+                // anaesthetist in this book bills through 22 — the full
+                // list would be a paragraph in a card this size, and the
+                // count carries that story better than the names do.
+                label:
+                  d.affiliations.length > 2
+                    ? `Bills Through (${d.affiliations.length})`
+                    : "Bills Through",
+                value:
+                  d.affiliations.length > 2
+                    ? `${d.affiliations
+                        .slice(0, 2)
+                        .map((a) => a.name)
+                        .join(" · ")} — and ${d.affiliations.length - 2} more`
+                    : d.affiliations.map((a) => a.name).join(" · "),
+              },
+            ]
+          : []),
         {
           label: "Practice Address (NPI)",
           value: d.address_line ?? "Not on record",

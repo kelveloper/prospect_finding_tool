@@ -1,5 +1,6 @@
 """HTTP layer only — all business logic lives in services (clean-architecture NFR)."""
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 import httpx
@@ -13,7 +14,7 @@ from app.schemas import (
     ProspectDetail,
     RankedProspect,
 )
-from app.models import IngestRun
+from app.models import AffiliationSnapshot, IngestRun
 from app.services.live_ingest import (
     ingest_progress,
     next_sweep_due_at,
@@ -22,6 +23,7 @@ from app.services.live_ingest import (
     sweep_is_due,
 )
 from app.schemas.api import (
+    AffiliationOut,
     ContactKitOut,
     FunnelBandOut,
     IngestStarted,
@@ -175,6 +177,23 @@ def prospect_detail(prospect_id: str, db: Session = Depends(get_db)):
         ScoreComponent(**c)
         for c in engine.components(prospect.signals, prospect.identity_confidence)
     ]
+
+    # Who they bill Medicare through. Ownership only scores a group carrying
+    # the doctor's own surname, so a prospect can work at two named practices
+    # and still show "Practice Entity — none on record"; the detail page needs
+    # these to tell that apart from having found nothing at all. Groups only:
+    # PECOS names facilities by type, never by which one.
+    if prospect.npi:
+        names = db.scalars(
+            select(AffiliationSnapshot.item_name)
+            .where(
+                AffiliationSnapshot.npi == prospect.npi,
+                AffiliationSnapshot.kind == "group",
+            )
+            .distinct()
+            .order_by(AffiliationSnapshot.item_name)
+        )
+        detail.affiliations = [AffiliationOut(name=n) for n in names]
     return detail
 
 
