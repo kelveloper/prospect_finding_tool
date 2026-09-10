@@ -99,6 +99,7 @@ const RULEBOOK: Record<string, Rule[]> = {
   "Property purchase recency": HALF_LIFE_LADDER,
   "Career advancement": [
     { label: "Formed his own practice this month", value: 1.0 },
+    { label: "Formed his own company (not a practice) this month", value: 0.6 },
     { label: "Formed his own practice about a year ago", value: 0.5 },
     { label: "Changed billing group this month", value: 0.3 },
     { label: "Changed billing group about a year ago", value: 0.15 },

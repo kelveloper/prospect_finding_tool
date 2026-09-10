@@ -132,6 +132,27 @@ def test_detector_renders_pecos_signals(db_session):
     assert ownership[0].strength == 1.0  # active PLLC, under ten years in
 
 
+def test_own_llc_is_a_discounted_trigger(db_session):
+    """A surname-carrying LLC is the doctor's company, not a medical practice:
+    0.6 of the career weight, the same discount the ownership value uses."""
+    svc1 = PECOSService(db_session, FakeClient([_group("Old Group")]))
+    svc1.sync(NAMES, date(2026, 7, 21))
+    svc2 = PECOSService(db_session, FakeClient([_group("Smith Holdings LLC", pac="P2")]))
+    records, _ = svc2.sync(NAMES, REF)
+    career = [r for r in records if r.kind == "CAREER"]
+    assert career[0].career_kind == "OWN_ENTITY"
+
+    prospects = IdentityResolver().resolve([
+        RawProviderRecord(source="npi", source_record_id=NPI, npi=NPI,
+                          first_name="John", last_name="Smith", state="IL"),
+    ])
+    EnrichmentMatcher().attach(prospects, records)
+    signals = SignalDetector().detect(prospects[0], REF)
+    move = [s for s in signals if s.signal_type == "CAREER_ADVANCEMENT"][0]
+    assert move.strength == 0.6
+    assert "Formed own company (not a medical practice)" in move.description
+
+
 def test_employer_group_change_is_a_weak_trigger(db_session):
     """A move between groups that are not the doctor's own is worth 0.3 of
     the career weight — the employer's paperwork, not a wealth event."""

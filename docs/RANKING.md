@@ -67,7 +67,8 @@ months, 0.50 at a year, 0.25 at two, 0.13 at three.
 
 | Event | Weight | How it is detected |
 |---|---:|---|
-| Formed own practice | 100 | A new Medicare billing group whose name carries the doctor's surname (PECOS, month-to-month diff) |
+| Formed own practice | 100 | A new Medicare billing group whose name carries the doctor's surname and a practice suffix — PLLC, PC, SC (PECOS, month-to-month diff) |
+| Formed own company, not a practice | 60 | The same, but an LLC or LTD — discounted the way the ownership value signal discounts it |
 | Made partner / chief | 100 | Senior role keywords — **no live source today**; the hook is dormant until a source with role titles lands |
 | Bought property | 80 | Cook County deed, matched by exact name and state |
 | New licence, 3+ years after entering practice | 60 | A relocation: an established physician rebuilding financial relationships |

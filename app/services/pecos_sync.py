@@ -34,6 +34,15 @@ class PECOSSyncResult:
     ownership_inferences: int
 
 
+PROFESSIONAL_ENTITY_TYPES = {"PLLC", "PC", "SC"}
+
+
+def entity_suffix(group_name: str | None) -> str:
+    """The legal suffix a billing group's name ends with; LLC when none."""
+    name = (group_name or "").upper().rstrip(".")
+    return next((s for s in ENTITY_SUFFIXES if name.endswith(s)), None) or "LLC"
+
+
 def group_names_surname(group_name: str | None, last_name: str) -> bool:
     """Billing under a group named after yourself ≈ you own the practice."""
     last_norm = normalize_name_part(last_name)
@@ -163,7 +172,13 @@ class PECOSService:
             if e.event_kind == "NEW_FACILITY":
                 career_kind = "FACILITY"
             elif group_names_surname(e.organization, last):
-                career_kind = "OWN_PRACTICE"
+                # A practice entity (PLLC / PC / SC) is the wealth event; a
+                # plain LLC or LTD in the doctor's name is discounted, the
+                # same way the ownership value signal discounts it
+                suffix = entity_suffix(e.organization)
+                career_kind = (
+                    "OWN_PRACTICE" if suffix in PROFESSIONAL_ENTITY_TYPES else "OWN_ENTITY"
+                )
             else:
                 career_kind = "GROUP_CHANGE"
             records.append(
@@ -195,10 +210,7 @@ class PECOSService:
                 if kind != "group" or not name:
                     continue
                 if group_names_surname(name, last):
-                    suffix = next(
-                        (s for s in ENTITY_SUFFIXES if name.upper().rstrip(".").endswith(s)),
-                        None,
-                    )
+                    suffix = entity_suffix(name)
                     records.append(
                         EnrichmentRecord(
                             source="pecos",
@@ -208,7 +220,7 @@ class PECOSService:
                             owner_last_name=last,
                             npi=npi,
                             entity_name=name,
-                            entity_type=suffix or "LLC",
+                            entity_type=suffix,
                             entity_status="ACTIVE",  # they are actively billing under it
                         )
                     )

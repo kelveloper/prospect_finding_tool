@@ -115,7 +115,8 @@ NEW_LICENSE_FRACTION_ESTABLISHED = 1.0   # 60 × 1.0
 NEW_LICENSE_FRACTION_EARLY = 0.5         # 60 × 0.5 = 30
 # Fraction of the 100-point career weight each kind of event earns
 CAREER_EVENT_FRACTIONS: dict[str, float] = {
-    "OWN_PRACTICE": 1.0,   # new billing group carrying the doctor's surname
+    "OWN_PRACTICE": 1.0,   # new PLLC / PC / SC billing group carrying the doctor's surname
+    "OWN_ENTITY": 0.6,     # a surname-carrying LLC / LTD — the same discount the value side uses
     "PARTNER": 1.0,        # announced senior role — no live source today
     "GROUP_CHANGE": 0.3,   # employer's billing group changed
     "FACILITY": 0.3,       # new facility affiliation
@@ -388,6 +389,11 @@ class SignalDetector:
                         description = (
                             f"Formed own practice — now bills Medicare under "
                             f"'{record.organization}', {age}"
+                        )
+                    elif kind == "OWN_ENTITY":
+                        description = (
+                            f"Formed own company (not a medical practice) — now bills "
+                            f"Medicare under '{record.organization}', {age}"
                         )
                     else:
                         # role_title carries the event description
