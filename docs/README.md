@@ -42,6 +42,7 @@ production, but each one changes what the product claims.
 | [`OUTREACH_UI_CONTRACT.md`](OUTREACH_UI_CONTRACT.md) | Where outcome capture lives, and why it is not a separate page |
 | [`FEEDBACK_TODO.md`](FEEDBACK_TODO.md) | The 17 manager-review items and their status |
 | [`PROGRESS.md`](PROGRESS.md) | What is built, what is next, and where AI fits |
+| [`FIX_SUBSPECIALTY_SCORING.md`](FIX_SUBSPECIALTY_SCORING.md) | Why cardiologists were scored as GPs, and what the fix changed |
 
 ## Presenting
 

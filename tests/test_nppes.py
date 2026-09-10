@@ -114,3 +114,18 @@ def test_compound_specialty_maps_to_tier():
     assert specialty_tier("Something Unrecognized") == 0.5
     assert specialty_tier("Radiology, Diagnostic Radiology") == 1.0
     assert specialty_tier("Dermatology") == 0.35
+
+
+def test_subspecialty_beats_the_general_half():
+    """NPPES writes "General, Subspecialty" and the subspecialty is usually
+    the one that earns. Reading the general half first scored every
+    cardiologist as plain internal medicine — 0.4 instead of 0.9."""
+    assert specialty_tier("Internal Medicine, Cardiovascular Disease") == 0.9
+    assert specialty_tier("Internal Medicine, Interventional Cardiology") == 0.9
+    assert specialty_tier("Internal Medicine, Gastroenterology") == 0.6
+    assert specialty_tier("Dermatology, MOHS-Micrographic Surgery") == 0.65
+    # Plain internal medicine is still plain internal medicine
+    assert specialty_tier("Internal Medicine") == 0.4
+    # And the general half wins when it is the higher of the two: this must
+    # stay at orthopaedics' 1.0, not fall to surgery's 0.65
+    assert specialty_tier("Orthopaedic Surgery, Foot and Ankle Surgery") == 1.0

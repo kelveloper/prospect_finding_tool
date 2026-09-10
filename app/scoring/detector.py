@@ -126,16 +126,24 @@ SENIOR_ROLE_KEYWORDS = ("partner", "director", "chief", "chair", "president", "f
 
 def specialty_tier(specialty: str) -> float:
     """Tier lookup tolerant of NPPES compound descriptions like
-    'Orthopaedic Surgery, Adult Reconstructive Orthopaedic Surgery'."""
+    'Internal Medicine, Cardiovascular Disease'.
+
+    NPPES writes these as "General, Subspecialty", and the subspecialty is
+    usually the one that earns: a cardiologist is listed under internal
+    medicine. So every tier the string mentions is considered and the
+    highest wins — reading the general half first scored 18 cardiologists
+    and 23 gastroenterologists as plain internal medicine (0.4 against 0.9
+    and 0.6), which cost them roughly 20 points of Value each.
+
+    Taking the maximum also keeps the general half when it is the higher
+    of the two: 'Orthopaedic Surgery, Foot and Ankle Surgery' stays at
+    orthopaedics' 1.0 rather than dropping to surgery's 0.65."""
     s = specialty.lower()
     if s in SPECIALTY_TIERS:
         return SPECIALTY_TIERS[s]
-    base = s.split(",")[0].strip()
-    if base in SPECIALTY_TIERS:
-        return SPECIALTY_TIERS[base]
-    for key, tier in SPECIALTY_TIERS.items():
-        if key in s:
-            return tier
+    mentioned = [tier for key, tier in SPECIALTY_TIERS.items() if key in s]
+    if mentioned:
+        return max(mentioned)
     return DEFAULT_SPECIALTY_STRENGTH
 
 
