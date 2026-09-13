@@ -144,14 +144,11 @@ def compose(prospect: Prospect) -> str:
         sentences.append(
             "Identity is single-source — verify before reaching out."
         )
-    events = list(prospect.outreach_events)
-    if events:
-        last = events[-1]
-        label = last.event_type.replace("_", " ")
-        line = f"Your last action: {label} on {last.occurred_at:%b %-d}"
-        if last.follow_up_on:
-            line += f", follow-up set for {last.follow_up_on:%b %-d}"
-        sentences.append(line + ".")
+    # Outreach history is deliberately absent: the Reach Out block directly
+    # below this paragraph already opens with it, as the live question the
+    # advisor has to answer ("You spoke to them on Sep 1. How did it go?").
+    # Repeating it here made a case for calling end on a note about having
+    # already called, and put a past action in a paragraph about the present.
 
     if len(sentences) == 1 and not prospect.signals:
         sentences.append("No signals captured yet beyond the license record.")
