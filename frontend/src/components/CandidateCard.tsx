@@ -106,7 +106,7 @@ export default function CandidateCard({
         </span>
         {/* No "Top N%" chip here. The badge beside it already names the
             band, its tooltip gives the full standing, and the panel prints
-            "#4 of 1,179 · Top 1%" in full — a percentile on every row was a
+            "#4 · Top 1%" beside the ring — a percentile on every row was a
             third telling, competing with the chips that carry the facts. */}
 
         <EvidenceChip evidence={candidate.evidence} />

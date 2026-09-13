@@ -26,7 +26,7 @@ type Props = {
   /** Logged outcomes, shown under the outreach buttons. */
   outreach?: OutreachEntry[];
   /** Where this prospect sits in the whole book. "61.6" means nothing
-   *  alone; "#1 of 194 · Top 1%" is the actual pitch. */
+   *  alone; "#1 · Top 1%" is the actual pitch. */
   rank?: number;
   total?: number;
   /** 1 on the board, where the name titles the page; 2 in the slide-over,

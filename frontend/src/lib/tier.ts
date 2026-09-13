@@ -49,11 +49,19 @@ export const TIER_LABELS: Record<Tier, string> = {
   poor: "Poor Fit",
 };
 
-/** "#4 of 1,179 · Top 1%" — where this prospect stands among everyone ranked. */
+/** "#4 · Top 1%" — where this prospect stands among everyone ranked.
+ *
+ *  The denominator is deliberately not printed. It is the *rankable* book
+ *  (gated licences are held out), which is smaller than the number of
+ *  prospects ingested, and showing both invited "why 207 here and 221
+ *  there?" — a question about our licence gate, asked in the one place the
+ *  reader is trying to judge a person. Rank says where they stand and the
+ *  percentile says against how many, which is all the denominator was for.
+ *  `bookSize` is still the divisor; it just isn't shown. */
 export function standingLabel(rank: number, bookSize: number): string {
   if (rank < 1 || bookSize < 1) return "Not ranked";
   const pct = Math.max(1, Math.ceil((rank / bookSize) * 100));
-  return `#${rank} of ${bookSize.toLocaleString()} · Top ${pct}%`;
+  return `#${rank} · Top ${pct}%`;
 }
 
 /** Is this licence status one the gate refuses? Mirrors app/scoring/engine.py. */
