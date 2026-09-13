@@ -1,13 +1,10 @@
-import BookView from "@/components/BookView";
-import CandidateDetail from "@/components/CandidateDetail";
-import CandidateSlideOver from "@/components/CandidateSlideOver";
-import Scoreboard from "@/components/Scoreboard";
+import Board from "@/components/Board";
 import Header from "@/components/Header";
 import LaunchOverlay from "@/components/LaunchOverlay";
 import ViewToggle from "@/components/ViewToggle";
 import { locatedToday } from "@/lib/data";
 import { LAUNCH_PARAM } from "@/lib/session";
-import { BOOK_VIEW, parseView, viewHref } from "@/lib/view";
+import { BOOK_VIEW, parseView } from "@/lib/view";
 import {
   fetchCandidateDetail,
   fetchContactKit,
@@ -18,15 +15,23 @@ import {
 export default async function ScoreboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ id?: string; launch?: string; view?: string }>;
+  searchParams: Promise<{
+    id?: string;
+    launch?: string;
+    view?: string;
+    entry?: string;
+  }>;
 }) {
-  const { id, launch, view } = await searchParams;
+  const { id, launch, view, entry } = await searchParams;
   // The opening screen is the front door: it is rendered on every visit and
   // the overlay itself decides whether to stay. A tab that has already begun
   // its review closes it before it paints, so a refresh or a route back from
   // a prospect page still lands on the board.
-  // Board or book — the nav toggle writes it to the URL, so the layout
-  // survives a refresh and travels with a shared link.
+
+  // Board or book, and who the reader is placed on — the state store writes
+  // all of it to the URL, so a layout survives a refresh and travels with a
+  // shared link. This is the only time it is read back; from the first click
+  // onwards the client leads and the URL follows.
   const layout = parseView(view);
   const ranked = await fetchRankedCandidates();
 
@@ -48,29 +53,27 @@ export default async function ScoreboardPage({
     );
   }
 
-  const selectedId = id && ranked.some((c) => c.id === id) ? id : null;
-  // The board always has someone in the panel; the book only opens an entry
-  // when one has been asked for, so the spread is readable on its own.
-  const featuredId = selectedId ?? (layout === BOOK_VIEW ? null : ranked[0].id);
-  // One click shows the whole dossier, so the featured panel needs
-  // everything the old standalone profile page fetched.
-  const [detail, contactKit, outreach] = featuredId
+  // Ignore an id or entry naming nobody on the board — a stale link should
+  // land on the board, not on an empty panel.
+  const placedId = id && ranked.some((c) => c.id === id) ? id : null;
+  const openId =
+    layout === BOOK_VIEW && entry && ranked.some((c) => c.id === entry)
+      ? entry
+      : null;
+  const state = { layout, id: placedId, entry: openId };
+
+  // The board always has someone in the panel; the book opens one only when
+  // the URL asks for it, so the spread is readable on its own.
+  const seedId = layout === BOOK_VIEW ? openId : (placedId ?? ranked[0].id);
+  // One click shows the whole dossier, so the panel needs everything the old
+  // standalone profile page fetched.
+  const [detail, contactKit, outreach] = seedId
     ? await Promise.all([
-        fetchCandidateDetail(featuredId),
-        fetchContactKit(featuredId),
-        fetchOutreachHistory(featuredId),
+        fetchCandidateDetail(seedId),
+        fetchContactKit(seedId),
+        fetchOutreachHistory(seedId),
       ])
     : [undefined, undefined, undefined];
-  // Fall back to the ranked row for the selected id, never to whoever is first.
-  const featured = featuredId
-    ? (detail?.candidate ??
-      ranked.find((c) => c.id === featuredId) ??
-      ranked[0])
-    : undefined;
-  const dossier = detail
-    ? { fieldChanges: detail.fieldChanges, scoreHistory: detail.scoreHistory }
-    : undefined;
-  const rank = featured ? ranked.findIndex((c) => c.id === featured.id) + 1 : 0;
 
   return (
     <div className="min-h-screen">
@@ -84,42 +87,15 @@ export default async function ScoreboardPage({
 
       <Header
         candidateCount={ranked.length}
-        viewToggle={<ViewToggle current={layout} candidateId={selectedId} />}
+        viewToggle={<ViewToggle initial={state} />}
       />
 
-      {layout === BOOK_VIEW ? (
-        <>
-          <BookView ranked={ranked} selectedId={selectedId} />
-
-          {/* ── Entry panel ────────────────────────────── */}
-          {featured ? (
-            <CandidateSlideOver
-              label={featured.name}
-              rank={rank}
-              closeHref={viewHref(BOOK_VIEW)}
-            >
-              <CandidateDetail
-                candidate={featured}
-                profile={detail?.profile}
-                dossier={dossier}
-                contactKit={contactKit}
-                outreach={outreach}
-                rank={rank}
-                total={ranked.length}
-                headingLevel={2}
-              />
-            </CandidateSlideOver>
-          ) : null}
-        </>
-      ) : (
-        /* Selection lives client-side: clicking a card swaps the panel and
-           fetches one dossier instead of re-rendering the whole board. */
-        <Scoreboard
-          ranked={ranked}
-          initialSelectedId={selectedId}
-          initialDossier={{ detail, contactKit, outreach }}
-        />
-      )}
+      <Board
+        ranked={ranked}
+        initial={state}
+        seedId={seedId}
+        seed={{ detail, contactKit, outreach }}
+      />
     </div>
   );
 }

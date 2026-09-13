@@ -1,12 +1,17 @@
-import Link from "next/link";
+"use client";
+
 import { BookIcon, ColumnsIcon } from "./icons";
-import { BOARD_VIEW, BOOK_VIEW, viewHref, type BoardView } from "@/lib/view";
+import {
+  boardHref,
+  setLayout,
+  useBoardState,
+  type BoardState,
+} from "@/lib/boardState";
+import { BOARD_VIEW, BOOK_VIEW } from "@/lib/view";
 
 type Props = {
-  /** Layout the scoreboard is currently rendering. */
-  current: BoardView;
-  /** Candidate to keep open when the layout changes. */
-  candidateId?: string | null;
+  /** What the server read out of the URL, before the reader touches this. */
+  initial: BoardState;
 };
 
 const OPTIONS = [
@@ -20,14 +25,19 @@ const OPTIONS = [
     view: BOOK_VIEW,
     label: "Book",
     Icon: BookIcon,
-    title: "Ledger spread — entries open in a side panel",
+    title: "Ledger spread — the whole list, six entries to a page",
   },
 ] as const;
 
 /** Segmented control in the nav bar: the two ways to read the scoreboard.
- *  Plain links rather than client state, so the layout is in the URL and a
- *  refresh or a shared link lands on the same view. */
-export default function ViewToggle({ current, candidateId }: Props) {
+ *
+ *  Switching is client state, so it repaints in a frame instead of waiting
+ *  on a server render of the whole board. The real href stays on the anchor
+ *  so the view is still copyable and middle-clickable, and the state store
+ *  writes it to the URL afterwards. */
+export default function ViewToggle({ initial }: Props) {
+  const state = useBoardState(initial);
+
   return (
     <div
       role="group"
@@ -35,13 +45,19 @@ export default function ViewToggle({ current, candidateId }: Props) {
       className="flex shrink-0 items-center gap-0.5 rounded-full bg-surface-soft p-0.5"
     >
       {OPTIONS.map(({ view, label, Icon, title }) => {
-        const active = view === current;
+        const active = view === state.layout;
         return (
-          <Link
+          <a
             key={view}
-            href={viewHref(view, candidateId)}
-            // Swapping layouts must not throw the reader back to the top.
-            scroll={false}
+            // Placement travels across; the open entry does not.
+            href={boardHref({ ...state, layout: view, entry: null })}
+            onClick={(e) => {
+              // Let the browser handle the gestures that mean "somewhere
+              // else" — new tab, new window, download.
+              if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+              e.preventDefault();
+              setLayout(view);
+            }}
             title={title}
             aria-current={active ? "page" : undefined}
             className={
@@ -53,7 +69,7 @@ export default function ViewToggle({ current, candidateId }: Props) {
           >
             <Icon className="size-3.5" />
             <span className="hidden sm:inline">{label}</span>
-          </Link>
+          </a>
         );
       })}
     </div>

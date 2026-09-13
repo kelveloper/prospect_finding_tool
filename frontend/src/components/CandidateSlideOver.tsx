@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { CloseIcon } from "./icons";
 
@@ -9,19 +8,20 @@ type Props = {
   label: string;
   /** Rank in the book, so the panel says which entry is open. */
   rank?: number;
-  /** Where the book goes when the panel is dismissed. */
-  closeHref: string;
+  /** Dismissed — the book keeps the reader placed on that line. */
+  onClose: () => void;
   children: ReactNode;
 };
 
 /** Right-side slide-over holding a book entry's full detail.
  *
- *  Which entry is open lives in the URL (`?id=`), the same as the board's
- *  featured panel, so a refresh or a shared link reopens it. Only the
- *  animation is local: the panel slides itself out first and navigates
- *  afterwards, so dismissing it does not just blink away. */
-export default function CandidateSlideOver({ label, rank, closeHref, children }: Props) {
-  const router = useRouter();
+ *  Which entry is open lives in `?entry=`, so a refresh or a shared link
+ *  reopens it — but opening and closing are client state, so the panel is on
+ *  screen in the same frame as the click rather than after a server render.
+ *  The only thing the animation owes anyone is a chance to finish: the panel
+ *  slides out first and reports the close afterwards, so dismissing it does
+ *  not just blink away. */
+export default function CandidateSlideOver({ label, rank, onClose, children }: Props) {
   const [phase, setPhase] = useState<"entering" | "open" | "closing">("entering");
   const closeButton = useRef<HTMLButtonElement>(null);
 
@@ -36,17 +36,14 @@ export default function CandidateSlideOver({ label, rank, closeHref, children }:
 
   const close = useCallback(() => setPhase("closing"), []);
 
-  // transitionend never fires under reduced motion, so the navigation that
+  // transitionend never fires under reduced motion, so the close that
   // actually unmounts this panel is on a timer instead.
   useEffect(() => {
     if (phase !== "closing") return;
     const instant = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const timer = setTimeout(
-      () => router.push(closeHref, { scroll: false }),
-      instant ? 0 : 320,
-    );
+    const timer = setTimeout(onClose, instant ? 0 : 260);
     return () => clearTimeout(timer);
-  }, [phase, closeHref, router]);
+  }, [phase, onClose]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -86,7 +83,7 @@ export default function CandidateSlideOver({ label, rank, closeHref, children }:
         tabIndex={-1}
         aria-label="Close entry"
         className={
-          "absolute inset-0 bg-ink/30 backdrop-blur-[6px] transition-opacity duration-300 " +
+          "absolute inset-0 bg-ink/40 transition-opacity duration-[260ms] " +
           "motion-reduce:duration-0 " +
           (shown ? "opacity-100" : "opacity-0")
         }
@@ -95,7 +92,10 @@ export default function CandidateSlideOver({ label, rank, closeHref, children }:
       <div
         className={
           "absolute inset-y-0 right-0 flex w-full max-w-[min(58rem,94vw)] flex-col bg-white shadow-panel " +
-          "transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:duration-0 " +
+          // Promoted to its own layer so the slide is a composite, not a
+          // repaint of everything the panel passes over.
+          "will-change-transform transition-transform duration-[260ms] " +
+          "ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:duration-0 " +
           (shown ? "translate-x-0" : "translate-x-full")
         }
       >

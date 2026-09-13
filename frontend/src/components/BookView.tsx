@@ -1,13 +1,18 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 import { EvidenceChip, MovementChip, TriggerChip } from "./RowChips";
 import { ChevronLeft, ChevronRight } from "./icons";
 import { changeHint, changeMatcher, summarizeChanges } from "@/lib/changes";
 import type { Candidate } from "@/lib/data";
 import { tierStyle } from "@/lib/tier";
-import { BOOK_VIEW, viewHref } from "@/lib/view";
+import { entryHref } from "@/lib/view";
 import {
   commitViews,
   describe,
@@ -22,6 +27,16 @@ import {
 /** Entries per page; a spread shows two of them side by side. */
 const PER_PAGE = 6;
 const PER_SPREAD = PER_PAGE * 2;
+
+/** How long a leaf takes to turn. Long enough to read as paper, short
+ *  enough that reading ten spreads is not ten seconds of waiting. */
+const FLIP_MS = 520;
+
+/** One printed page: half a spread. */
+type Page = { entries: Entry[]; number: number };
+
+/** A leaf in motion, named by the spreads it is travelling between. */
+type Flip = { from: number; to: number };
 
 /** Rank is the board's own ordering, so it is stamped on before any filter
  *  runs — entry #4 stays #4 on a page of four. */
@@ -100,20 +115,24 @@ type SortKey = keyof typeof SORTS;
 
 type Props = {
   ranked: Candidate[];
-  /** Entry currently open in the slide-over, if any. */
-  selectedId: string | null;
+  /** Where the reader is placed: the line is marked and the book opens on
+   *  the spread it is printed on. Being placed does not open the panel. */
+  placedId: string | null;
+  /** Open one entry in full over the spread. */
+  onOpen: (id: string) => void;
 };
 
 /** The board read as a ledger: ranked entries laid out on facing pages you
- *  turn, one line each. Picking a line puts `?id=` in the URL, which is what
- *  opens the slide-over beside it — the reading list stays put underneath.
+ *  turn, one line each. Picking a line opens it in the slide-over — the
+ *  reading list stays put underneath, and closing it leaves the reader on
+ *  that line rather than back at the top.
  *
  *  Which spread is open is the only local state. It is paired with the entry
- *  that was open when the page was turned, so a selection arriving from
- *  somewhere else — a shared link, or the layout toggle carrying the board's
- *  featured candidate over — turns to the page that entry is printed on.
- *  From there the page-turn buttons take over again. */
-export default function BookView({ ranked, selectedId }: Props) {
+ *  the reader was placed on when the page was turned, so placement arriving
+ *  from somewhere else — a shared link, or the layout toggle carrying the
+ *  board's featured prospect over — turns to the page that entry is printed
+ *  on and marks the line. From there the page-turn buttons take over again. */
+export default function BookView({ ranked, placedId, onOpen }: Props) {
   const [specialty, setSpecialty] = useState("all");
   const [tier, setTier] = useState("all");
   const [location, setLocation] = useState("all");
@@ -196,7 +215,7 @@ export default function BookView({ ranked, selectedId }: Props) {
         : "rank",
     );
     setFromBack(!!next.fromBack);
-    setTurned({ spread: 0, forSelection: selectedId });
+    setTurned({ spread: 0, forPlacement: placedId });
   }
 
   /** Opens the name field, seeded with a description of the filters. The
@@ -367,29 +386,240 @@ export default function BookView({ ranked, selectedId }: Props) {
   };
 
   const spreadCount = Math.max(1, Math.ceil(shown.length / PER_SPREAD));
-  const selectedIndex = selectedId
-    ? shown.findIndex((c) => c.id === selectedId)
-    : -1;
-  const selectedSpread =
-    selectedIndex >= 0 ? Math.floor(selectedIndex / PER_SPREAD) : null;
+  const placedIndex = placedId ? shown.findIndex((c) => c.id === placedId) : -1;
+  const placedSpread =
+    placedIndex >= 0 ? Math.floor(placedIndex / PER_SPREAD) : null;
   const [turned, setTurned] = useState<{
     spread: number;
-    forSelection: string | null;
-  }>(() => ({ spread: selectedSpread ?? 0, forSelection: selectedId }));
+    forPlacement: string | null;
+  }>(() => ({ spread: placedSpread ?? 0, forPlacement: placedId }));
 
-  const turnTo = (spread: number) =>
-    setTurned({ spread, forSelection: selectedId });
+  // A turn is two states: which spread is showing (immediate, so the footer
+  // and the underlying pages are already correct) and the leaf still in the
+  // air on top of it.
+  const [flip, setFlip] = useState<Flip | null>(null);
+  const [turning, setTurning] = useState(false);
+
+  const turnTo = (next: number) => {
+    const target = Math.max(0, Math.min(next, spreadCount - 1));
+    if (target === current) return;
+    setTurned({ spread: target, forPlacement: placedId });
+    // Nothing to animate under reduced motion, and nothing to animate on a
+    // stacked one-column layout either — there is no spine to turn about.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    setFlip({ from: current, to: target });
+    setTurning(false);
+  };
+
+  // Mount the leaf flat against the page, then start it turning on the next
+  // frame so the transition has somewhere to travel from.
+  useEffect(() => {
+    if (!flip) return;
+    const frame = requestAnimationFrame(() => setTurning(true));
+    const landed = setTimeout(() => setFlip(null), FLIP_MS + 40);
+    return () => {
+      cancelAnimationFrame(frame);
+      clearTimeout(landed);
+    };
+  }, [flip]);
   const spread =
-    selectedSpread !== null && selectedId !== turned.forSelection
-      ? selectedSpread
+    placedSpread !== null && placedId !== turned.forPlacement
+      ? placedSpread
       : turned.spread;
   const current = Math.min(spread, spreadCount - 1);
   const start = current * PER_SPREAD;
   const onSpread = shown.slice(start, start + PER_SPREAD);
-  const pages = [
-    { entries: onSpread.slice(0, PER_PAGE), number: current * 2 + 1 },
-    { entries: onSpread.slice(PER_PAGE), number: current * 2 + 2 },
-  ];
+
+  const pageAt = (spreadIndex: number, side: 0 | 1): Page => {
+    const from = spreadIndex * PER_SPREAD;
+    const on = shown.slice(from, from + PER_SPREAD);
+    return {
+      entries: side === 0 ? on.slice(0, PER_PAGE) : on.slice(PER_PAGE),
+      number: spreadIndex * 2 + 1 + side,
+    };
+  };
+
+  // While a leaf is turning, the spread underneath is a hybrid: the half the
+  // leaf has lifted away from already shows the page being turned to, so the
+  // new page is revealed by the turn instead of appearing after it.
+  const forward = flip ? flip.to > flip.from : false;
+  const pages: Page[] = !flip
+    ? [pageAt(current, 0), pageAt(current, 1)]
+    : forward
+      ? [pageAt(flip.from, 0), pageAt(flip.to, 1)]
+      : [pageAt(flip.to, 0), pageAt(flip.from, 1)];
+
+  // The leaf itself carries the page being turned on its front and the one
+  // arriving on its back, exactly as a sheet of paper does.
+  const leaf = flip
+    ? {
+        side: (forward ? 1 : 0) as 0 | 1,
+        front: forward ? pageAt(flip.from, 1) : pageAt(flip.from, 0),
+        back: forward ? pageAt(flip.to, 0) : pageAt(flip.to, 1),
+      }
+    : null;
+
+  /** A page's own frame. The left page carries the fold. */
+  const pageClass = (i: number) =>
+    "flex min-h-[420px] flex-col px-6 py-6 sm:px-8 " +
+    (i === 0 ? "border-b border-hairline/60 lg:border-b-0 lg:border-r" : "");
+
+  /* What is printed on a page. Pulled out so the turning leaf can carry a
+     real page on each of its faces — the illusion only holds if the thing
+     rotating is the same thing that settles. */
+  const pageContent = (page: Page, i: number) => (
+    <>
+      {page.entries.length > 0 ? (
+        <>
+          {/* Column headings, printed on each page like a ledger's.
+                      Widths mirror BookEntry exactly, responsive rules and
+                      all, so a heading always sits over its own column. */}
+          <div className="-mx-2 flex items-start gap-3 border-b border-hairline/60 px-2 pb-2">
+            <span className="w-6 shrink-0">
+              <span title="Rank on the board, by fit score" className="eyebrow">
+                #
+              </span>
+            </span>
+            <span className="size-9 shrink-0" />
+            {/* Two triggers, not one menu holding two filters. A
+                        location filter tucked under a "Specialty" heading is
+                        there but unfindable — the label is the only thing
+                        anyone reads before deciding to click. */}
+            <span className="flex min-w-0 flex-1 flex-col gap-1">
+              <ColumnMenu
+                sortKey="specialty"
+                heading="Specialty"
+                hint="What they practice."
+                filters={[
+                  {
+                    label: "Show specialty",
+                    options: specialties,
+                    value: specialty,
+                    onValue: setSpecialty,
+                  },
+                ]}
+                activeSort={sort}
+                fromBack={fromBack}
+                onSort={setOrder}
+              />
+              <ColumnMenu
+                sortKey="location"
+                heading="Location"
+                hint="Where they practice."
+                filters={[
+                  {
+                    label: "Show location",
+                    options: locations,
+                    value: location,
+                    onValue: setLocation,
+                  },
+                ]}
+                activeSort={sort}
+                fromBack={fromBack}
+                onSort={setOrder}
+              />
+            </span>
+            <span className="hidden w-[104px] shrink-0 lg:block">
+              <ColumnMenu
+                sortKey="trigger"
+                heading="Why now"
+                hint="The most recent event worth calling about — a new license, a practice, a property purchase."
+                activeSort={sort}
+                fromBack={fromBack}
+                onSort={setOrder}
+              />
+            </span>
+            <span className="hidden w-[86px] shrink-0 md:block">
+              <ColumnMenu
+                sortKey="evidence"
+                heading="Evidence"
+                hint="How many of the seven signals we look for were actually found for this prospect."
+                activeSort={sort}
+                fromBack={fromBack}
+                onSort={setOrder}
+              />
+            </span>
+            {hasMovement ? (
+              <span className="hidden w-[78px] shrink-0 text-right md:block">
+                <ColumnMenu
+                  sortKey="movement"
+                  heading="Move"
+                  hint="How the fit score has changed since the last data refresh."
+                  align="right"
+                  activeSort={sort}
+                  fromBack={fromBack}
+                  onSort={setOrder}
+                />
+              </span>
+            ) : null}
+            <span className="w-[104px] shrink-0">
+              <ColumnMenu
+                sortKey="tier"
+                heading="Fit"
+                hint="Priority — value × how fresh the trigger is — and the band it falls in by standing. The board is ranked by it."
+                align="right"
+                filters={[
+                  {
+                    label: "Show tier",
+                    options: tiers,
+                    value: tier,
+                    onValue: setTier,
+                  },
+                ]}
+                activeSort={sort}
+                fromBack={fromBack}
+                onSort={setOrder}
+              />
+            </span>
+          </div>
+
+          <div className="mt-1 flex-1">
+            {page.entries.map((entry) => (
+              <BookEntry
+                key={entry.id}
+                candidate={entry}
+                rank={entry.rank}
+                placed={entry.id === placedId}
+                onOpen={() => onOpen(entry.id)}
+                showMovement={hasMovement}
+              />
+            ))}
+          </div>
+        </>
+      ) : (
+        <div className="flex flex-1 items-center justify-center px-4 text-center">
+          {shown.length === 0 && i === 0 ? (
+            <span>
+              <p className="font-display text-[15px] font-semibold text-ink">
+                No entries match
+              </p>
+              <p className="mt-1 text-[13px] text-ink-muted">
+                Nothing on the board fits these filters.
+              </p>
+              <button
+                type="button"
+                onClick={clear}
+                className="mt-4 rounded-[8px] bg-brand px-4 py-2 font-display text-[13px] font-semibold text-white shadow-brand transition-colors hover:bg-brand-dark"
+              >
+                Reset the book
+              </button>
+            </span>
+          ) : (
+            <p className="text-[13px] text-ink-faint">End of the book</p>
+          )}
+        </div>
+      )}
+
+      <p
+        className={
+          "mt-6 font-display text-[11px] font-semibold text-ink-faint tabular-nums " +
+          (i === 0 ? "text-left" : "text-right")
+        }
+      >
+        {page.number}
+      </p>
+    </>
+  );
 
   return (
     <main className="mx-auto max-w-[1560px] px-8 py-8">
@@ -579,176 +809,69 @@ export default function BookView({ ranked, selectedId }: Props) {
         {/* Gutter shading — the fold where the two pages meet */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-y-0 left-1/2 hidden w-12 -translate-x-1/2 bg-[linear-gradient(90deg,transparent,rgba(29,111,164,0.08),transparent)] lg:block"
+          className="pointer-events-none absolute inset-y-0 left-1/2 hidden w-12 -translate-x-1/2 lg:block"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent, rgb(var(--shadow-ink) / 0.08), transparent)",
+          }}
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2">
-          {pages.map((page, i) => (
-            <section
-              key={page.number}
-              aria-label={`Page ${page.number}`}
-              className={
-                "flex min-h-[420px] flex-col px-6 py-6 sm:px-8 " +
-                (i === 0
-                  ? "border-b border-hairline/60 lg:border-b-0 lg:border-r"
-                  : "")
-              }
-            >
-              {page.entries.length > 0 ? (
-                <>
-                  {/* Column headings, printed on each page like a ledger's.
-                      Widths mirror BookEntry exactly, responsive rules and
-                      all, so a heading always sits over its own column. */}
-                  <div className="-mx-2 flex items-start gap-3 border-b border-hairline/60 px-2 pb-2">
-                    <span className="w-6 shrink-0">
-                      <span
-                        title="Rank on the board, by fit score"
-                        className="eyebrow"
-                      >
-                        #
-                      </span>
-                    </span>
-                    <span className="size-9 shrink-0" />
-                    {/* Two triggers, not one menu holding two filters. A
-                        location filter tucked under a "Specialty" heading is
-                        there but unfindable — the label is the only thing
-                        anyone reads before deciding to click. */}
-                    <span className="flex min-w-0 flex-1 flex-col gap-1">
-                      <ColumnMenu
-                        sortKey="specialty"
-                        heading="Specialty"
-                        hint="What they practice."
-                        filters={[
-                          {
-                            label: "Show specialty",
-                            options: specialties,
-                            value: specialty,
-                            onValue: setSpecialty,
-                          },
-                        ]}
-                        activeSort={sort}
-                        fromBack={fromBack}
-                        onSort={setOrder}
-                      />
-                      <ColumnMenu
-                        sortKey="location"
-                        heading="Location"
-                        hint="Where they practice."
-                        filters={[
-                          {
-                            label: "Show location",
-                            options: locations,
-                            value: location,
-                            onValue: setLocation,
-                          },
-                        ]}
-                        activeSort={sort}
-                        fromBack={fromBack}
-                        onSort={setOrder}
-                      />
-                    </span>
-                    <span className="hidden w-[104px] shrink-0 lg:block">
-                      <ColumnMenu
-                        sortKey="trigger"
-                        heading="Why now"
-                        hint="The most recent event worth calling about — a new license, a practice, a property purchase."
-                        activeSort={sort}
-                        fromBack={fromBack}
-                        onSort={setOrder}
-                      />
-                    </span>
-                    <span className="hidden w-[86px] shrink-0 md:block">
-                      <ColumnMenu
-                        sortKey="evidence"
-                        heading="Evidence"
-                        hint="How many of the seven signals we look for were actually found for this prospect."
-                        activeSort={sort}
-                        fromBack={fromBack}
-                        onSort={setOrder}
-                      />
-                    </span>
-                    {hasMovement ? (
-                      <span className="hidden w-[78px] shrink-0 text-right md:block">
-                        <ColumnMenu
-                          sortKey="movement"
-                          heading="Move"
-                          hint="How the fit score has changed since the last data refresh."
-                          align="right"
-                          activeSort={sort}
-                          fromBack={fromBack}
-                          onSort={setOrder}
-                        />
-                      </span>
-                    ) : null}
-                    <span className="w-[104px] shrink-0">
-                      <ColumnMenu
-                        sortKey="tier"
-                        heading="Fit"
-                        hint="Priority — value × how fresh the trigger is — and the band it falls in by standing. The board is ranked by it."
-                        align="right"
-                        filters={[
-                          {
-                            label: "Show tier",
-                            options: tiers,
-                            value: tier,
-                            onValue: setTier,
-                          },
-                        ]}
-                        activeSort={sort}
-                        fromBack={fromBack}
-                        onSort={setOrder}
-                      />
-                    </span>
-                  </div>
-
-                  <div className="mt-1 flex-1">
-                    {page.entries.map((entry) => (
-                      <BookEntry
-                        key={entry.id}
-                        candidate={entry}
-                        rank={entry.rank}
-                        active={entry.id === selectedId}
-                        showMovement={hasMovement}
-                      />
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <div className="flex flex-1 items-center justify-center px-4 text-center">
-                  {shown.length === 0 && i === 0 ? (
-                    <span>
-                      <p className="font-display text-[15px] font-semibold text-ink">
-                        No entries match
-                      </p>
-                      <p className="mt-1 text-[13px] text-ink-muted">
-                        Nothing on the board fits these filters.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={clear}
-                        className="mt-4 rounded-[8px] bg-brand px-4 py-2 font-display text-[13px] font-semibold text-white shadow-brand transition-colors hover:bg-brand-dark"
-                      >
-                        Reset the book
-                      </button>
-                    </span>
-                  ) : (
-                    <p className="text-[13px] text-ink-faint">
-                      End of the book
-                    </p>
-                  )}
-                </div>
-              )}
-
-              <p
-                className={
-                  "mt-6 font-display text-[11px] font-semibold text-ink-faint tabular-nums " +
-                  (i === 0 ? "text-left" : "text-right")
-                }
+        {/* The spread, and the leaf turning above it. Perspective sits here
+            rather than on the card so the turn has depth without the
+            toolbar and the page-turn footer sharing its 3D space. */}
+        <div
+          // Clipped, because a lifted page projects larger than the half it
+          // occupies flat — without this the turn spills over the toolbar
+          // above and the page-turn footer below.
+          className="relative overflow-hidden"
+          style={{ perspective: "2200px" }}
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-2">
+            {pages.map((page, i) => (
+              <section
+                key={page.number}
+                aria-label={`Page ${page.number}`}
+                className={pageClass(i)}
               >
-                {page.number}
-              </p>
-            </section>
-          ))}
+                {pageContent(page, i)}
+              </section>
+            ))}
+          </div>
+
+          {/* ── The turning leaf ──────────────────────────
+            On screen only while a page is in the air. It is the spread's
+            own half, hinged at the spine: the page you are leaving on the
+            front, the page you are turning to on the back. Hidden from
+            assistive tech and from the pointer — both already have the
+            settled spread underneath, and below `lg` the book is a single
+            column with no spine to turn about. */}
+          {leaf ? (
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-y-0 z-20 hidden w-1/2 lg:block"
+              style={{
+                left: leaf.side === 1 ? "50%" : 0,
+                transformStyle: "preserve-3d",
+                transformOrigin:
+                  leaf.side === 1 ? "left center" : "right center",
+                transform: `rotateY(${turning ? (leaf.side === 1 ? -180 : 180) : 0}deg)`,
+                transition: `transform ${FLIP_MS}ms cubic-bezier(0.36, 0.03, 0.24, 1)`,
+              }}
+            >
+              <LeafFace i={leaf.side} className={pageClass(leaf.side)}>
+                {pageContent(leaf.front, leaf.side)}
+              </LeafFace>
+              {/* The back of a sheet faces the other way: pre-rotated, so it
+                is only readable once the leaf has passed the spine. */}
+              <LeafFace
+                i={leaf.side === 1 ? 0 : 1}
+                className={pageClass(leaf.side === 1 ? 0 : 1)}
+                flipped
+              >
+                {pageContent(leaf.back, leaf.side === 1 ? 0 : 1)}
+              </LeafFace>
+            </div>
+          ) : null}
         </div>
 
         {/* ── Page turn ────────────────────────────────── */}
@@ -1038,35 +1161,90 @@ function ViewChip({
   );
 }
 
+/** One side of the turning leaf.
+ *
+ *  Opaque, because a leaf is paper and you must not read the spread through
+ *  it, and backface-hidden, so each face is only visible while it is the one
+ *  pointing at the reader. The shading is what sells it: a page catches less
+ *  light towards the spine it is hinged on, and more of it the further the
+ *  leaf stands off the book. */
+function LeafFace({
+  i,
+  className,
+  flipped,
+  children,
+}: {
+  /** Which half of the spread this face is printed as. */
+  i: 0 | 1;
+  className: string;
+  /** The far side of the sheet, pre-rotated so it reads only past the fold. */
+  flipped?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      className="absolute inset-0 overflow-hidden bg-white"
+      style={{
+        backfaceVisibility: "hidden",
+        transform: flipped ? "rotateY(180deg)" : undefined,
+        // A lifted sheet throws a shadow on the page it is leaving.
+        boxShadow: "0 18px 44px rgb(var(--shadow-ink) / 0.22)",
+      }}
+    >
+      <div className={className + " h-full"}>{children}</div>
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            i === 0
+              ? "linear-gradient(270deg, rgb(var(--shadow-ink) / 0.10), transparent 42%)"
+              : "linear-gradient(90deg, rgb(var(--shadow-ink) / 0.10), transparent 42%)",
+        }}
+      />
+    </div>
+  );
+}
+
 /** One printed line: rank, who they are, tier, fit. */
 function BookEntry({
   candidate,
   rank,
-  active,
+  placed,
+  onOpen,
   showMovement,
 }: {
   candidate: Candidate;
   rank: number;
-  active: boolean;
+  /** The line the reader is on — marked whether or not its panel is open,
+   *  so switching in from the board shows where you left off. */
+  placed: boolean;
+  onOpen: () => void;
   /** Hidden until an ingest gives it something to compare against. */
   showMovement: boolean;
 }) {
   const style = tierStyle(candidate.tier);
 
   return (
-    <Link
-      href={viewHref(BOOK_VIEW, candidate.id)}
-      // The book must not jump back to the top as entries are read.
-      scroll={false}
-      aria-current={active ? "true" : undefined}
-      title={
-        active
-          ? `Showing ${candidate.name}'s entry`
-          : `Open ${candidate.name}'s entry`
-      }
+    <a
+      // A real address, so an entry is still copyable and middle-clickable.
+      // The click itself is handled here: opening a panel should not cost a
+      // server render of the whole book.
+      href={entryHref(candidate.id)}
+      onClick={(e) => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        e.preventDefault();
+        onOpen();
+      }}
+      aria-current={placed ? "true" : undefined}
+      title={`Open ${candidate.name}'s entry`}
       className={
-        "-mx-2 flex items-center gap-3 rounded-[10px] border-b border-dashed border-hairline/60 px-2 py-3 transition-colors last:border-b-0 " +
-        (active ? "bg-surface-soft" : "hover:bg-canvas")
+        "-mx-2 flex items-center gap-3 border-b border-dashed border-hairline/60 py-3 transition-colors last:border-b-0 " +
+        // The marker sits in the gutter the row already had, so a marked
+        // line does not shift the text of its neighbours.
+        "rounded-[10px] border-l-[3px] border-l-transparent pl-[5px] pr-2 " +
+        (placed
+          ? "border-l-brand bg-surface-soft"
+          : "hover:border-l-hairline hover:bg-canvas")
       }
     >
       <span className="w-6 shrink-0 text-center font-display text-[11px] font-bold text-ink-faint tabular-nums">
@@ -1161,7 +1339,7 @@ function BookEntry({
           {candidate.score}
         </span>
       </span>
-    </Link>
+    </a>
   );
 }
 

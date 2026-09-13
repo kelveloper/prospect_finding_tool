@@ -1,15 +1,18 @@
 /**
- * The scoreboard renders in one of two layouts, chosen from the nav bar.
+ * The names the scoreboard's two layouts go by in the URL.
  *
- * Like the featured candidate, the choice lives in the URL rather than in
- * component state: the page is a server component, so `?view=book` is what
- * lets a layout survive a refresh, a shared link, or a trip through a
- * candidate page and back.
+ * The reader's actual position — layout, placement, open entry — is held in
+ * lib/boardState and written here afterwards, which is what lets `?view=book`
+ * survive a refresh, a shared link, or a trip through a prospect page and
+ * back without a layout switch costing a server render.
  *
- * Client-safe — no `next/headers` here, so the toggle and the book can
- * share these names with the page that reads them.
+ * Client-safe — no `next/headers` here, so the toggle, the book and the page
+ * that seeds them can all share these names.
  */
 export const VIEW_PARAM = "view";
+
+/** Who the reader is placed on. */
+export const ID_PARAM = "id";
 
 /** Detail panel beside the ranked list — the original scoreboard. */
 export const BOARD_VIEW = "board";
@@ -24,11 +27,24 @@ export function parseView(value: string | undefined): BoardView {
   return value === BOOK_VIEW ? BOOK_VIEW : BOARD_VIEW;
 }
 
-/** Scoreboard href for a layout, carrying the open candidate across it. */
-export function viewHref(view: BoardView, candidateId?: string | null): string {
+/**
+ * Book only: the entry whose detail panel is open.
+ *
+ * Placement and opening are deliberately two different things. `?id=` says
+ * where the reader is — the board shows that prospect in its panel, the book
+ * marks their line and turns to the spread it is printed on. `?entry=` is the
+ * book's extra step of opening that line in full.
+ *
+ * The layout toggle carries placement and never the open panel, so switching
+ * into the book lands on the spread you came to read rather than on a panel
+ * covering it.
+ */
+export const ENTRY_PARAM = "entry";
+
+/** Book href with one entry's panel open over the spread. */
+export function entryHref(candidateId: string): string {
   const params = new URLSearchParams();
-  if (candidateId) params.set("id", candidateId);
-  if (view === BOOK_VIEW) params.set(VIEW_PARAM, BOOK_VIEW);
-  const query = params.toString();
-  return query ? `/?${query}` : "/";
+  params.set(VIEW_PARAM, BOOK_VIEW);
+  params.set(ENTRY_PARAM, candidateId);
+  return `/?${params.toString()}`;
 }

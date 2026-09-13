@@ -3,12 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import CandidateCard from "./CandidateCard";
 import CandidateDetail from "./CandidateDetail";
-import {
-  fetchCandidateDetail,
-  fetchContactKit,
-  fetchOutreachHistory,
-  type ContactKit,
-} from "@/lib/api";
+import type { Dossier } from "@/lib/dossier";
 import {
   AUDIT_CHIPS,
   auditCounts,
@@ -24,9 +19,7 @@ import {
   changeMatcher,
   summarizeChanges,
 } from "@/lib/changes";
-import type { Candidate, OutreachEntry } from "@/lib/data";
-
-type DetailData = NonNullable<Awaited<ReturnType<typeof fetchCandidateDetail>>>;
+import type { Candidate } from "@/lib/data";
 
 /* Virtualized list geometry. Cards are structurally identical, so one
  * measured height positions every row; the estimate only covers the
@@ -36,54 +29,29 @@ const CARD_ESTIMATE = 150;
 const OVERSCAN = 8;
 const INITIAL_WINDOW = 30;
 
-/** Everything the featured panel needs for one prospect, fetched together. */
-type Dossier = {
-  detail?: DetailData;
-  contactKit?: ContactKit;
-  outreach?: OutreachEntry[];
-};
-
 type Props = {
   ranked: Candidate[];
-  /** Which prospect the panel opens on; the top of the board otherwise. */
-  initialSelectedId: string | null;
-  /** Server-fetched dossier for the initial prospect, so the first paint
-   *  is complete without a client round-trip. */
-  initialDossier: Dossier;
+  /** Who the panel is showing. The board always has someone. */
+  selectedId: string;
+  /** Their dossier, or null while it is still in flight. */
+  dossier: Dossier | null;
+  /** Move the board onto another prospect. */
+  onSelect: (id: string) => void;
 };
 
-/** The board layout: featured panel beside the ranked list. Selection is
- *  pure client state — clicking a card swaps the panel and fetches only
- *  that prospect's dossier (a few KB) instead of navigating the server,
- *  which re-rendered and re-sent all ~1,200 cards on every click. The URL
- *  still tracks the selection via pushState, so links stay shareable and
- *  back/forward still walk the history. */
+/** The board layout: featured panel beside the ranked list.
+ *
+ *  Selection and its dossier belong to the shell above (see lib/boardState
+ *  and lib/dossier), which is what lets the header's layout toggle stay in
+ *  step with the card you last clicked — and lets the book reuse a dossier
+ *  the board already fetched. This renders the list and says what was
+ *  picked. */
 export default function Scoreboard({
   ranked,
-  initialSelectedId,
-  initialDossier,
+  selectedId,
+  dossier,
+  onSelect,
 }: Props) {
-  const defaultId = initialSelectedId ?? ranked[0].id;
-  const [selectedId, setSelectedId] = useState(defaultId);
-  const [dossier, setDossier] = useState<Dossier | null>(initialDossier);
-  const cache = useRef(new Map<string, Dossier>([[defaultId, initialDossier]]));
-  const selectedRef = useRef(defaultId);
-
-  // A refresh (a sweep landed, an outcome was logged) re-renders the page
-  // with a fresh dossier for the prospect in the URL — which is the one on
-  // screen, since every click writes the URL. Adopt it and drop everything
-  // cached from before, or the panel keeps showing last week's score.
-  const [seenDossier, setSeenDossier] = useState(initialDossier);
-  if (initialDossier !== seenDossier) {
-    setSeenDossier(initialDossier);
-    setSelectedId(defaultId);
-    setDossier(initialDossier);
-  }
-  useEffect(() => {
-    cache.current = new Map([[defaultId, initialDossier]]);
-    selectedRef.current = defaultId;
-  }, [initialDossier, defaultId]);
-
   // "What changed" — new arrivals and movers. The alert above the list
   // doubles as the toggle; nothing renders when nothing changed.
   const changes = useMemo(() => summarizeChanges(ranked), [ranked]);
@@ -149,42 +117,6 @@ export default function Scoreboard({
     auditFilter,
     weakestFirst,
   ]);
-
-  async function show(id: string, pushUrl: boolean) {
-    selectedRef.current = id;
-    setSelectedId(id);
-    if (pushUrl) {
-      const url = new URL(window.location.href);
-      url.searchParams.set("id", id);
-      window.history.pushState(null, "", url);
-    }
-    const cached = cache.current.get(id);
-    if (cached) {
-      setDossier(cached);
-      return;
-    }
-    setDossier(null); // ranked-row fallback renders immediately
-    const [detail, contactKit, outreach] = await Promise.all([
-      fetchCandidateDetail(id),
-      fetchContactKit(id),
-      fetchOutreachHistory(id),
-    ]);
-    const loaded: Dossier = { detail, contactKit, outreach };
-    cache.current.set(id, loaded);
-    // A faster click may have moved on — never overwrite its panel.
-    if (selectedRef.current === id) setDossier(loaded);
-  }
-
-  // Back/forward re-selects from the URL instead of reloading the page.
-  useEffect(() => {
-    function onPopState() {
-      const id = new URL(window.location.href).searchParams.get("id");
-      const valid = id && ranked.some((c) => c.id === id) ? id : defaultId;
-      void show(valid, false);
-    }
-    window.addEventListener("popstate", onPopState);
-    return () => window.removeEventListener("popstate", onPopState);
-  }, [ranked, defaultId]);
 
   // ── Search ──────────────────────────────────────────────
   // Same fields and placeholder as the Book's search, so the two tabs
@@ -632,7 +564,7 @@ export default function Scoreboard({
                     candidate={candidate}
                     rank={rankOf.get(candidate.id) ?? index + 1}
                     active={candidate.id === featured.id}
-                    onSelect={() => void show(candidate.id, true)}
+                    onSelect={() => onSelect(candidate.id)}
                     audit={audit}
                   />
                 </div>

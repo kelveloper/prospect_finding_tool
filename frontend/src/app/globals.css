@@ -52,6 +52,12 @@
 
 html {
   background: var(--color-canvas);
+
+  /* The ink a style tints its depth with: the book's fold, the shadow under
+     a turning leaf. The advisor's is its own blue; a client style overrides
+     it below, which is all it takes for the book to be bound in that style's
+     own color. Space-separated so it composes with rgb(… / alpha). */
+  --shadow-ink: 29 111 164;
 }
 
 body {
