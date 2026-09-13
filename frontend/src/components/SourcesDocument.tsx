@@ -58,18 +58,18 @@ const RULEBOOK: Record<string, Rule[]> = {
   ],
   // entity strength × tenure factor (under 10 yrs 1.0 · 10–20 yrs 0.6 · 20+ yrs 0.3)
   "Practice ownership": [
-    { label: "His own practice, under ten years in", value: 1.0 },
-    { label: "His own practice, ten to twenty years in", value: 0.6 },
+    { label: "Their own practice, under ten years in", value: 1.0 },
+    { label: "Their own practice, ten to twenty years in", value: 0.6 },
     {
-      label: "His own company (not a medical practice), under ten years in",
+      label: "Their own company (not a medical practice), under ten years in",
       value: 0.6,
     },
-    { label: "His own practice, over twenty years in", value: 0.3 },
+    { label: "Their own practice, over twenty years in", value: 0.3 },
     {
       label: "Discounted further — inactive entity, or tenure unknown",
       value: null,
     },
-    { label: "No practice in his own name", value: 0 },
+    { label: "No practice in their own name", value: 0 },
   ],
   // points out of 30 by years since NPI enumeration
   "Career stage": [
@@ -98,9 +98,9 @@ const RULEBOOK: Record<string, Rule[]> = {
   ],
   "Property purchase recency": HALF_LIFE_LADDER,
   "Career advancement": [
-    { label: "Formed his own practice this month", value: 1.0 },
-    { label: "Formed his own company (not a practice) this month", value: 0.6 },
-    { label: "Formed his own practice about a year ago", value: 0.5 },
+    { label: "Formed their own practice this month", value: 1.0 },
+    { label: "Formed their own company (not a practice) this month", value: 0.6 },
+    { label: "Formed their own practice about a year ago", value: 0.5 },
     { label: "Changed billing group this month", value: 0.3 },
     { label: "Changed billing group about a year ago", value: 0.15 },
     { label: "Older than that", value: null },
@@ -128,12 +128,12 @@ const NARRATION_FLOOR = 0.3;
 /** What each scored line actually asks, in the reader's words. The keys are
  *  the internal labels the API sends. */
 const QUESTIONS: Record<string, string> = {
-  "Specialty wealth tier": "How wealthy does his specialty get?",
-  "Practice ownership": "Does he own his practice?",
-  "Career stage": "Where is he in his career?",
-  "License recency": "How new is his Illinois license?",
-  "Property purchase recency": "How recently did he buy a home?",
-  "Career advancement": "Has he changed jobs?",
+  "Specialty wealth tier": "How wealthy does this specialty get?",
+  "Practice ownership": "Do they own their practice?",
+  "Career stage": "Where are they in their career?",
+  "License recency": "How new is the Illinois license?",
+  "Property purchase recency": "How recently did they buy a home?",
+  "Career advancement": "Have they changed jobs?",
 };
 
 /** Which rulebook row this component's strength lands on: an exact match
@@ -289,7 +289,7 @@ function ScoreRow({
           <DrawerNote>
             {landed ? (
               <>
-                He landed on{" "}
+                This landed on{" "}
                 <span className="font-semibold text-ink">{landed}</span>, which
                 is worth{" "}
                 <span className="font-semibold text-ink">
@@ -318,7 +318,7 @@ function ScoreRow({
             </span>{" "}
             points.
             {discounted
-              ? " The confidence factor is how sure we are these records are his — a single-source profile keeps 60%."
+              ? " The confidence factor is how sure we are these records are theirs — a single-source profile keeps 60%."
               : ""}
           </DrawerNote>
         </Drawer>
@@ -399,7 +399,7 @@ export default function SourcesDocument({
   signalTypesCount: number;
   signals: SignalItem[];
   licenseStatus?: string | null;
-  /** Practices he bills Medicare through — the evidence that the PECOS
+  /** Practices this prospect bills Medicare through — the evidence that the PECOS
    *  join opened. */
   affiliations?: { name: string }[];
 }) {
@@ -454,32 +454,33 @@ export default function SourcesDocument({
   const licenseRow: LedgerRowData = {
     key: "license-gate",
     status: gated ? "none" : licenseStatus ? "found" : "pending",
-    where: "Is his license active?",
+    where: "Is the license active?",
     whereSub: "Illinois medical board",
     found: gated
       ? `No — ${licenseStatus}. Not ranked.`
       : licenseStatus
         ? `Yes — ${licenseStatus}`
         : "No state record — ranked, but unverified",
-    how: "A present, non-active status sets his priority to zero",
+    how: "A present, non-active status sets the priority to zero",
     drawer: (
       <>
         <Drawer title="The rule">
           <DrawerNote>
             The gate sits outside the arithmetic. An expired, inactive or
-            suspended license means he cannot be a prospect right now, whatever
-            his value, so his priority is zero and he sorts last. No state
-            record at all is not a verdict — he stays ranked, and his identity
+            suspended license means they cannot be a prospect right now,
+            whatever their value, so the priority is zero and they sort last.
+            No state record at all is not a verdict — they stay ranked, and
+            the identity
             confidence already discounts what the records can claim.
           </DrawerNote>
         </Drawer>
         <Drawer title="What happened here">
           <DrawerNote>
             {gated
-              ? "His license status is not active, so nothing below changes his place on the board until it is renewed."
+              ? "The license status is not active, so nothing below changes their place on the board until it is renewed."
               : licenseStatus
-                ? "His license is active, so he is ranked and the rest of this page applies."
-                : "We never found him in the state register, so there was nothing to gate on."}
+                ? "The license is active, so they are ranked and the rest of this page applies."
+                : "We never found them in the state register, so there was nothing to gate on."}
           </DrawerNote>
         </Drawer>
       </>
@@ -489,33 +490,33 @@ export default function SourcesDocument({
   const ownershipRow: LedgerRowData = {
     key: "ownership",
     status: ownSignal ? "found" : hasBilling ? "none" : "pending",
-    where: "Does he own his practice?",
+    where: "Do they own their practice?",
     whereSub: "Medicare business names",
     found: ownSignal
-      ? `Yes — ${entityFrom(ownSignal.description) ?? "a business in his own name"}`
+      ? `Yes — ${entityFrom(ownSignal.description) ?? "a business in their own name"}`
       : hasBilling
-        ? "No — he bills through someone else's group"
+        ? "No — they bill through someone else's group"
         : "Nothing to check",
     worth: ownComp
       ? `${ownComp.points} of ${ownComp.maxPoints} points`
       : undefined,
-    how: "His own name has to be in the business name",
+    how: "Their own name has to be in the business name",
     drawer: (
       <>
         <Drawer title="The rule">
           <DrawerNote>
-            We only count a practice as his if his own name is in the business
-            name. Billing under a hospital or a group practice earns nothing —
-            it tells us he works there, not that he owns it.
+            We only count a practice as theirs if their own name is in the
+            business name. Billing under a hospital or a group practice earns
+            nothing — it tells us they work there, not that they own it.
           </DrawerNote>
         </Drawer>
         <Drawer title="What happened here">
           <DrawerNote>
             {ownSignal
-              ? "His billing records point at a business carrying his own name, so this counts."
+              ? "The billing records point at a business carrying their own name, so this counts."
               : hasBilling
-                ? "We have his billing records, but the business he bills under does not carry his name. Note the order: one check found the records, the next one rejected the claim."
-                : "We never found Medicare billing records for him, so there is nothing to judge. This unlocks only if a future sync finds him."}
+                ? "We have their billing records, but the business they bill under does not carry their name. Note the order: one check found the records, the next one rejected the claim."
+                : "We never found Medicare billing records for them, so there is nothing to judge. This unlocks only if a future sync finds them."}
           </DrawerNote>
           <a
             href="#how-it-scored"
@@ -531,7 +532,7 @@ export default function SourcesDocument({
   const jobRow: LedgerRowData = {
     key: "job",
     status: careerSignal ? "found" : "pending",
-    where: "Has he changed jobs?",
+    where: "Have they changed jobs?",
     whereSub: "Medicare records, month to month",
     found: careerSignal ? careerSignal.description : "Nothing to compare yet",
     worth: careerComp
@@ -542,7 +543,7 @@ export default function SourcesDocument({
       <>
         <Drawer title="How it works">
           <DrawerNote>
-            Every month we check his Medicare record against the one we stored
+            Every month we check the Medicare record against the one we stored
             last time. Anything new — a different practice, a new hospital —
             counts as a job change.
           </DrawerNote>
@@ -551,7 +552,7 @@ export default function SourcesDocument({
           <DrawerNote>
             {hasBilling
               ? "The first pull only saves a starting point, so there is nothing to compare against yet. This unlocks at the next monthly update."
-              : "We have no Medicare billing records for him, so there is nothing to compare at all."}
+              : "We have no Medicare billing records for them, so there is nothing to compare at all."}
           </DrawerNote>
         </Drawer>
       </>
@@ -582,8 +583,8 @@ export default function SourcesDocument({
         <Drawer title="What happened here">
           <DrawerNote>
             {quiet === 0
-              ? `Every one of his ${mentioned} signals cleared the bar, so all of them appear in the summary.`
-              : `${quiet} of his ${signals.length} signals scored points but sit below the bar, so the summary leaves ${quiet === 1 ? "it" : "them"} out.`}
+              ? `Every one of the ${mentioned} signals cleared the bar, so all of them appear in the summary.`
+              : `${quiet} of the ${signals.length} signals scored points but sit below the bar, so the summary leaves ${quiet === 1 ? "it" : "them"} out.`}
           </DrawerNote>
         </Drawer>
       </>
@@ -692,7 +693,7 @@ export default function SourcesDocument({
         )}
       </section>
 
-      {/* ── 2 · How we knew it was him ────────────────────────────── */}
+      {/* ── 2 · How we knew it was them ───────────────────────────── */}
       <section
         id="how-we-matched"
         className="scroll-mt-24 rounded-[16px] bg-white px-6 py-5 shadow-card"
@@ -710,8 +711,8 @@ export default function SourcesDocument({
           </p>
           <p className="w-full max-w-[86ch] text-[14px] leading-[21px] text-ink-muted">
             {hits.length > 0
-              ? `We found him in ${list(hits)}.`
-              : "No outside source matched him."}{" "}
+              ? `We found them in ${list(hits)}.`
+              : "No outside source matched them."}{" "}
             {misses.length > 0 ? `Nothing came back from ${list(misses)}.` : ""}{" "}
             Every check we ran is below — open a row to see how it was decided.
           </p>
@@ -732,14 +733,14 @@ export default function SourcesDocument({
             <h2 className="font-display text-[19px] font-bold tracking-[-0.4px] text-ink">
               {gated
                 ? `Not ranked — license ${licenseStatus}`
-                : `His priority is ${totalScore}`}
+                : `The priority is ${totalScore}`}
             </h2>
           </div>
           <p className="mt-2 max-w-[86ch] text-[14px] leading-[21px] text-ink-muted">
             Two separate questions, multiplied. Value asks whether there is
             money here and adds up three facts. Timing asks whether something
             just happened and rates the single strongest fresh event. Timing
-            decides how much of his value he keeps — 60% when nothing has
+            decides how much of that value the prospect keeps — 60% when nothing has
             happened, all of it when something big just did — and can never lift
             a poor fit above a strong one.
           </p>
@@ -792,7 +793,7 @@ export default function SourcesDocument({
                 </span>
               </span>
               <span className="md:text-right">
-                he keeps {Math.round(multiplier * 100)}% of his value
+                keeps {Math.round(multiplier * 100)}% of that value
               </span>
             </div>
             <div className="flex items-baseline justify-between gap-4 px-4 pt-1">
@@ -818,7 +819,7 @@ export default function SourcesDocument({
 
         <ScoreGroup
           question="Value — is there money here?"
-          subtitle="Three facts that are all true at once, so their points add: what his specialty tends to accumulate, whether he owns his practice (worth less the longer he has been in), and where he is in his career — the points peak between five and fifteen years in."
+          subtitle="Three facts that are all true at once, so their points add: what the specialty tends to accumulate, whether they own their practice (worth less the longer they have been in), and where they are in their career — the points peak between five and fifteen years in."
           subtotal={qualificationScore}
           rule="adds up to 100"
           items={qual}
@@ -826,7 +827,7 @@ export default function SourcesDocument({
         />
         <ScoreGroup
           question="Timing — did something just happen?"
-          subtitle="Only the strongest fresh event counts, and every event loses half its value each year. Two events do not make him twice as timely."
+          subtitle="Only the strongest fresh event counts, and every event loses half its value each year. Two events do not make a prospect twice as timely."
           subtotal={timingScore}
           rule="strongest one counts"
           items={timing}

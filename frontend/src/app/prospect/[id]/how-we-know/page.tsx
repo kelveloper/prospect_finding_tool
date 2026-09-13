@@ -6,7 +6,7 @@ import { fetchCandidateDetail } from "@/lib/api";
 import { isLicenseGated, standingLabel, tierStyle } from "@/lib/tier";
 
 /** One document answering one question: how do we know this? It reads in
- *  pipeline order — the raw facts, then how we knew they were his, then what
+ *  pipeline order — the raw facts, then how we knew they were theirs, then what
  *  each was worth. These used to be two pages and two tabs. */
 export default async function SourcesPage({
   params,
@@ -33,7 +33,7 @@ export default async function SourcesPage({
 
   const contents = [
     { href: "#what-we-found", label: "What we found" },
-    { href: "#how-we-matched", label: "How we knew it was him" },
+    { href: "#how-we-matched", label: "How we knew it was them" },
     { href: "#how-it-scored", label: "What it was worth" },
   ];
 
@@ -52,8 +52,8 @@ export default async function SourcesPage({
           How we know this about {candidate.name}
         </h1>
         <p className="mt-1 max-w-[78ch] text-[14px] text-ink-muted">
-          Every fact behind his priority of {candidate.score} — where it came
-          from, how we knew it was him, and what it was worth.
+          Every fact behind a priority of {candidate.score} — where it came
+          from, how we knew it was them, and what it was worth.
         </p>
 
         <div className="mt-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-[380px_minmax(0,1fr)]">

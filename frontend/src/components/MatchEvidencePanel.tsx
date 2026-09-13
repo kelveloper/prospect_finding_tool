@@ -55,19 +55,19 @@ const JOINS: Join[] = [
         key: "single",
         label: "Nothing matched",
         score: "0.6",
-        note: "We could not find him in the state register, so we only have the national record.",
+        note: "We could not find them in the state register, so we only have the national record.",
       },
     ],
     openers: ["license", "name", "initial"],
     matched: {
       found: "License confirmed in the state register",
       effect:
-        "Because we confirmed his license is active, he is ranked at all — a lapsed one would set his priority to zero — and his license date can be a trigger worth up to 60.",
+        "Because we confirmed the license is active, this prospect is ranked at all — a lapsed one would set the priority to zero — and the license date can be a trigger worth up to 60.",
     },
     missed: {
       found: "Not found in the state register",
       effect:
-        "Without a state record we still rank him, but we cannot confirm the license or use its date as a trigger (worth up to 60).",
+        "Without a state record we still rank them, but we cannot confirm the license or use its date as a trigger (worth up to 60).",
     },
     inSentence: "the state license register",
     footnote:
@@ -89,12 +89,12 @@ const JOINS: Join[] = [
     matched: {
       found: "Billing records attached",
       effect:
-        "With his billing records we can tell whether he owns his practice — up to 25 value points, scaled by years in practice — and spot moves from the next monthly update: a new group is a trigger worth 30, or 60 if it carries his own name as an LLC, or 100 as a PLLC, PC or SC.",
+        "With the billing records we can tell whether they own their practice — up to 25 value points, scaled by years in practice — and spot moves from the next monthly update: a new group is a trigger worth 30, or 60 if it carries their own name as an LLC, or 100 as a PLLC, PC or SC.",
     },
     missed: {
-      found: "No billing records for him",
+      found: "No billing records found",
       effect:
-        "So he gets 0 of 25 for owning a practice and no career trigger. This is normal for doctors who do not bill Medicare through a group.",
+        "So they get 0 of 25 for owning a practice and no career trigger. This is normal for doctors who do not bill Medicare through a group.",
     },
     inSentence: "Medicare billing",
     footnote:
@@ -114,14 +114,14 @@ const JOINS: Join[] = [
     ],
     openers: ["deed-name"],
     matched: {
-      found: "A home purchase in his name",
+      found: "A home purchase in their name",
       effect:
-        "His purchase is a trigger worth up to 80, halving in value every year since the sale.",
+        "The purchase is a trigger worth up to 80, halving in value every year since the sale.",
     },
     missed: {
-      found: "No purchase in his name",
+      found: "No purchase in their name",
       effect:
-        "He gets no property trigger. If a buyer name is close but not exact, we drop it rather than guess.",
+        "They get no property trigger. If a buyer name is close but not exact, we drop it rather than guess.",
     },
     inSentence: "Cook County property records",
     footnote:
@@ -172,7 +172,7 @@ export type RowStatus = "found" | "none" | "pending" | "passed";
 
 const STATUS: Record<RowStatus, { label: string; className: string }> = {
   found: {
-    label: "✓ Found him",
+    label: "✓ Found them",
     className: "bg-tier-strong-bg text-tier-strong-fg",
   },
   none: {
@@ -339,7 +339,7 @@ function TierRow({ tier, used }: { tier: Tier; used: boolean }) {
 export function identityRows(
   matches: MatchEvidenceItem[],
   scoringHref?: string,
-  /** Practices he bills Medicare through. PECOS is looked up by NPI
+  /** Practices this prospect bills Medicare through. PECOS is looked up by NPI
    *  directly and usually records no match row, so the billing records
    *  themselves are what tells us the join opened. Without this, a doctor
    *  whose profile names two practices was told we found nothing. */
@@ -431,7 +431,7 @@ export const careerRow: LedgerRowData = {
     <>
       <Drawer title="How it works">
         <DrawerNote>
-          Every month we check his Medicare record against last month&apos;s.
+          Every month we check the Medicare record against last month&apos;s.
           Anything new — a different practice, a new hospital — counts as a job
           change.
         </DrawerNote>

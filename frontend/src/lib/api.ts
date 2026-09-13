@@ -501,7 +501,7 @@ function toProfile(d: ApiDetail): CandidateProfile {
         // Ownership scores only a group carrying the doctor's own surname, so
         // "Practice Entity — none on record" above can sit beside two real
         // practices. Naming them is the difference between "we found nothing"
-        // and "we found these, neither is his".
+        // and "we found these, neither is theirs".
         ...(d.affiliations && d.affiliations.length > 0
           ? [
               {
@@ -683,7 +683,7 @@ export async function fetchCandidateDetail(id: string): Promise<
       signals: SignalItem[];
       scoreComponents: ScoreComponentItem[];
       matches: MatchEvidenceItem[];
-      /** Practices he bills Medicare through. Also the evidence that the
+      /** Practices this prospect bills Medicare through. Also the evidence that the
        *  PECOS join opened at all — see identityRows. */
       affiliations: { name: string }[];
       identityConfidence: number;
