@@ -388,6 +388,7 @@ export default function SourcesDocument({
   signalTypesCount,
   signals,
   licenseStatus = null,
+  affiliations = [],
 }: {
   qualificationScore: number;
   timingScore: number;
@@ -398,6 +399,9 @@ export default function SourcesDocument({
   signalTypesCount: number;
   signals: SignalItem[];
   licenseStatus?: string | null;
+  /** Practices he bills Medicare through — the evidence that the PECOS
+   *  join opened. */
+  affiliations?: { name: string }[];
 }) {
   const qual = components.filter((c) => c.category === "qualification");
   const timing = components.filter((c) => c.category === "timing");
@@ -411,7 +415,8 @@ export default function SourcesDocument({
      shape of fact — we looked somewhere, something came back — so they are
      now one table the eye only has to learn once. */
 
-  const hasBilling = matches.some((m) => m.reason === "NPI match");
+  const hasBilling =
+    affiliations.length > 0 || matches.some((m) => m.reason === "NPI match");
   const ownSignal = signals.find((s) => s.type === "OWNERSHIP");
   const careerSignal = signals.find((s) => s.type === "CAREER_ADVANCEMENT");
   const ownComp = components.find((c) => c.label === "Practice ownership");
@@ -585,7 +590,7 @@ export default function SourcesDocument({
     ),
   };
 
-  const sources = identityRows(matches, "#how-it-scored");
+  const sources = identityRows(matches, "#how-it-scored", affiliations);
   const rows: LedgerRowData[] = [
     eligibilityRow,
     ...sources,

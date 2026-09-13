@@ -23,6 +23,7 @@ export default async function SourcesPage({
     matches,
     identityConfidence,
     signals,
+    affiliations,
   } = detail;
   const signalTypesCount = new Set(signals.map((s) => s.type)).size;
 
@@ -153,6 +154,7 @@ export default async function SourcesPage({
             signalTypesCount={signalTypesCount}
             signals={signals}
             licenseStatus={candidate.licenseStatus}
+            affiliations={affiliations}
           />
         </div>
       </div>

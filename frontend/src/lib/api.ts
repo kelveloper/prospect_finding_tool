@@ -683,6 +683,9 @@ export async function fetchCandidateDetail(id: string): Promise<
       signals: SignalItem[];
       scoreComponents: ScoreComponentItem[];
       matches: MatchEvidenceItem[];
+      /** Practices he bills Medicare through. Also the evidence that the
+       *  PECOS join opened at all — see identityRows. */
+      affiliations: { name: string }[];
       identityConfidence: number;
       fieldChanges: FieldChangeItem[];
       scoreHistory: ScoreSnapshotItem[];
@@ -702,6 +705,7 @@ export async function fetchCandidateDetail(id: string): Promise<
         score: m.score,
         reason: m.reason,
       })),
+      affiliations: detail.affiliations ?? [],
       identityConfidence: detail.identity_confidence,
       fieldChanges: (detail.field_changes ?? []).map((c) => ({
         field: c.field,

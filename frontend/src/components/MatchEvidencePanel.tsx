@@ -89,7 +89,7 @@ const JOINS: Join[] = [
     matched: {
       found: "Billing records attached",
       effect:
-        "With his billing records we can tell whether he owns his practice — up to 25 value points, scaled by years in practice — and spot moves from the next monthly update: a new group is a trigger worth 30, or 100 if the group carries his own name.",
+        "With his billing records we can tell whether he owns his practice — up to 25 value points, scaled by years in practice — and spot moves from the next monthly update: a new group is a trigger worth 30, or 60 if it carries his own name as an LLC, or 100 as a PLLC, PC or SC.",
     },
     missed: {
       found: "No billing records for him",
@@ -339,8 +339,14 @@ function TierRow({ tier, used }: { tier: Tier; used: boolean }) {
 export function identityRows(
   matches: MatchEvidenceItem[],
   scoringHref?: string,
+  /** Practices he bills Medicare through. PECOS is looked up by NPI
+   *  directly and usually records no match row, so the billing records
+   *  themselves are what tells us the join opened. Without this, a doctor
+   *  whose profile names two practices was told we found nothing. */
+  affiliations: { name: string }[] = [],
 ): LedgerRowData[] {
   const used = new Set<TierKey>(matches.map(tierOf));
+  if (affiliations.length > 0) used.add("npi");
   // No state-register evidence at all → the single-source default applied.
   if (!used.has("license") && !used.has("name") && !used.has("initial")) {
     used.add("single");
@@ -360,7 +366,12 @@ export function identityRows(
       status: (isOpen ? "found" : "none") as RowStatus,
       where: join.where,
       whereSub: join.whereSub,
-      found: outcome.found,
+      found:
+        join.key === "medicare" && isOpen && affiliations.length > 0
+          ? affiliations.length > 2
+            ? `Bills through ${affiliations.length} practices`
+            : `Bills through ${affiliations.map((a) => a.name).join(" · ")}`
+          : outcome.found,
       how: landed ? landed.label : "Nothing matched",
       inSentence: join.inSentence,
       score: hit ? hit.score.toFixed(2) : undefined,
