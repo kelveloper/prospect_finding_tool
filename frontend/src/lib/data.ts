@@ -49,6 +49,10 @@ export type Candidate = {
   timingChange: number | null;
   scoreChangeNote: string | null;
   isNew: boolean;
+  /** The last outreach event logged against this prospect, or null when
+   *  nobody has touched them. The backend has always sent it; until now
+   *  nothing read it, so the book could not say who had been worked. */
+  outreachStatus: OutreachEntry["eventType"] | null;
   /** ISO timestamp of when ingestion first located this prospect. */
   createdAt: string;
   /** Identity audit — the merge evidence behind the profile. Always

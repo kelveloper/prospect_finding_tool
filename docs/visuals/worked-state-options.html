@@ -1,0 +1,218 @@
+<meta charset="utf-8">
+<title>The Book — Worked State</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+  :root{color-scheme:light;
+    --ink:#0f3a5c;--ink-muted:#4a6b82;--ink-faint:#8aaec5;--brand:#1d6fa4;--brand-dark:#0d5fa3;
+    --canvas:#f0f7fc;--soft:#e8f4fc;--hair:#b8ddef;--page:#eef4f8;--card:#fff;
+    --good:#0b7a4b;--good-bg:#d6f4e8;--warn:#9e6109;--warn-bg:#fdf3e3;--bad:#c9154f;--bad-bg:#fce4ea;
+    --disp:"DM Sans",system-ui,sans-serif;--body:"Inter",system-ui,sans-serif}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --ink:#e6edf3;--ink-muted:#aeb9c4;--ink-faint:#7d8894;--canvas:#161d26;--soft:#18242f;--hair:#2b3a47;
+    --page:#0d1117;--card:#161b22;--good:#7fd3a8;--good-bg:#14291f;--warn:#e0c177;--warn-bg:#2c2513;
+    --bad:#f0a08c;--bad-bg:#33201b}}
+  :root[data-theme="dark"]{
+    --ink:#e6edf3;--ink-muted:#aeb9c4;--ink-faint:#7d8894;--canvas:#161d26;--soft:#18242f;--hair:#2b3a47;
+    --page:#0d1117;--card:#161b22;--good:#7fd3a8;--good-bg:#14291f;--warn:#e0c177;--warn-bg:#2c2513;
+    --bad:#f0a08c;--bad-bg:#33201b}
+  body{background:var(--page);color:var(--ink);font-family:var(--body);font-size:15px;margin:0;padding-block:32px}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+  h1{font-family:var(--disp);font-size:29px;font-weight:700;letter-spacing:-.6px;margin:0 0 5px}
+  h2{font-family:var(--disp);font-size:12px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;
+     color:var(--ink-faint);margin:34px 0 10px}
+  .lede{color:var(--ink-muted);margin:0 0 6px;max-width:76ch;line-height:1.55}
+  .card{background:var(--card);border:1px solid var(--hair);border-radius:14px;padding:17px 19px;margin:14px 0 0}
+  .card h3{font-family:var(--disp);font-size:17px;font-weight:700;margin:0 0 4px;letter-spacing:-.2px}
+  .note{color:var(--ink-muted);font-size:13.5px;margin:10px 0 0;line-height:1.55}
+  .note b{color:var(--ink)}
+  .tag{display:inline-block;font-family:var(--disp);font-size:10px;font-weight:700;letter-spacing:.9px;
+       text-transform:uppercase;padding:3px 8px;border-radius:99px;margin-right:8px;vertical-align:2px}
+  .t-rec{background:var(--good-bg);color:var(--good)}
+  .t-no{background:var(--bad-bg);color:var(--bad)}
+  .t-ok{background:var(--soft);color:var(--brand-dark)}
+
+  /* the page mock */
+  .page{border:1px solid var(--hair);border-radius:11px;background:var(--card);overflow:hidden;margin-top:12px}
+  .cap{font-family:var(--disp);font-size:9.5px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;
+       padding:6px 12px;border-bottom:1px solid var(--hair);background:var(--canvas);color:var(--ink-muted)}
+  .in{padding:9px 14px 12px}
+  .hdr,.row{display:grid;grid-template-columns:22px 1fr 94px 66px 60px;gap:10px;align-items:center}
+  .hdr{font-family:var(--disp);font-size:9px;letter-spacing:.9px;text-transform:uppercase;color:var(--ink-faint);
+       padding:5px 0;border-bottom:1px solid var(--hair)}
+  .hdr .r{text-align:right}
+  .row{padding:7px 0;border-bottom:1px dashed var(--hair);font-size:12.5px;position:relative}
+  .row:last-child{border-bottom:0}
+  .rk{font-family:var(--disp);font-size:10px;font-weight:700;color:var(--ink-faint);text-align:center}
+  .nm{font-family:var(--disp);font-weight:600;color:var(--ink);font-size:12.5px}
+  .loc{color:var(--ink-faint);font-size:10.5px;margin-left:6px}
+  .sub{color:var(--ink-faint);font-size:11px;margin-top:1px}
+  .quiet{color:var(--ink-faint);opacity:.55;font-size:11px}
+  .chip{display:inline-block;border-radius:99px;padding:2px 7px;font-size:10.5px;font-family:var(--disp);font-weight:600}
+  .c-b{background:var(--soft);color:var(--brand-dark)} .c-g{background:var(--good-bg);color:var(--good)}
+  .fit{text-align:right;font-family:var(--disp);font-weight:700;font-size:13px;color:var(--good)}
+
+  /* --- treatments --- */
+  /* A: margin tick */
+  .tick{position:absolute;left:-9px;top:50%;transform:translateY(-50%);font-size:11px;line-height:1;
+        font-family:var(--disp);font-weight:700}
+  .tick.won{color:var(--good)} .tick.did{color:var(--ink-faint)}
+  /* B: the row goes quiet */
+  .done .nm,.done .fit{color:var(--ink-faint)}
+  .done .sub,.done .loc,.done .quiet,.done .chip{opacity:.5}
+  /* C: word on the second line */
+  .stamp{font-family:var(--disp);font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+  .stamp.won{color:var(--good)} .stamp.did{color:var(--ink-faint)}
+  .dot{color:var(--hair);margin:0 5px}
+
+  table{border-collapse:collapse;width:100%;margin-top:10px;font-size:13px}
+  th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--hair);vertical-align:top}
+  th{font-family:var(--disp);font-size:9.5px;letter-spacing:.9px;text-transform:uppercase;color:var(--ink-faint)}
+  td code{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;background:var(--canvas);padding:1px 5px;border-radius:4px}
+</style>
+
+<div class="wrap">
+  <h1>Who has already been worked</h1>
+  <p class="lede">
+    The backend has computed <code>outreach_status</code> for every prospect since the
+    tracking was built, and sends it on every row of the board. Nothing has ever read it.
+    So an advisor who called four people yesterday opens the book today and the page looks
+    exactly as it did before they picked up the phone.
+  </p>
+  <p class="lede">
+    This is the real top spread, with the real events in the database. Four of the twelve
+    have been worked: <b>Ameen</b> and <b>Varun</b> became clients, <b>Rahul</b> was spoken to,
+    <b>Lauren</b> could not be reached.
+  </p>
+
+  <h2>Now</h2>
+  <div class="page">
+    <div class="cap">Today — nothing on the page says any of this happened</div>
+    <div class="in">
+      <div class="hdr"><span>#</span><span>Specialty / location</span><span>Why now</span><span>Evidence</span><span class="r">Fit</span></div>
+      <div class="row"><span class="rk">1</span><span><span class="nm">Ameen Barghi</span><span class="loc">Chicago, IL</span><div class="sub">Orthopaedic Surgery</div></span><span class="quiet">New license</span><span class="quiet">partial</span><span class="fit">62.5</span></div>
+      <div class="row"><span class="rk">2</span><span><span class="nm">Kevin Zachary Black</span><span class="loc">Effingham, IL</span><div class="sub">Orthopaedic Surgery</div></span><span class="quiet">New license</span><span class="quiet">partial</span><span class="fit">61.6</span></div>
+      <div class="row"><span class="rk">3</span><span><span class="nm">Rahul Aggarwal</span><span class="loc">Boston, MA</span><div class="sub">Internal Medicine, Cardiovascular Disease</div></span><span class="chip c-b">Bought a home</span><span class="chip c-g">✓ strong</span><span class="fit">61.5</span></div>
+      <div class="row"><span class="rk">4</span><span><span class="nm">Alex C Brewer</span><span class="loc">Mattoon, IL</span><div class="sub">Orthopaedic Surgery</div></span><span class="quiet">New license</span><span class="quiet">partial</span><span class="fit">60.9</span></div>
+      <div class="row"><span class="rk">5</span><span><span class="nm">Varun G. Bora</span><span class="loc">Skokie, IL</span><div class="sub">Orthopaedic Surgery, Adult Reconstructive</div></span><span class="quiet">New license</span><span class="quiet">partial</span><span class="fit">59.6</span></div>
+      <div class="row"><span class="rk">6</span><span><span class="nm">Heba Abdullah Ahmad</span><span class="loc">Chicago, IL</span><div class="sub">Orthopaedic Surgery</div></span><span class="quiet">New license</span><span class="quiet">partial</span><span class="fit">58.9</span></div>
+      <div class="row"><span class="rk">7</span><span><span class="nm">Lauren Ashley Barber</span><span class="loc">Maywood, IL</span><div class="sub">Orthopaedic Surgery</div></span><span class="quiet">New license</span><span class="quiet">partial</span><span class="fit">57.7</span></div>
+      <div class="row"><span class="rk">8</span><span><span class="nm">Avinesh Agarwalla</span><span class="loc">Schaumburg, IL</span><div class="sub">Orthopaedic Surgery, Foot and Ankle</div></span><span class="quiet">New license</span><span class="quiet">partial</span><span class="fit">57.7</span></div>
+    </div>
+  </div>
+  <p class="note">
+    The advisor's own work is the one thing on this page they cannot see. Everything else —
+    specialty, city, licence, evidence — came from a registry. <b>Only this column would be theirs.</b>
+  </p>
+
+  <h2>Option A — a tick in the margin</h2>
+  <div class="card">
+    <h3><span class="tag t-ok">Quietest</span>A mark in the gutter, nothing else changes</h3>
+    <div class="page">
+      <div class="cap">A ledger tick, outside the text</div>
+      <div class="in" style="padding-left:24px">
+        <div class="hdr"><span>#</span><span>Specialty / location</span><span>Why now</span><span>Evidence</span><span class="r">Fit</span></div>
+        <div class="row"><span class="tick won" title="Became a client">✓</span><span class="rk">1</span><span><span class="nm">Ameen Barghi</span><span class="loc">Chicago, IL</span><div class="sub">Orthopaedic Surgery</div></span><span class="quiet">New license</span><span class="quiet">partial</span><span class="fit">62.5</span></div>
+        <div class="row"><span class="rk">2</span><span><span class="nm">Kevin Zachary Black</span><span class="loc">Effingham, IL</span><div class="sub">Orthopaedic Surgery</div></span><span class="quiet">New license</span><span class="quiet">partial</span><span class="fit">61.6</span></div>
+        <div class="row"><span class="tick did" title="Spoke to them">·</span><span class="rk">3</span><span><span class="nm">Rahul Aggarwal</span><span class="loc">Boston, MA</span><div class="sub">Internal Medicine, Cardiovascular Disease</div></span><span class="chip c-b">Bought a home</span><span class="chip c-g">✓ strong</span><span class="fit">61.5</span></div>
+        <div class="row"><span class="rk">4</span><span><span class="nm">Alex C Brewer</span><span class="loc">Mattoon, IL</span><div class="sub">Orthopaedic Surgery</div></span><span class="quiet">New license</span><span class="quiet">partial</span><span class="fit">60.9</span></div>
+        <div class="row"><span class="tick won" title="Became a client">✓</span><span class="rk">5</span><span><span class="nm">Varun G. Bora</span><span class="loc">Skokie, IL</span><div class="sub">Orthopaedic Surgery, Adult Reconstructive</div></span><span class="quiet">New license</span><span class="quiet">partial</span><span class="fit">59.6</span></div>
+        <div class="row"><span class="rk">6</span><span><span class="nm">Heba Abdullah Ahmad</span><span class="loc">Chicago, IL</span><div class="sub">Orthopaedic Surgery</div></span><span class="quiet">New license</span><span class="quiet">partial</span><span class="fit">58.9</span></div>
+        <div class="row"><span class="tick did" title="Couldn't reach them">·</span><span class="rk">7</span><span><span class="nm">Lauren Ashley Barber</span><span class="loc">Maywood, IL</span><div class="sub">Orthopaedic Surgery</div></span><span class="quiet">New license</span><span class="quiet">partial</span><span class="fit">57.7</span></div>
+        <div class="row"><span class="rk">8</span><span><span class="nm">Avinesh Agarwalla</span><span class="loc">Schaumburg, IL</span><div class="sub">Orthopaedic Surgery, Foot and Ankle</div></span><span class="quiet">New license</span><span class="quiet">partial</span><span class="fit">57.7</span></div>
+      </div>
+    </div>
+    <p class="note">
+      Costs no width and no column heading. But a 10px tick is at the very bottom of what the
+      eye picks up while scanning, and it can only say <i>something happened</i> — not what.
+      <b>Squint at it: it nearly disappears.</b>
+    </p>
+  </div>
+
+  <h2>Option B — the worked rows go quiet</h2>
+  <div class="card">
+    <h3><span class="tag t-ok">No new ink</span>Done lines recede; live ones stay full strength</h3>
+    <div class="page">
+      <div class="cap">Nothing added — the finished rows just stop shouting</div>
+      <div class="in">
+        <div class="hdr"><span>#</span><span>Specialty / location</span><span>Why now</span><span>Evidence</span><span class="r">Fit</span></div>
+        <div class="row done"><span class="rk">1</span><span><span class="nm">Ameen Barghi</span><span class="loc">Chicago, IL</span><div class="sub">Orthopaedic Surgery</div></span><span class="quiet">New license</span><span class="quiet">partial</span><span class="fit">62.5</span></div>
+        <div class="row"><span class="rk">2</span><span><span class="nm">Kevin Zachary Black</span><span class="loc">Effingham, IL</span><div class="sub">Orthopaedic Surgery</div></span><span class="quiet">New license</span><span class="quiet">partial</span><span class="fit">61.6</span></div>
+        <div class="row done"><span class="rk">3</span><span><span class="nm">Rahul Aggarwal</span><span class="loc">Boston, MA</span><div class="sub">Internal Medicine, Cardiovascular Disease</div></span><span class="chip c-b">Bought a home</span><span class="chip c-g">✓ strong</span><span class="fit">61.5</span></div>
+        <div class="row"><span class="rk">4</span><span><span class="nm">Alex C Brewer</span><span class="loc">Mattoon, IL</span><div class="sub">Orthopaedic Surgery</div></span><span class="quiet">New license</span><span class="quiet">partial</span><span class="fit">60.9</span></div>
+        <div class="row done"><span class="rk">5</span><span><span class="nm">Varun G. Bora</span><span class="loc">Skokie, IL</span><div class="sub">Orthopaedic Surgery, Adult Reconstructive</div></span><span class="quiet">New license</span><span class="quiet">partial</span><span class="fit">59.6</span></div>
+        <div class="row"><span class="rk">6</span><span><span class="nm">Heba Abdullah Ahmad</span><span class="loc">Chicago, IL</span><div class="sub">Orthopaedic Surgery</div></span><span class="quiet">New license</span><span class="quiet">partial</span><span class="fit">58.9</span></div>
+        <div class="row done"><span class="rk">7</span><span><span class="nm">Lauren Ashley Barber</span><span class="loc">Maywood, IL</span><div class="sub">Orthopaedic Surgery</div></span><span class="quiet">New license</span><span class="quiet">partial</span><span class="fit">57.7</span></div>
+        <div class="row"><span class="rk">8</span><span><span class="nm">Avinesh Agarwalla</span><span class="loc">Schaumburg, IL</span><div class="sub">Orthopaedic Surgery, Foot and Ankle</div></span><span class="quiet">New license</span><span class="quiet">partial</span><span class="fit">57.7</span></div>
+      </div>
+    </div>
+    <p class="note">
+      Now the <b>un-worked</b> rows pop, which is the actual question — "who is left?" — and it
+      cost no column and no heading. Two problems. Ameen <i>became a client</i>, and here that
+      looks the same as Lauren not picking up; a win should not fade like a dead end.
+      And dimming alone is invisible to anyone reading at low contrast.
+    </p>
+  </div>
+
+  <h2>Option C — say what happened, on the quiet line</h2>
+  <div class="card">
+    <h3><span class="tag t-rec">Recommended</span>Quiet row, plus the word, stamped on the second line</h3>
+    <div class="page">
+      <div class="cap">The line that already holds the specialty carries the outcome</div>
+      <div class="in">
+        <div class="hdr"><span>#</span><span>Specialty / location</span><span>Why now</span><span>Evidence</span><span class="r">Fit</span></div>
+        <div class="row done"><span class="rk">1</span><span><span class="nm">Ameen Barghi</span><span class="loc">Chicago, IL</span><div class="sub"><span class="stamp won">✓ Client</span><span class="dot">·</span>Orthopaedic Surgery</div></span><span class="quiet">New license</span><span class="quiet">partial</span><span class="fit">62.5</span></div>
+        <div class="row"><span class="rk">2</span><span><span class="nm">Kevin Zachary Black</span><span class="loc">Effingham, IL</span><div class="sub">Orthopaedic Surgery</div></span><span class="quiet">New license</span><span class="quiet">partial</span><span class="fit">61.6</span></div>
+        <div class="row done"><span class="rk">3</span><span><span class="nm">Rahul Aggarwal</span><span class="loc">Boston, MA</span><div class="sub"><span class="stamp did">Spoke to them</span><span class="dot">·</span>Internal Medicine, Cardiovascular Disease</div></span><span class="chip c-b">Bought a home</span><span class="chip c-g">✓ strong</span><span class="fit">61.5</span></div>
+        <div class="row"><span class="rk">4</span><span><span class="nm">Alex C Brewer</span><span class="loc">Mattoon, IL</span><div class="sub">Orthopaedic Surgery</div></span><span class="quiet">New license</span><span class="quiet">partial</span><span class="fit">60.9</span></div>
+        <div class="row done"><span class="rk">5</span><span><span class="nm">Varun G. Bora</span><span class="loc">Skokie, IL</span><div class="sub"><span class="stamp won">✓ Client</span><span class="dot">·</span>Orthopaedic Surgery, Adult Reconstructive</div></span><span class="quiet">New license</span><span class="quiet">partial</span><span class="fit">59.6</span></div>
+        <div class="row"><span class="rk">6</span><span><span class="nm">Heba Abdullah Ahmad</span><span class="loc">Chicago, IL</span><div class="sub">Orthopaedic Surgery</div></span><span class="quiet">New license</span><span class="quiet">partial</span><span class="fit">58.9</span></div>
+        <div class="row done"><span class="rk">7</span><span><span class="nm">Lauren Ashley Barber</span><span class="loc">Maywood, IL</span><div class="sub"><span class="stamp did">No answer</span><span class="dot">·</span>Orthopaedic Surgery</div></span><span class="quiet">New license</span><span class="quiet">partial</span><span class="fit">57.7</span></div>
+        <div class="row"><span class="rk">8</span><span><span class="nm">Avinesh Agarwalla</span><span class="loc">Schaumburg, IL</span><div class="sub">Orthopaedic Surgery, Foot and Ankle</div></span><span class="quiet">New license</span><span class="quiet">partial</span><span class="fit">57.7</span></div>
+      </div>
+    </div>
+    <p class="note">
+      Three things carry it at once, so none of them has to carry it alone: the row's weight
+      says <b>done</b>, the word says <b>what</b>, and green versus grey separates a win from a
+      dead end without being the only thing that does. It reuses the second line, which today
+      holds one faint specialty and has room — so it costs <b>no column and no heading</b>,
+      which matters because the spread already prints ten headings for five columns.
+    </p>
+    <p class="note">
+      "No answer" rather than "Couldn't reach them": the second line is the row's quietest,
+      and it has to stay shorter than the specialty beside it.
+    </p>
+  </div>
+
+  <h2>Option D — a status column</h2>
+  <div class="card">
+    <h3><span class="tag t-no">Not recommended</span>The obvious answer, and the wrong one here</h3>
+    <p class="note">
+      A sixth column called <b>Status</b> is what most tools do, and it is the cleanest to read
+      in isolation. But the book prints its headings <b>twice per spread</b> — that is the other
+      open finding — so one new column adds two more headings and two more sort menus to a page
+      that already has ten of each. It also spends width on a cell that is empty on eight rows
+      in twelve. Worth revisiting <i>after</i> the headings are merged, not before.
+    </p>
+  </div>
+
+  <h2>What each status would say</h2>
+  <div class="card">
+    <table>
+      <tr><th>Logged as</th><th>The book prints</th><th>Reads as</th></tr>
+      <tr><td><code>converted</code></td><td><span class="stamp won">✓ Client</span></td><td>Won. Green, and the row recedes because there is nothing left to do.</td></tr>
+      <tr><td><code>connected</code></td><td><span class="stamp did">Spoke to them</span></td><td>In flight — someone has them.</td></tr>
+      <tr><td><code>follow_up_later</code></td><td><span class="stamp did">Following up</span></td><td>In flight, with a date set.</td></tr>
+      <tr><td><code>not_connected</code></td><td><span class="stamp did">No answer</span></td><td>Tried. Still callable — so this one does <b>not</b> recede.</td></tr>
+      <tr><td><code>not_converted</code></td><td><span class="stamp did">Not a fit</span></td><td>Closed. Recedes.</td></tr>
+      <tr><td><code>not_pursued</code></td><td><span class="stamp did">Skipped</span></td><td>Screened out without a call. Recedes.</td></tr>
+      <tr><td><code>null</code></td><td>—</td><td>Untouched. Nothing printed, full strength. Eight rows in twelve.</td></tr>
+    </table>
+    <p class="note">
+      <b>One judgement in there worth checking.</b> "No answer" is the only attempt that leaves
+      the prospect <i>still worth calling</i>, so it gets the word but keeps its full weight —
+      otherwise a single missed call would quietly bury someone the advisor still means to reach.
+    </p>
+  </div>
+</div>

@@ -469,6 +469,8 @@ function toCandidate(p: ApiRanked, detail?: ApiDetail): Candidate {
     timingChange: p.timing_change ?? null,
     scoreChangeNote: p.score_change_note ?? null,
     isNew: p.is_new ?? false,
+    outreachStatus:
+      (p.outreach_status as Candidate["outreachStatus"]) ?? null,
     createdAt: p.created_at,
     identity: {
       identityTier: p.identity_tier ?? "single_source",

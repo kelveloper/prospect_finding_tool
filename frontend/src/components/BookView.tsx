@@ -21,6 +21,7 @@ import {
 import type { Candidate } from "@/lib/data";
 import { tierStyle } from "@/lib/tier";
 import { entryHref } from "@/lib/view";
+import { workedState } from "@/lib/outreach";
 import {
   commitViews,
   describe,
@@ -1254,6 +1255,15 @@ function BookEntry({
   const style = tierStyle(candidate.tier);
   const plainTrigger = candidate.trigger?.label === usual.trigger;
   const plainEvidence = candidate.evidence.level === usual.evidence;
+  /* What the advisor already did about this one — the only column on the
+     page that is theirs rather than a registry's. A settled line recedes so
+     the untouched ones stand out; that is the question being asked while
+     scanning a spread, which is "who is left". */
+  const worked = workedState(candidate.outreachStatus);
+  const settled = worked?.settled ?? false;
+  // Applied to the row's already-faint cells. The name and the figure take a
+  // colour instead: they are the two things set at full strength.
+  const recede = settled ? "opacity-50" : "";
 
   return (
     <a
@@ -1290,7 +1300,10 @@ function BookEntry({
         <span className="flex items-baseline gap-2">
           <span
             title={candidate.name}
-            className="min-w-0 truncate font-display text-[14px] font-semibold text-ink"
+            className={
+              "min-w-0 truncate font-display text-[14px] font-semibold " +
+              (settled ? "text-ink-faint" : "text-ink")
+            }
           >
             {candidate.name}
           </span>
@@ -1302,7 +1315,9 @@ function BookEntry({
                 ? `${candidate.location} · ${candidate.licenseNote}`
                 : candidate.location
             }
-            className="shrink-0 whitespace-nowrap text-[11px] text-ink-faint"
+            className={
+              "shrink-0 whitespace-nowrap text-[11px] text-ink-faint " + recede
+            }
           >
             {candidate.location}
           </span>
@@ -1310,15 +1325,38 @@ function BookEntry({
         {/* Wraps to a second line instead of truncating. Two lines hold the
             longest taxonomy string in the book; one held none of the worst
             three. */}
-        <span
-          title={candidate.specialty}
-          className="mt-0.5 line-clamp-2 text-[12px] leading-[16px] text-ink-faint"
-        >
-          {candidate.specialty}
+        {/* The row's quietest line, and the only one with slack: the
+            specialty rarely fills it. Stamping the outcome here buys the
+            fact a place to live without a sixth column — which would cost
+            two more headings and two more sort menus on a spread that
+            already prints ten of each. */}
+        <span className="mt-0.5 line-clamp-2 text-[12px] leading-[16px]">
+          {worked ? (
+            <>
+              <span
+                title={worked.spoken}
+                className={
+                  "font-display text-[10px] font-bold uppercase tracking-[0.5px] " +
+                  (worked.won ? "text-tier-strong-fg" : "text-ink-faint")
+                }
+              >
+                {worked.label}
+              </span>
+              <span aria-hidden className="mx-1.5 text-hairline">
+                ·
+              </span>
+            </>
+          ) : null}
+          <span
+            title={candidate.specialty}
+            className={"text-ink-faint " + recede}
+          >
+            {candidate.specialty}
+          </span>
         </span>
       </span>
 
-      <span className="hidden w-[104px] shrink-0 lg:block">
+      <span className={"hidden w-[104px] shrink-0 lg:block " + recede}>
         {candidate.trigger && plainTrigger ? (
           <span
             title={`Why now — ${candidate.trigger.hint}`}
@@ -1338,7 +1376,7 @@ function BookEntry({
         )}
       </span>
 
-      <span className="hidden w-[86px] shrink-0 md:block">
+      <span className={"hidden w-[86px] shrink-0 md:block " + recede}>
         {plainEvidence ? (
           <span
             title={`Evidence — built on ${candidate.evidence.found} of ${candidate.evidence.total} signals`}
@@ -1371,8 +1409,11 @@ function BookEntry({
         className="flex w-[104px] shrink-0 cursor-help items-baseline justify-end gap-1.5"
       >
         <span
-          className="font-display text-[15px] font-bold tabular-nums"
-          style={{ color: style.badgeFg }}
+          className={
+            "font-display text-[15px] font-bold tabular-nums " +
+            (settled ? "text-ink-faint" : "")
+          }
+          style={settled ? undefined : { color: style.badgeFg }}
         >
           {candidate.score}
         </span>
