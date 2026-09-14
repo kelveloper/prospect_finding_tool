@@ -263,7 +263,14 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
    *
    *  Nothing is lost. The board prints an arrow on every card that moved,
    *  and "What changed" is one chip away — where the reader has asked for
-   *  movement, so the column is worth its width. */
+   *  movement, so the column is worth its width.
+   *
+   *  There it takes Evidence's place rather than being added beside it. The
+   *  page has room for six columns and no more, and a reader who has asked
+   *  what changed is not asking how well evidenced it is — Evidence is also
+   *  the column whose value is identical on most of a spread, which is why
+   *  it is already set quiet. Swapping keeps the name cell at full width in
+   *  both views instead of clipping six names in one of them. */
   const hasMovement = onlyChanged;
 
   const filtered = !isEmpty(viewState);
@@ -449,6 +456,7 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
                 inset="chip"
               />
             </span>
+            {hasMovement ? null : (
             <span className="hidden w-[72px] shrink-0 md:block">
               <ColumnHead
                 heading="Evidence"
@@ -456,6 +464,7 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
                 inset="chip"
               />
             </span>
+            )}
             {hasMovement ? (
               <span className="hidden w-[78px] shrink-0 text-right md:block">
                 <ColumnHead
@@ -1164,6 +1173,7 @@ function BookEntry({
         )}
       </span>
 
+      {showMovement ? null : (
       <span className={"hidden w-[72px] shrink-0 md:block " + recede}>
         {plainEvidence ? (
           <span
@@ -1176,6 +1186,7 @@ function BookEntry({
           <EvidenceChip evidence={candidate.evidence} />
         )}
       </span>
+      )}
 
       {showMovement ? (
         <span className="hidden w-[78px] shrink-0 text-right md:block">

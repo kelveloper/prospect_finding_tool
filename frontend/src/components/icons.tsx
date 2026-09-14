@@ -177,6 +177,38 @@ export function BookIcon({ className }: IconProps) {
   );
 }
 
+/** A four-point sparkle: the mark on a prospect the last sweep found for
+ *  the first time. Drawn rather than typed — "✨" is an emoji, so it renders
+ *  in the platform's colour font at whatever weight that font feels like,
+ *  and ignores the text colour around it. */
+export function SparkIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className={className ?? base} aria-hidden>
+      <path
+        d="M8 1.6c.45 2.9 1.5 3.95 4.4 4.4-2.9.45-3.95 1.5-4.4 4.4-.45-2.9-1.5-3.95-4.4-4.4 2.9-.45 3.95-1.5 4.4-4.4Z"
+        fill="currentColor"
+      />
+      <path
+        d="M12.4 10.1c.24 1.5.78 2.05 2.3 2.3-1.52.24-2.06.78-2.3 2.3-.25-1.52-.79-2.06-2.3-2.3 1.51-.25 2.05-.79 2.3-2.3Z"
+        fill="currentColor"
+        opacity="0.55"
+      />
+    </svg>
+  );
+}
+
+/** A filled star, for the one outcome worth marking: they became a client. */
+export function StarIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className={className ?? base} aria-hidden>
+      <path
+        d="M8 1.9l1.85 3.75 4.15.6-3 2.93.71 4.12L8 11.37l-3.71 1.95.71-4.12-3-2.93 4.15-.6L8 1.9Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
 export function CloseIcon({ className }: IconProps) {
   return (
     <svg viewBox="0 0 16 16" fill="none" className={className ?? base} aria-hidden>

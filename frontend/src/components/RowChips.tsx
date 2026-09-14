@@ -1,5 +1,6 @@
 import type { Candidate } from "@/lib/data";
 import { explainMove } from "@/lib/movement";
+import { SparkIcon } from "./icons";
 
 /** The small print of a row, each piece saying what it is on hover.
  *
@@ -53,9 +54,10 @@ export function MovementChip({
     return (
       <span
         title="First found by the last sweep — there is no earlier score to compare against."
-        className="shrink-0 cursor-help font-display text-[11px] font-bold text-tier-strong-fg"
+        className="inline-flex shrink-0 cursor-help items-center gap-1 font-display text-[11px] font-bold text-tier-strong-fg"
       >
-        ✨ new
+        <SparkIcon className="size-3 shrink-0" />
+        new
       </span>
     );
   }

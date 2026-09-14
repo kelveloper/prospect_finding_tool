@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { revalidateBoard } from "@/lib/actions";
 import type { OutreachEntry } from "@/lib/data";
+import { StarIcon } from "./icons";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -406,8 +407,10 @@ export default function OutreachActions({
 
       {step === "done" && !revising ? (
         <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-2">
-          <p className="font-display text-[15px] font-bold text-ink">
-            {last?.eventType === "converted" ? "★ " : ""}
+          <p className="flex items-center gap-1.5 font-display text-[15px] font-bold text-ink">
+            {last?.eventType === "converted" ? (
+              <StarIcon className="size-[15px] shrink-0 text-tier-strong-fg" />
+            ) : null}
             {last
               ? `${LABELS[last.eventType]} on ${fmtDate(last.occurredAt)}`
               : ""}
