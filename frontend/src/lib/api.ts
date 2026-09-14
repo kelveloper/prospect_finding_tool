@@ -180,6 +180,20 @@ export type ContactKit = {
  *  Never "his": the board does not know a prospect's gender and has been
  *  bitten by assuming it before.
  */
+/** Whether "issued …" still reads as recent enough to call new.
+ *
+ *  The phrase comes from the backend already written — "this month",
+ *  "2 months ago", "6 year(s) ago" — so this reads it rather than the date.
+ *  A year is the line: inside it a licence is worth naming as new, beyond it
+ *  the fact still opens a conversation but the adjective is a lie. */
+function recentlyIssued(when: string): boolean {
+  const w = when.toLowerCase();
+  if (/\byears?\b/.test(w)) return false;
+  if (/this month|last month|\bdays?\s+ago|\bweeks?\s+ago/.test(w)) return true;
+  const months = w.match(/(\d+)\s*months?\s+ago/);
+  return months ? Number(months[1]) <= 12 : false;
+}
+
 function openingOf(
   description?: string | null,
   type?: string | null,
@@ -199,7 +213,12 @@ function openingOf(
   const licence = fact.match(/^(.+?)\s+licen[sc]e\s+issued\s+(.+)$/i);
   if (type === "NEW_LICENSE" && licence)
     return {
-      text: `their new ${licence[1]} license — issued ${licence[2]}`,
+      // "new" only while it is. NEW_LICENSE fires for anyone holding a
+      // licence date at all, so the trigger reaches prospects licensed years
+      // ago — and the advisor was being told to open with "their new
+      // Illinois license — issued 17 months ago", which is a sentence that
+      // argues with itself and would sound absurd read down a phone.
+      text: `their ${recentlyIssued(licence[2]) ? "new " : ""}${licence[1]} license — issued ${licence[2]}`,
       phrased: true,
     };
 
