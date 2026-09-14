@@ -28,10 +28,14 @@ export default function ContactKitCard({
 
   return (
     <section className="mt-7">
-      <div className="mb-2 flex items-center gap-3">
+      {/* The badge sits inside the heading, between the words and the rule
+          the heading draws to the edge. Outside it, the growing title pushed
+          it to the far right — technically beside the section, visually
+          attached to nothing. */}
+      <h2 className="section-title mb-2">
         {/* Named for the act, not the reference. Two facts side by side in
             equal tiles is a card you consult; this is the step you take. */}
-        <h2 className="section-title grow">Do this next</h2>
+        Do this next
         {/* How to approach, kept to one marker rather than two amber slabs.
             The rules are constraints — read once, obeyed thereafter — so
             they do not need to shout on every profile. The badge stays
@@ -41,18 +45,12 @@ export default function ContactKitCard({
             than the phone or the address. */}
         {kit.rules.length > 0 ? <RuleHint rules={kit.rules} /> : null}
         {kit.urgency === "elevated" ? (
-          <span className="rounded-full bg-tier-neutral-bg px-3 py-1 font-display text-[11px] font-semibold text-tier-neutral-fg">
+          <span className="shrink-0 rounded-full bg-tier-neutral-bg px-3 py-1 font-display text-[11px] font-semibold text-tier-neutral-fg">
             Hot — Act Soon
           </span>
         ) : null}
-      </div>
+      </h2>
 
-      {/* Asymmetric on purpose. Two equal tiles said the address mattered
-          as much as placing the call, which is what this block was before;
-          a wider, louder left column says call now, address when you write.
-          The box measures 796–1076px everywhere it actually appears — the
-          board, and the book's slide-over — so the stacked fallback is for
-          genuinely small screens rather than for any normal use. */}
       <div className="rounded-[12px] bg-canvas px-5 py-4">
         <div className="min-w-0">
           {kit.phone ? (
@@ -147,7 +145,11 @@ function RuleHint({ rules }: { rules: string[] }) {
 
       <span
         aria-hidden
-        className="pointer-events-none invisible absolute left-0 top-full z-30 mt-2 w-[300px] rounded-[10px] border border-hairline bg-white p-3 text-left opacity-0 shadow-panel transition-opacity group-hover/rule:visible group-hover/rule:opacity-100 group-focus-within/rule:visible group-focus-within/rule:opacity-100"
+        // A section title is uppercase, bold and set in the display face, and
+        // the card inherits all three now that the badge lives inside the
+        // heading. Reset every one of them: rules shouted in bold caps are
+        // harder to read than the amber slabs they replaced.
+        className="pointer-events-none invisible absolute left-0 top-full z-30 mt-2 w-[300px] rounded-[10px] border border-hairline bg-white p-3 text-left font-sans text-[12.5px] font-normal normal-case tracking-normal opacity-0 shadow-panel transition-opacity group-hover/rule:visible group-hover/rule:opacity-100 group-focus-within/rule:visible group-focus-within/rule:opacity-100"
       >
         <span className="eyebrow block">How to approach</span>
         {rules.map((rule) => (
