@@ -85,8 +85,14 @@ export default function CandidateDetail({
        calling run beside it and everything below simply carries on at full
        width. A column all the way down turned the board into three of them,
        with the prospect list already holding the far right.
-       Below lg it is not a rail at all; it stacks above the name. */
-    <div>
+       Below lg it is not a rail at all; it stacks above the name.
+
+       The whole composition is capped, not just the text. Capping the
+       measure alone left the rail pinned to the far edge with a hole
+       between the two — 45rem of content, then 400px of nothing, then the
+       numbers. Bounding content and rail together makes the leftover a
+       margin instead: 45rem + the gap + 250 is about 65rem. */
+    <div className="max-w-[65rem]">
       {/* ── The numbers, and nothing else. First in the DOM so the content
              after it can wrap around the float. ────────── */}
       <aside className="mb-5 rounded-[14px] bg-canvas px-4 py-4 lg:float-right lg:mb-4 lg:ml-8 lg:w-[250px]">
