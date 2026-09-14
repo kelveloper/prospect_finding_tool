@@ -35,7 +35,7 @@ export default function ScoreRing({
       className="relative shrink-0"
       style={{ width: size, height: size }}
       role="img"
-      aria-label={`Priority ${score}`}
+      aria-label={`Fit ${score}`}
     >
       <svg
         width={size}

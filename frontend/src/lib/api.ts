@@ -589,7 +589,7 @@ function toProfile(d: ApiDetail): CandidateProfile {
       { label: "License Held", value: tenure(d.license_issue_date) },
       { label: "Value", value: `${d.qualification_score}` },
       { label: "Timing", value: `${d.timing_score}` },
-      { label: "Priority", value: `${d.score}` },
+      { label: "Fit", value: `${d.score}` },
     ],
     sections,
   };

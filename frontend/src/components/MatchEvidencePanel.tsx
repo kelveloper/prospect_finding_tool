@@ -62,7 +62,7 @@ const JOINS: Join[] = [
     matched: {
       found: "License confirmed in the state register",
       effect:
-        "Because we confirmed the license is active, this prospect is ranked at all — a lapsed one would set the priority to zero — and the license date can be a trigger worth up to 60.",
+        "Because we confirmed the license is active, this prospect is ranked at all — a lapsed one would set the fit to zero — and the license date can be a trigger worth up to 60.",
     },
     missed: {
       found: "Not found in the state register",

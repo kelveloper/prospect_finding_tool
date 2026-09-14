@@ -461,14 +461,14 @@ export default function SourcesDocument({
       : licenseStatus
         ? `Yes — ${licenseStatus}`
         : "No state record — ranked, but unverified",
-    how: "A present, non-active status sets the priority to zero",
+    how: "A present, non-active status sets the fit to zero",
     drawer: (
       <>
         <Drawer title="The rule">
           <DrawerNote>
             The gate sits outside the arithmetic. An expired, inactive or
             suspended license means they cannot be a prospect right now,
-            whatever their value, so the priority is zero and they sort last.
+            whatever their value, so the fit is zero and they sort last.
             No state record at all is not a verdict — they stay ranked, and
             the identity
             confidence already discounts what the records can claim.
@@ -733,7 +733,7 @@ export default function SourcesDocument({
             <h2 className="font-display text-[19px] font-bold tracking-[-0.4px] text-ink">
               {gated
                 ? `Not ranked — license ${licenseStatus}`
-                : `The priority is ${totalScore}`}
+                : `The fit is ${totalScore}`}
             </h2>
           </div>
           <p className="mt-2 max-w-[86ch] text-[14px] leading-[21px] text-ink-muted">

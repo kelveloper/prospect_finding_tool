@@ -152,7 +152,7 @@ export default function ScoreSparkline({
               <span
                 tabIndex={0}
                 role="note"
-                aria-label={`${fmt(s.recordedAt)}: priority ${s.total}${before ? `, ${signed(move)} since the previous ingest` : ""}, value ${s.qualification}, timing ${s.timing}. ${why.join(" ")}`}
+                aria-label={`${fmt(s.recordedAt)}: fit ${s.total}${before ? `, ${signed(move)} since the previous ingest` : ""}, value ${s.qualification}, timing ${s.timing}. ${why.join(" ")}`}
                 className="absolute left-1/2 top-1/2 flex size-6 -translate-x-1/2 -translate-y-1/2 cursor-help items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
                 <span

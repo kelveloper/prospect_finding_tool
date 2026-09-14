@@ -52,7 +52,7 @@ export default async function SourcesPage({
           How we know this about {candidate.name}
         </h1>
         <p className="mt-1 max-w-[78ch] text-[14px] text-ink-muted">
-          Every fact behind a priority of {candidate.score} — where it came
+          Every fact behind a fit of {candidate.score} — where it came
           from, how we knew it was them, and what it was worth.
         </p>
 
@@ -65,7 +65,7 @@ export default async function SourcesPage({
                 size={92}
                 stroke={7}
                 accent={ringAccent}
-                caption="priority"
+                caption="fit"
                 valueSize={24}
               />
               <div className="min-w-0">

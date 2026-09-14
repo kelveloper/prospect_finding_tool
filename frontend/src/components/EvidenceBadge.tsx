@@ -52,7 +52,7 @@ export default function EvidenceBadge({
   ];
 
   const spoken =
-    `What makes this priority. Value ${value} of 100. ` +
+    `What this fit is built on. Value ${value} of 100. ` +
     `Timing ${timing} of 100, which sets the multiplier to ${multiplier}. ` +
     `Built on ${evidence.found} of ${evidence.total} signals: ` +
     evidence.signals
@@ -79,8 +79,8 @@ export default function EvidenceBadge({
           aria-label={spoken}
           title={
             thin
-              ? "Priority rests on thin evidence — hover for detail"
-              : "What makes this priority"
+              ? "This fit rests on thin evidence — hover for detail"
+              : "What this fit is built on"
           }
           className={
             "flex size-[18px] cursor-help items-center justify-center rounded-full border font-display text-[10px] font-bold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1 " +
@@ -96,7 +96,7 @@ export default function EvidenceBadge({
           aria-hidden
           className="pointer-events-none invisible absolute right-0 top-full z-30 mt-2 w-[262px] rounded-[10px] border border-hairline bg-white p-3 text-left opacity-0 shadow-panel transition-opacity group-hover/ev:visible group-hover/ev:opacity-100 group-focus-within/ev:visible group-focus-within/ev:opacity-100"
         >
-          <span className="eyebrow block">What makes this priority</span>
+          <span className="eyebrow block">What this fit is built on</span>
 
           {halves.map((half) => (
             <span key={half.label} className="mt-2 block">

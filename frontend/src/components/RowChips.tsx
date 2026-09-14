@@ -27,7 +27,7 @@ export function TriggerChip({ trigger }: { trigger: Candidate["trigger"] }) {
   );
 }
 
-/** Priority movement since the previous ingest.
+/** Fit movement since the previous ingest.
  *
  *  Until a second ingest exists there is nothing to compare against, so this
  *  says so rather than leaving a gap the advisor has to interpret. */
@@ -63,7 +63,7 @@ export function MovementChip({
   if (change === null) {
     return (
       <span
-        title="Priority movement — nothing to compare yet. This fills in after the next data refresh."
+        title="Fit movement — nothing to compare yet. This fills in after the next data refresh."
         className="shrink-0 cursor-help font-display text-[11px] font-medium text-ink-faint"
       >
         no change yet
@@ -81,8 +81,8 @@ export function MovementChip({
           note
             ? // `why` is the note itself — it says the formula moved, not the
               // prospect, which is the whole reason this is not an arrow.
-              `Priority was recomputed, not moved. ${why}`
-            : `Priority has not moved since the last data refresh. ${why}`
+              `Fit was recomputed, not moved. ${why}`
+            : `Fit has not moved since the last data refresh. ${why}`
         }
         className="shrink-0 cursor-help font-display text-[11px] font-medium text-ink-faint"
       >
@@ -94,7 +94,7 @@ export function MovementChip({
   const up = change > 0;
   return (
     <span
-      title={`Priority moved ${up ? "up" : "down"} ${Math.abs(change)} ${
+      title={`Fit moved ${up ? "up" : "down"} ${Math.abs(change)} ${
         Math.abs(change) === 1 ? "point" : "points"
       } since the last data refresh. ${why}`}
       className={
@@ -118,7 +118,7 @@ export function EvidenceChip({
     .filter((s) => !s.present)
     .map((s) => s.label);
   const title =
-    `Evidence — this priority is built on ${evidence.found} of ${evidence.total} signals` +
+    `Evidence — this fit is built on ${evidence.found} of ${evidence.total} signals` +
     (missing.length
       ? `. Not found: ${missing.join(", ").toLowerCase()}.`
       : ", all of them.");

@@ -587,7 +587,7 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
               <ColumnMenu
                 sortKey="tier"
                 heading="Fit"
-                hint="Priority — value × how fresh the trigger is — and the band it falls in by standing. The board is ranked by it."
+                hint="Fit — value × how fresh the trigger is — and the band it falls in by standing. The board is ranked by it."
                 align="right"
                 activeSort={sort}
                 fromBack={fromBack}
@@ -1317,7 +1317,7 @@ function BookEntry({
       {/* Score and band together: the band is a function of the score, so two
           columns were one fact printed twice. */}
       <span
-        title={`Priority ${candidate.score} — ${candidate.tierLabel}.`}
+        title={`Fit ${candidate.score} — ${candidate.tierLabel}.`}
         className="flex w-[104px] shrink-0 cursor-help items-baseline justify-end gap-1.5"
       >
         <span

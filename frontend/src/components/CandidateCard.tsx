@@ -95,7 +95,7 @@ export default function CandidateCard({
         <span
           title={
             gated
-              ? `${candidate.tierLabel} — priority 0, sorted last.`
+              ? `${candidate.tierLabel} — fit 0, sorted last.`
               : `${candidate.tierLabel} — ${standingLabel(candidate.rank, candidate.bookSize)}. Bands come from standing in the book: the top 5% are Top Prospects.`
           }
           className="cursor-help"

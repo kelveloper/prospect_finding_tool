@@ -13,7 +13,7 @@ export type Candidate = {
    *  e.g. "IL license" on a row whose location reads Boston, MA. Null when
    *  the two agree, which is the ordinary case — 183 of 219 rows. */
   licenseNote: string | null;
-  /** Priority = value × (0.6 + 0.4 × timing/100). 0 when the licence gate holds. */
+  /** Fit = value × (0.6 + 0.4 × timing/100). 0 when the licence gate holds. */
   score: number;
   /** Band by standing in the whole book (top 5% strong … bottom 20% poor). */
   tier: Tier;
