@@ -1,5 +1,6 @@
 import type { Candidate } from "@/lib/data";
 import { explainMove } from "@/lib/movement";
+import { MOVE_FLOOR } from "@/lib/changes";
 import { SparkIcon } from "./icons";
 
 /** The small print of a row, each piece saying what it is on hover.
@@ -73,10 +74,15 @@ export function MovementChip({
     );
   }
 
-  // A rescore delta is arithmetic, not news: it reads as "no change", with
-  // the note itself in the tooltip so the number is still explainable to
-  // anyone who asks where it went.
-  if (change === 0 || note) {
+  // Two deltas that are not news, both rendered as "no change".
+  //
+  // A rescore delta is arithmetic: the old formula measured against the new
+  // one. A sub-MOVE_FLOOR delta is the calendar: timing decays on a
+  // half-life, so anyone carrying a dated trigger drifts a tenth of a point
+  // between sweeps without anything happening to them. Both keep the number
+  // in the tooltip, so it stays explainable to anyone who asks where it went.
+  const drift = change !== null && Math.abs(change) < MOVE_FLOOR;
+  if (change === 0 || note || drift) {
     return (
       <span
         title={
@@ -84,7 +90,9 @@ export function MovementChip({
             ? // `why` is the note itself — it says the formula moved, not the
               // prospect, which is the whole reason this is not an arrow.
               `Fit was recomputed, not moved. ${why}`
-            : `Fit has not moved since the last data refresh. ${why}`
+            : drift
+              ? `Fit has not moved since the last data refresh — it drifted ${change} as the trigger aged, which is the calendar, not the prospect.`
+              : `Fit has not moved since the last data refresh. ${why}`
         }
         className="shrink-0 cursor-help font-display text-[11px] font-medium text-ink-faint"
       >

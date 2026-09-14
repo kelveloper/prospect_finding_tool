@@ -45,9 +45,28 @@ type Changeable = {
  */
 export function scoreMoved(c: Changeable): boolean {
   return (
-    c.scoreChange !== null && c.scoreChange !== 0 && c.scoreChangeNote === null
+    c.scoreChange !== null &&
+    Math.abs(c.scoreChange) >= MOVE_FLOOR &&
+    c.scoreChangeNote === null
   );
 }
+
+/**
+ * Below half a point, a score did not move — time passed.
+ *
+ * Timing decays on a half-life, so every prospect carrying a dated trigger
+ * drifts down a little between sweeps whether or not anything happened to
+ * them. The sweep of Sep 14 is the shape of it: twenty prospects moved by
+ * exactly -0.1 and thirteen moved by 1.3 to 8.5. The first group is the
+ * calendar; the second is the world.
+ *
+ * Printing the first as a red ▼ put a falling arrow on the top of the board
+ * — the #1 prospect included — for a tenth of a point nobody can act on.
+ * The board prints one decimal, so half a point is the smallest move worth
+ * a reader's attention, and the gap between 0.1 and 1.3 is wide enough that
+ * the line does not have to be exact to be right.
+ */
+export const MOVE_FLOOR = 0.5;
 
 /** Above this share of the book, a move is the formula, not the world. */
 const WHOLE_BOOK = 0.9;

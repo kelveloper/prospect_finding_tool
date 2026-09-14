@@ -477,7 +477,7 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
             <span className="w-[44px] shrink-0">
               <ColumnHead
                 heading="Fit"
-                hint="Fit — value × how fresh the trigger is — and the band it falls in by standing. The board is ranked by it."
+                hint="Value × how fresh the trigger is. The book is printed in this order."
                 align="right"
               />
             </span>
