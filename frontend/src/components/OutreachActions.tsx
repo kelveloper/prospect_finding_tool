@@ -32,7 +32,7 @@ const REACHED: Action[] = [
  *  not compete with actually making the call. */
 const NOT_PURSUED: Action = {
   value: "not_pursued",
-  label: "Rule out without calling",
+  label: "Skip without calling",
   tone: MUTED,
   needsReason: true,
 };
@@ -61,11 +61,16 @@ const NOT_PURSUED_REASONS = [
  *  These say what pressing them does, not what the prospect is. "They became
  *  a client" was read by a reviewer as "this person already banks with us" —
  *  a fact about the prospect rather than an outcome being recorded — and it
- *  took three exchanges to undo. A verb cannot be misread that way. */
+ *  took three exchanges to undo.
+ *
+ *  The verb carries an object rather than standing alone: "Rule out" was
+ *  tried and promises something this does not do. Nothing is removed from
+ *  the board — an outcome is only recorded — so a label that sounds like
+ *  deletion is a worse lie than the one it replaced. Mark, schedule, skip. */
 const OUTCOME: Action[] = [
   { value: "converted", label: "Mark as client", tone: GOOD, needsReason: false },
   { value: "follow_up_later", label: "Schedule a follow-up", tone: QUIET, needsReason: true },
-  { value: "not_converted", label: "Rule out", tone: MUTED, needsReason: true },
+  { value: "not_converted", label: "Mark as not a fit", tone: MUTED, needsReason: true },
 ];
 
 /** Which question this prospect is actually at.
@@ -94,8 +99,8 @@ const LABELS: Record<EventType, string> = {
   not_connected: "Couldn't reach them",
   follow_up_later: "Following up later",
   converted: "Became a client",
-  not_converted: "Ruled out",
-  not_pursued: "Ruled out without calling",
+  not_converted: "Not a fit",
+  not_pursued: "Skipped without calling",
 };
 
 const MODAL_PROMPTS: Partial<
@@ -120,11 +125,11 @@ const MODAL_PROMPTS: Partial<
     askDate: true,
   },
   not_converted: {
-    title: "Ruling them out — why?",
+    title: "Not a fit — why not?",
     placeholder: "e.g. Already has an advisor; not interested right now",
   },
   not_pursued: {
-    title: "Ruling them out without calling — why?",
+    title: "Skipping them without a call — why?",
     placeholder: "Anything else worth knowing (optional)",
     reasons: NOT_PURSUED_REASONS,
   },
@@ -337,14 +342,14 @@ export default function OutreachActions({
               quiet, because calling is what this panel is for. */}
           {step === "reached" && !revising ? (
             <p className="mt-3 text-[13px] text-ink-muted">
-              Not going to call them?{" "}
+              Not worth a call?{" "}
               <button
                 type="button"
                 disabled={pending !== null}
                 onClick={() => onClick(NOT_PURSUED)}
                 className="font-display font-semibold text-brand hover:underline disabled:opacity-50"
               >
-                Rule out without calling
+                Skip without calling
               </button>
             </p>
           ) : null}
