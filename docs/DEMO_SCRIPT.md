@@ -211,9 +211,24 @@ And this matters more when there is **more than one advisor.**
 
 **We didn't want two advisors quietly working the same list.**
 
-> ⚠️ Say **"they can see it"**, not **"it's assigned to them."** What's built is *shared visibility* — one board, one outreach log, a column showing what's been done. What is **not** built is assignment: nothing reserves a prospect, and `outreach_events` has no advisor column, so the book shows *that* someone called, not *who*. Two advisors dialling the same minute would still collide.
+And the obvious next step is that the book should **divide** the list, not just show it — so two advisors are never handed the same name to begin with.
+
+**That part isn't built.** Today it stops them colliding by making the work visible. Tomorrow it should stop them colliding by never giving them the same person.
+
+> ⚠️ **Say it as the problem you've thought about, not a feature you've shipped.** Raising it first reads as product thinking; being asked and having no answer reads as a gap. But the line has to be exact, because he can check:
 >
-> If he pushes: *"Attribution and assignment are the obvious next step, and the log is the right place for it — it's one column. Today the honest claim is that the work is visible, not that it's divided."*
+> **Built:** one board, one shared outreach log, a column showing what's been done. The second advisor sees the first one's calls.
+> **Not built:** nothing reserves a prospect, and `outreach_events` has no advisor column — so the book shows *that* someone called, not *who*. Two advisors dialling the same minute would still collide.
+>
+> So: **"they can see it"**, never **"it's assigned to them."**
+
+> ⚠️ **If he asks how you'd divide it — have a view.** Two ways, not equally good:
+>
+> **Split by territory or specialty** — simple, but it fights the ranking. The best prospect lands in somebody's slice whether or not they're the right person to call today, and half the point of ranking the whole book disappears.
+>
+> **Let an advisor claim a name for a few days** — first to open it holds it, releases if nothing's logged. Ranking stays whole, everyone still works the same top of the book, nobody gets stranded with a weak slice. **That's the one I'd build** — roughly one column plus a timestamp on the log we already keep.
+>
+> **The honest caveat:** *"For a team this size, visibility may genuinely be enough. If four people can see each other's calls, that's cheaper than building assignment nobody needs yet. I'd want to watch it collide once before I built for it."*
 
 ### 👆 POINT TO "SINCE LAST REFRESH · 69"
 

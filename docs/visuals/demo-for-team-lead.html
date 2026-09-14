@@ -314,9 +314,23 @@
     <p><b>We did not want two advisors quietly working the same list.</b>&rdquo;</p>
   </div>
 
+  <div class="say">
+    <p>&ldquo;And the obvious next step is that the book should <b>divide</b> the list, not just show it &mdash; so two advisors are never handed the same name to begin with.</p>
+    <p><b>That part is not built.</b> Today it stops them colliding by making the work visible. Tomorrow it should stop them colliding by never giving them the same person.&rdquo;</p>
+  </div>
+
   <div class="warn">
-    <p><b>Say &ldquo;they can see it&rdquo;, not &ldquo;it is assigned to them&rdquo;.</b> What is built is <em>shared visibility</em>: one board, one outreach log, and a column that shows what has already been done. What is <b>not</b> built is assignment &mdash; nothing reserves a prospect for one advisor, and <code>outreach_events</code> has no advisor column, so the book shows <em>that</em> someone called, not <em>who</em>. Two advisors dialling the same minute would still collide.</p>
-    <p style="margin-top:8px"><b>If he pushes on it:</b> &ldquo;Attribution and assignment are the obvious next step, and the log is the right place for it &mdash; it is one column. Today the honest claim is that the work is visible, not that it is divided.&rdquo;</p>
+    <p><b>Say it as the problem you have thought about, not a feature you have shipped.</b> Raising it first reads as product thinking; being asked about it and having no answer reads as a gap. But the line has to be exact, because he can check:</p>
+    <p style="margin-top:8px"><b>Built:</b> one board, one shared outreach log, and a column showing what has already been done. The second advisor sees the first one&rsquo;s calls.<br>
+    <b>Not built:</b> nothing reserves a prospect, and <code>outreach_events</code> has no advisor column &mdash; so the book shows <em>that</em> someone called, not <em>who</em>. Two advisors dialling in the same minute would still collide.</p>
+    <p style="margin-top:8px">So: <b>&ldquo;they can see it&rdquo;</b>, never <b>&ldquo;it is assigned to them&rdquo;</b>.</p>
+  </div>
+
+  <div class="warn">
+    <p><b>If he asks how you would divide it &mdash; have a view, do not just say &ldquo;assign it&rdquo;.</b> There are two ways and they are not equally good:</p>
+    <p style="margin-top:8px"><b>Split the book by territory or specialty</b> &mdash; simple, but it fights the ranking. The best prospect on the board lands in somebody&rsquo;s slice whether or not they are the right person to call today, and half the point of ranking the whole book disappears.</p>
+    <p style="margin-top:8px"><b>Let an advisor claim a name for a few days</b> &mdash; first to open it holds it, it releases if nothing is logged. The ranking stays whole, everybody still works the same top of the book, and nobody gets stranded with a weak slice. <b>That is the one I would build</b>, and it is roughly one column plus a timestamp on the log we already keep.</p>
+    <p style="margin-top:8px"><b>And the honest caveat:</b> &ldquo;for a team this size, visibility may genuinely be enough &mdash; if four people can see each other&rsquo;s calls, that is cheaper than building assignment nobody needs yet. I would want to watch it collide once before I built for it.&rdquo;</p>
   </div>
   <div class="warn">
     <p><b>If he asks what &ldquo;moved&rdquo; means:</b> their fit score changed because a new signal was found. Thirteen of today&rsquo;s fourteen picked up a career advancement. Do not say &ldquo;re-scored&rdquo; &mdash; it sounds like the formula changed, and it did not.</p>
