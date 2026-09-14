@@ -4,7 +4,7 @@ type Props = {
   size: number;
   stroke: number;
   accent: string;
-  /** Text under the number, e.g. "Score" or "/ 100". Omitted on the compact rings. */
+  /** Text under the number, e.g. "Priority". Omitted on the compact rings. */
   caption?: string;
   valueSize?: number;
 };

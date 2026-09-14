@@ -11,7 +11,13 @@ import {
 import FilterSelect from "./FilterSelect";
 import { EvidenceChip, MovementChip, TriggerChip } from "./RowChips";
 import { ChevronLeft, ChevronRight, CloseIcon } from "./icons";
-import { changeHint, changeMatcher, summarizeChanges } from "@/lib/changes";
+import {
+  changeHint,
+  changeMatcher,
+  realMove,
+  scoreMoved,
+  summarizeChanges,
+} from "@/lib/changes";
 import type { Candidate } from "@/lib/data";
 import { tierStyle } from "@/lib/tier";
 import { entryHref } from "@/lib/view";
@@ -83,8 +89,7 @@ const SORTS = {
     label: "Movement",
     front: "Biggest risers",
     back: "Biggest fallers",
-    cmp: (a: Entry, b: Entry) =>
-      (b.scoreChange ?? 0) - (a.scoreChange ?? 0) || a.rank - b.rank,
+    cmp: (a: Entry, b: Entry) => realMove(b) - realMove(a) || a.rank - b.rank,
   },
   name: {
     label: "Name",
@@ -365,8 +370,8 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
         // it sits after everything that has moved — whichever end we read
         // from. Parking therefore has to survive the flip, not invert with it.
         if (sort === "movement") {
-          const am = a.scoreChange ?? 0;
-          const bm = b.scoreChange ?? 0;
+          const am = realMove(a);
+          const bm = realMove(b);
           if ((am === 0) !== (bm === 0)) return am === 0 ? 1 : -1;
         }
         return SORTS[sort].cmp(a, b) * (fromBack ? -1 : 1);
@@ -398,9 +403,9 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
     // Movement is the whole point of the What changed view, so it always
     // earns the column there
     if (onlyChanged) return true;
-    const moved = entries.filter(
-      (e) => e.scoreChange !== null && e.scoreChange !== 0,
-    ).length;
+    // Same test as the What changed count, so the column cannot appear for
+    // movement the board has decided is not movement.
+    const moved = entries.filter(scoreMoved).length;
     return moved / entries.length >= 0.05;
   }, [entries, onlyChanged]);
 

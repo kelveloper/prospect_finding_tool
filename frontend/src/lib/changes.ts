@@ -14,17 +14,39 @@
  * that cannot filter. So a move that took nearly everyone is read as what
  * it is and left out of the count; genuine arrivals still show.
  *
- * The right fix lives upstream: score_history.note exists to mark a
- * snapshot that did not come from the world moving, but only the rescore
- * CLI writes it — a sweep under a new formula leaves it null, which is
- * exactly the case this guard covers.
+ * That guard is a guess, and it guessed wrong: the Sep 10 rescore rewrote
+ * all 221 scores but only 50 landed on a different number, because the rest
+ * scored the same under both formulas. 23% is under the threshold, so fifty
+ * prospects were reported as news when nothing had happened to any of them.
+ *
+ * So the note leads now — score_history.note marks a snapshot that did not
+ * come from the world moving, it rides to the client on every row, and
+ * scoreMoved reads it per prospect. The share guard stays underneath it for
+ * the case it was written for: a sweep under a new formula, which leaves the
+ * note null and would otherwise slip past unmarked.
  */
 
-type Changeable = { isNew: boolean; scoreChange: number | null };
+type Changeable = {
+  isNew: boolean;
+  scoreChange: number | null;
+  scoreChangeNote: string | null;
+};
 
-/** This one prospect's score moved since the previous snapshot. */
-function scoreMoved(c: Changeable): boolean {
-  return c.scoreChange !== null && c.scoreChange !== 0;
+/**
+ * This one prospect's score moved, and the world is why.
+ *
+ * A snapshot written by a rescore carries a note saying so. Its delta is the
+ * old formula measured against the new one — a change of ruler, not of
+ * subject — so it is not a move. Reporting it as one tells an advisor a
+ * doctor rose 17 points when all that rose was our own arithmetic.
+ *
+ * This is the exact signal, per prospect. The share guard below is the
+ * backstop for a sweep that changes the formula without writing the note.
+ */
+export function scoreMoved(c: Changeable): boolean {
+  return (
+    c.scoreChange !== null && c.scoreChange !== 0 && c.scoreChangeNote === null
+  );
 }
 
 /** Above this share of the book, a move is the formula, not the world. */
@@ -50,6 +72,12 @@ export function summarizeChanges(list: Changeable[]): ChangeSummary {
   const rescored = list.length > 0 && moved >= list.length * WHOLE_BOOK;
   if (rescored) moved = 0;
   return { total: newCount + moved, newCount, moved, rescored };
+}
+
+/** The move worth reporting — zero when the delta was our arithmetic rather
+ *  than the world, so "biggest risers" cannot be led by a rescore. */
+export function realMove(c: Changeable): number {
+  return scoreMoved(c) ? (c.scoreChange as number) : 0;
 }
 
 /** The test that matches what the summary counted — pass the summary so the
