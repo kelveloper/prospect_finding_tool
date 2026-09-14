@@ -1,0 +1,142 @@
+<meta charset="utf-8">
+<title>The Book — Critique</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+  :root{color-scheme:light;
+    --ink:#0f3a5c;--ink-muted:#4a6b82;--ink-faint:#8aaec5;--brand:#1d6fa4;--brand-dark:#0d5fa3;
+    --canvas:#f0f7fc;--soft:#e8f4fc;--hair:#b8ddef;--page:#eef4f8;--card:#fff;
+    --good:#0b7a4b;--good-bg:#d6f4e8;--warn:#9e6109;--warn-bg:#fdf3e3;--bad:#c9154f;--bad-bg:#fce4ea;
+    --disp:"DM Sans",system-ui,sans-serif;--body:"Inter",system-ui,sans-serif}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --ink:#e6edf3;--ink-muted:#aeb9c4;--ink-faint:#7d8894;--canvas:#161d26;--soft:#18242f;--hair:#2b3a47;
+    --page:#0d1117;--card:#161b22;--good:#7fd3a8;--good-bg:#14291f;--warn:#e0c177;--warn-bg:#2c2513;
+    --bad:#f0a08c;--bad-bg:#33201b}}
+  :root[data-theme="dark"]{
+    --ink:#e6edf3;--ink-muted:#aeb9c4;--ink-faint:#7d8894;--canvas:#161d26;--soft:#18242f;--hair:#2b3a47;
+    --page:#0d1117;--card:#161b22;--good:#7fd3a8;--good-bg:#14291f;--warn:#e0c177;--warn-bg:#2c2513;
+    --bad:#f0a08c;--bad-bg:#33201b}
+  body{background:var(--page);color:var(--ink);font-family:var(--body);font-size:15px;margin:0;padding-block:34px}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+  h1{font-family:var(--disp);font-size:29px;font-weight:700;letter-spacing:-.6px;margin:0 0 6px}
+  .lede{color:var(--ink-muted);margin:0 0 8px;max-width:74ch}
+  h2{font-family:var(--disp);font-size:12px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;
+     color:var(--ink-muted);display:flex;align-items:center;gap:9px;margin:34px 0 12px}
+  h2::before{content:"";flex:none;width:3px;height:14px;border-radius:99px;background:var(--brand)}
+  h2::after{content:"";flex:1;height:1px;background-image:linear-gradient(to right,var(--hair) 0 2px,transparent 2px 100%);background-size:8px 1px;background-repeat:repeat-x}
+  .find{background:var(--card);border:1px solid var(--hair);border-radius:14px;padding:17px 19px;margin:0 0 14px}
+  .find h3{font-family:var(--disp);font-size:17px;font-weight:700;margin:0 0 7px;letter-spacing:-.2px}
+  .find p{margin:0 0 9px;color:var(--ink-muted)}.find p:last-child{margin-bottom:0}
+  .tag{display:inline-block;font-family:var(--disp);font-size:10px;font-weight:700;letter-spacing:.9px;
+       text-transform:uppercase;padding:3px 8px;border-radius:99px;margin-right:8px;vertical-align:2px}
+  .t-noise{background:var(--bad-bg);color:var(--bad)} .t-dup{background:var(--warn-bg);color:var(--warn)}
+  .t-gap{background:var(--soft);color:var(--brand-dark)}
+  table.data{border-collapse:collapse;font-size:13px;margin:10px 0 0;width:100%}
+  table.data th{text-align:left;font-family:var(--disp);font-size:10.5px;letter-spacing:.9px;text-transform:uppercase;
+     color:var(--ink-faint);font-weight:600;padding:0 12px 5px 0}
+  table.data td{padding:4px 12px 4px 0;border-top:1px solid var(--hair);color:var(--ink-muted)}
+  table.data td b{color:var(--ink)}
+  .bar{display:inline-block;height:7px;border-radius:99px;background:var(--brand);vertical-align:middle}
+  /* ── mock rows ── */
+  .sheet{background:var(--card);border:1px solid var(--hair);border-radius:12px;overflow:hidden}
+  .cap{font-family:var(--disp);font-size:10px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;
+       padding:7px 14px;background:var(--canvas);color:var(--ink-faint);border-bottom:1px solid var(--hair)}
+  .cap.n{color:var(--bad)} .cap.y{color:var(--good)}
+  .rows{padding:6px 14px 10px}
+  .hdr,.row{display:grid;grid-template-columns:26px 1fr 110px 78px 92px;gap:10px;align-items:center}
+  .hdr{font-family:var(--disp);font-size:9.5px;letter-spacing:.9px;text-transform:uppercase;color:var(--ink-faint);
+       padding:6px 0;border-bottom:1px solid var(--hair)}
+  .row{padding:9px 0;border-bottom:1px dashed var(--hair);font-size:13px}
+  .row:last-child{border-bottom:0}
+  .av{width:26px;height:26px;border-radius:99px;background:var(--brand);color:#fff;font-family:var(--disp);
+      font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .nm{font-family:var(--disp);font-weight:600;color:var(--ink)}
+  .sub{color:var(--ink-faint);font-size:11.5px}
+  .chip{display:inline-block;border-radius:99px;padding:2px 8px;font-size:11px;font-family:var(--disp);font-weight:600}
+  .c-b{background:var(--soft);color:var(--brand-dark)} .c-g{background:var(--good-bg);color:var(--good)}
+  .c-q{color:var(--ink-faint)}
+  .fit{text-align:right;font-family:var(--disp);font-weight:700}
+  .tw{font-family:var(--disp);font-size:11px;font-weight:600;color:var(--good);margin-right:5px}
+  .dim{opacity:.32}
+  .mark{color:var(--good);font-size:11px}
+  footer{margin:38px 0 0;padding-top:14px;border-top:1px solid var(--hair);color:var(--ink-faint);font-size:13px}
+</style>
+
+<div class="wrap">
+  <h1>The Book — what a spread actually tells you</h1>
+  <p class="lede">Six findings against the real first spread. The measurements below are the whole book, pulled from the API.</p>
+
+  <h2>The finding everything else follows from</h2>
+  <div class="find">
+    <h3><span class="tag t-noise">Noise</span>Three of the five columns are near-constant on every page</h3>
+    <p>Counted across the first twelve entries — one spread, what an advisor actually sees at once:</p>
+    <table class="data">
+      <thead><tr><th>Column</th><th>On spread 1</th><th>Same value</th><th></th></tr></thead>
+      <tbody>
+        <tr><td><b>Evidence</b></td><td>11 × partial, 1 × strong</td><td><b>92%</b></td><td><span class="bar" style="width:92px"></span></td></tr>
+        <tr><td><b>Fit band</b></td><td>10 × strong, 2 × promising</td><td><b>83%</b></td><td><span class="bar" style="width:83px"></span></td></tr>
+        <tr><td><b>Why now</b></td><td>10 × new licence, 1 house, 1 move</td><td><b>83%</b></td><td><span class="bar" style="width:83px"></span></td></tr>
+        <tr><td>Name &amp; location</td><td>12 distinct</td><td>0%</td><td><span class="bar" style="width:3px"></span></td></tr>
+        <tr><td>Fit score</td><td>12 distinct</td><td>0%</td><td><span class="bar" style="width:3px"></span></td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:11px"><b>And the band is constant by construction.</b> Tier is assigned from standing — top 5% strong, next 15% promising — and the book is sorted by exactly that. So a page of a sorted list can only ever show one or two bands. The column is guaranteed to repeat itself before a single row is rendered.</p>
+    <p>Information is surprise. A column where eleven of twelve values match carries almost none, but it costs a column of width and twelve fixations per page. Three of them, and an advisor reads the word “partial” eleven times to learn nothing.</p>
+  </div>
+
+  <h2>What that does to the one row that matters</h2>
+  <div class="sheet">
+    <div class="cap n">Now — every value at equal weight</div>
+    <div class="rows">
+      <div class="hdr"><span>#</span><span>Specialty / location</span><span>Why now</span><span>Evidence</span><span>Fit</span></div>
+      <div class="row"><span>1</span><span><span class="nm">Ameen Barghi</span> <span class="sub">Chicago, IL</span><br><span class="sub">Orthopaedic Surgery</span></span><span><span class="chip c-b">New license</span></span><span><span class="chip c-b">partial</span></span><span class="fit"><span class="tw">strong</span>62.5</span></div>
+      <div class="row"><span>2</span><span><span class="nm">Kevin Zachary Black</span> <span class="sub">Effingham, IL</span><br><span class="sub">Orthopaedic Surgery</span></span><span><span class="chip c-b">New license</span></span><span><span class="chip c-b">partial</span></span><span class="fit"><span class="tw">strong</span>61.6</span></div>
+      <div class="row"><span>3</span><span><span class="nm">Rahul Aggarwal</span> <span class="sub">Boston, MA</span><br><span class="sub">Internal Medicine, Cardiovascular</span></span><span><span class="chip c-b">Bought a home</span></span><span><span class="chip c-g">✓ strong</span></span><span class="fit"><span class="tw">strong</span>61.5</span></div>
+      <div class="row"><span>4</span><span><span class="nm">Alex C Brewer</span> <span class="sub">Mattoon, IL</span><br><span class="sub">Orthopaedic Surgery</span></span><span><span class="chip c-b">New license</span></span><span><span class="chip c-b">partial</span></span><span class="fit"><span class="tw">strong</span>60.9</span></div>
+    </div>
+  </div>
+  <p class="lede" style="margin:12px 0 0"><b>Rahul is the only interesting row on the page</b> — the only house, the only strong evidence — and he is drawn exactly like the three rows around him. The page has no way to say “this one is different” because it spends its contrast on values that are the same.</p>
+
+  <div class="sheet" style="margin-top:14px">
+    <div class="cap y">Proposed — constants recede, exceptions carry the colour</div>
+    <div class="rows">
+      <div class="hdr"><span>#</span><span>Specialty / location</span><span>Why now</span><span>Evidence</span><span>Fit</span></div>
+      <div class="row"><span>1</span><span><span class="nm">Ameen Barghi</span> <span class="sub">Chicago, IL</span><br><span class="sub">Orthopaedic Surgery</span></span><span class="c-q dim">New license</span><span class="c-q dim">partial</span><span class="fit" style="color:var(--good)">62.5</span></div>
+      <div class="row"><span>2</span><span><span class="nm">Kevin Zachary Black</span> <span class="sub">Effingham, IL</span><br><span class="sub">Orthopaedic Surgery</span></span><span class="c-q dim">New license</span><span class="c-q dim">partial</span><span class="fit" style="color:var(--good)">61.6</span></div>
+      <div class="row"><span>3</span><span><span class="nm">Rahul Aggarwal</span> <span class="sub">Boston, MA</span><br><span class="sub">Internal Medicine, Cardiovascular</span></span><span><span class="chip c-b">Bought a home</span></span><span><span class="chip c-g">✓ strong</span></span><span class="fit" style="color:var(--good)">61.5</span></div>
+      <div class="row"><span>4</span><span><span class="nm">Alex C Brewer</span> <span class="sub">Mattoon, IL</span><br><span class="sub">Orthopaedic Surgery</span></span><span class="c-q dim">New license</span><span class="c-q dim">partial</span><span class="fit" style="color:var(--good)">60.9</span></div>
+    </div>
+  </div>
+  <p class="lede" style="margin:12px 0 0">Same data, same columns, nothing hidden. The modal value is set as quiet text instead of a filled chip, so the chips that remain mean “not like the others”. Rahul now reads as the exception he is, from across the room.</p>
+
+  <h2>The rest</h2>
+
+  <div class="find">
+    <h3><span class="tag t-dup">Duplicate</span>The band word restates the number beside it</h3>
+    <p><b>strong 62.5</b> — the word is a function of the number’s rank, printed next to the number. Two encodings of one fact, twelve times a spread, in a column already sorted by it. Colour the figure instead and the word is free to go.</p>
+  </div>
+
+  <div class="find">
+    <h3><span class="tag t-dup">Duplicate</span>The avatars spell the name they sit beside</h3>
+    <p><b>AB</b> next to <b>Ameen Barghi</b>. Twelve filled circles, each carrying letters already printed two centimetres to the right, each pulling a fixation on the way down the page. They earn their place in the board’s card list, where a row is tall and sparse. A ledger line is neither.</p>
+  </div>
+
+  <div class="find">
+    <h3><span class="tag t-dup">Duplicate</span>Every column heading is printed twice</h3>
+    <p>Specialty, Location, Why now, Evidence and Fit appear once per page, so ten headings and ten sort menus for five columns. Faithful to a printed ledger; twice the vocabulary for a reader, and two places to look for the same control.</p>
+  </div>
+
+  <div class="find">
+    <h3><span class="tag t-gap">Missing</span>Nothing shows which lines you have already worked</h3>
+    <p><code>outreach_status</code> is computed on the backend for exactly this, reaches the browser on every row, and is read by nothing. The backend’s own comment says it “powers the book-view status column”. There is no such column.</p>
+    <p>It matters more here than anywhere else in the product: the board shows one prospect, the book shows the list you are working down. Log a call, come back tomorrow, and the line looks identical to the two hundred you have not touched.</p>
+  </div>
+
+  <div class="find">
+    <h3><span class="tag t-gap">Decide</span>The book, still</h3>
+    <p>A reviewer called the spread “a bit too much” and the page turn “even too much” — while liking the thing underneath it: twelve rows without scrolling. That judgement stands and this critique does not change it. What it adds: the two-column spread is the part doing work, and the ornament is separable from it whenever you decide.</p>
+  </div>
+
+  <footer>ProspectIQ · design critique · counts measured against the live API · nothing here is implemented</footer>
+</div>
