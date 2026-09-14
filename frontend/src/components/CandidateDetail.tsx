@@ -80,123 +80,16 @@ export default function CandidateDetail({
   ) : null;
 
   return (
-    /* Two columns, and the split is the honest one: everything that is a
-       number lives on the right, everything that argues for calling lives on
-       the left. The standing, the fit and the trajectory used to take rows
-       out of the middle of the argument — beside it, they cost none.
-       One column below lg. The rail is 250px and the book's slide-over is
-       864, which still leaves the narrative its measure. */
-    <div className="grid grid-cols-1 items-start gap-x-8 gap-y-5 lg:grid-cols-[minmax(0,1fr)_250px]">
-      <div className="min-w-0">
-        {/* ── WHO — name and identity. The block opens the record. ── */}
-        <details className="group -mx-3 -mt-2">
-          <summary
-            title="Show the license, practice and property records behind this prospect"
-            className="flex cursor-pointer list-none items-start justify-between gap-8 rounded-[12px] px-3 py-2 transition-colors hover:bg-canvas [&::-webkit-details-marker]:hidden"
-          >
-            <div className="min-w-0">
-              <p className="eyebrow">{candidate.category}</p>
-              <Heading className="mt-0.5 font-display text-[26px] font-bold tracking-[-0.6px] text-ink">
-                {candidate.name}
-              </Heading>
-              {/* The location is the practice address. On the rows where that
-                sits outside the state we searched, say so here — otherwise
-                the header reads like the wrong person. */}
-              <p className="mt-0.5 text-[15px] text-ink-muted">
-                {candidate.location}
-                {candidate.licenseNote ? (
-                  <span className="text-ink-faint">
-                    {" · "}
-                    {candidate.licenseNote}
-                  </span>
-                ) : null}
-              </p>
-
-              {/* Trust line: how sure we are these records are one person. */}
-              {profile ? (
-                <>
-                  <p className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-2">
-                    <span
-                      className={
-                        "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-display text-[12px] font-semibold " +
-                        (profile.identityVerified
-                          ? "bg-tier-strong-bg text-tier-strong-fg"
-                          : "bg-tier-neutral-bg text-tier-neutral-fg")
-                      }
-                    >
-                      {profile.identityVerified ? "✓" : "◌"}{" "}
-                      {profile.identityLine}
-                    </span>
-
-                    {/* The affordance for the whole block, not a control of its
-                      own — it sits inside the summary, so the click is already
-                      handled, and the name, the location and the pill all open
-                      the records too.
-                      Bordered, because a reader complained they could not find
-                      it and the reason was never where it sat: a 13px link at
-                      80% opacity, beside a filled pill of twice the visual
-                      weight, loses on its own line as well. A border is what
-                      makes a thing read as a control. */}
-                    <span className="flex w-fit items-center gap-1.5 rounded-[8px] border border-hairline bg-white px-3 py-1.5 font-display text-[12.5px] font-semibold text-brand transition-colors group-hover:border-brand group-hover:bg-canvas">
-                      <span className="group-open:hidden">See the records</span>
-                      <span className="hidden group-open:inline">
-                        Hide the records
-                      </span>
-                      <span
-                        aria-hidden
-                        className="text-[10px] transition-transform group-open:rotate-180"
-                      >
-                        ▼
-                      </span>
-                    </span>
-                  </p>
-                </>
-              ) : null}
-            </div>
-          </summary>
-
-          {dossierRecord ? (
-            <div className="px-3 pt-5">{dossierRecord}</div>
-          ) : null}
-        </details>
-
-        <hr className="my-4 border-surface-soft" />
-
-        {/* ── WHY NOW — the case for calling, printed rather than narrated ──
-          This used to be the paragraph alone. A reviewer read the page and
-          said the three things that stood out were the score, the address
-          and the phone — and that the address and phone were not what he
-          needed first. The findings were all in the prose, which is the one
-          thing nobody reads before deciding. So the findings lead now and
-          the paragraph supports them. */}
-        <WhyNow
-          signals={signals}
-          summary={candidate.summary}
-          Subheading={Subheading}
-        />
-
-        {/* ── ACT — contact details and outcome capture in one block ── */}
-        {contactKit ? (
-          <ContactKitCard
-            kit={contactKit}
-            prospectId={candidate.id}
-            outreach={outreach}
-          />
-        ) : null}
-
-        {/* ── What changed, and how the score has moved ─── */}
-        {dossier && profile ? (
-          <CandidateDossier fieldChanges={dossier.fieldChanges} />
-        ) : (
-          <p className="mt-8 rounded-[12px] bg-canvas px-4 py-4 text-[13px] text-ink-muted">
-            The full dossier for this prospect could not be loaded — the ranked
-            summary above is all the API returned.
-          </p>
-        )}
-      </div>
-
-      {/* ── The numbers, and nothing else ─────────────── */}
-      <aside className="min-w-0 rounded-[14px] bg-canvas px-4 py-4 lg:sticky lg:top-20">
+    /* The numbers sit in a rail, but only as far down as they reach — it
+       floats rather than owning a column, so the header and the case for
+       calling run beside it and everything below simply carries on at full
+       width. A column all the way down turned the board into three of them,
+       with the prospect list already holding the far right.
+       Below lg it is not a rail at all; it stacks above the name. */
+    <div>
+      {/* ── The numbers, and nothing else. First in the DOM so the content
+             after it can wrap around the float. ────────── */}
+      <aside className="mb-5 rounded-[14px] bg-canvas px-4 py-4 lg:float-right lg:mb-4 lg:ml-8 lg:w-[250px]">
         {/* Standing leads. A reader meeting 60.9 cold cannot tell whether
             that is good — a reviewer said exactly that — but "#4 of 221"
             needs no explanation. Fit and evidence stay, as the line that
@@ -252,6 +145,112 @@ export default function CandidateDetail({
           />
         </div>
       </aside>
+
+      {/* ── WHO — name and identity. The block opens the record. ── */}
+      <details className="group -mx-3 -mt-2">
+        <summary
+          title="Show the license, practice and property records behind this prospect"
+          className="flex cursor-pointer list-none items-start justify-between gap-8 rounded-[12px] px-3 py-2 transition-colors hover:bg-canvas [&::-webkit-details-marker]:hidden"
+        >
+          <div className="min-w-0">
+            <p className="eyebrow">{candidate.category}</p>
+            <Heading className="mt-0.5 font-display text-[26px] font-bold tracking-[-0.6px] text-ink">
+              {candidate.name}
+            </Heading>
+            {/* The location is the practice address. On the rows where that
+                sits outside the state we searched, say so here — otherwise
+                the header reads like the wrong person. */}
+            <p className="mt-0.5 text-[15px] text-ink-muted">
+              {candidate.location}
+              {candidate.licenseNote ? (
+                <span className="text-ink-faint">
+                  {" · "}
+                  {candidate.licenseNote}
+                </span>
+              ) : null}
+            </p>
+
+            {/* Trust line: how sure we are these records are one person. */}
+            {profile ? (
+              <>
+                <p className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-2">
+                  <span
+                    className={
+                      "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-display text-[12px] font-semibold " +
+                      (profile.identityVerified
+                        ? "bg-tier-strong-bg text-tier-strong-fg"
+                        : "bg-tier-neutral-bg text-tier-neutral-fg")
+                    }
+                  >
+                    {profile.identityVerified ? "✓" : "◌"}{" "}
+                    {profile.identityLine}
+                  </span>
+
+                  {/* The affordance for the whole block, not a control of its
+                      own — it sits inside the summary, so the click is already
+                      handled, and the name, the location and the pill all open
+                      the records too.
+                      Bordered, because a reader complained they could not find
+                      it and the reason was never where it sat: a 13px link at
+                      80% opacity, beside a filled pill of twice the visual
+                      weight, loses on its own line as well. A border is what
+                      makes a thing read as a control. */}
+                  <span className="flex w-fit items-center gap-1.5 rounded-[8px] border border-hairline bg-white px-3 py-1.5 font-display text-[12.5px] font-semibold text-brand transition-colors group-hover:border-brand group-hover:bg-canvas">
+                    <span className="group-open:hidden">See the records</span>
+                    <span className="hidden group-open:inline">
+                      Hide the records
+                    </span>
+                    <span
+                      aria-hidden
+                      className="text-[10px] transition-transform group-open:rotate-180"
+                    >
+                      ▼
+                    </span>
+                  </span>
+                </p>
+              </>
+            ) : null}
+          </div>
+        </summary>
+
+        {dossierRecord ? (
+          <div className="px-3 pt-5">{dossierRecord}</div>
+        ) : null}
+      </details>
+
+      <hr className="my-4 border-surface-soft" />
+
+      {/* ── WHY NOW — the case for calling, printed rather than narrated ──
+          This used to be the paragraph alone. A reviewer read the page and
+          said the three things that stood out were the score, the address
+          and the phone — and that the address and phone were not what he
+          needed first. The findings were all in the prose, which is the one
+          thing nobody reads before deciding. So the findings lead now and
+          the paragraph supports them. */}
+      <WhyNow
+        signals={signals}
+        summary={candidate.summary}
+        Subheading={Subheading}
+      />
+
+      {/* ── ACT — contact details and outcome capture in one block ── */}
+      {contactKit ? (
+        <ContactKitCard
+          kit={contactKit}
+          prospectId={candidate.id}
+          outreach={outreach}
+        />
+      ) : null}
+
+      {/* ── What changed, and how the score has moved ─── */}
+      {dossier && profile ? (
+        <CandidateDossier fieldChanges={dossier.fieldChanges} />
+      ) : (
+        <p className="mt-8 rounded-[12px] bg-canvas px-4 py-4 text-[13px] text-ink-muted">
+          The full dossier for this prospect could not be loaded — the ranked
+          summary above is all the API returned.
+        </p>
+      )}
     </div>
   );
 }
