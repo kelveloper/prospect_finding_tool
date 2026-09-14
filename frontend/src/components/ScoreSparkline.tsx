@@ -191,7 +191,7 @@ export default function ScoreSparkline({
                 </span>
 
                 <span className="mt-1.5 flex items-baseline justify-between gap-3">
-                  <span className="text-[12px] text-ink-muted">Priority</span>
+                  <span className="text-[12px] text-ink-muted">Fit</span>
                   <span className="font-display text-[13px] font-bold tabular-nums text-ink">
                     {s.total}
                   </span>

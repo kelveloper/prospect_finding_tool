@@ -4,7 +4,12 @@ type Props = {
   size: number;
   stroke: number;
   accent: string;
-  /** Text under the number, e.g. "Priority". Omitted on the compact rings. */
+  /** Text under the number, e.g. "Fit". Omitted on the compact rings.
+ *
+ *  A bare noun under a number is read as a verdict about the person, not as
+ *  the name of a measure — "Priority" over a 28.8 claimed the opposite of
+ *  what the 28.8 says. "Fit" is what the book's own column calls this, so
+ *  the two views agree and neither reads as a promise. */
   caption?: string;
   valueSize?: number;
 };

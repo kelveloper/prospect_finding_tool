@@ -797,7 +797,7 @@ export default function SourcesDocument({
               </span>
             </div>
             <div className="flex items-baseline justify-between gap-4 px-4 pt-1">
-              <span className="eyebrow">Priority</span>
+              <span className="eyebrow">Fit</span>
               <span className="font-display text-[16px] font-bold text-ink tabular-nums">
                 {gated ? (
                   <>

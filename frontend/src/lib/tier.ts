@@ -46,7 +46,7 @@ export const TIER_LABELS: Record<Tier, string> = {
   promising: "Promising Prospect",
   neutral: "Neutral Prospect",
   weak: "Weak Prospect",
-  poor: "Poor Fit",
+  poor: "Poor Prospect",
 };
 
 /** "#4 · Top 1%" — where this prospect stands among everyone ranked.

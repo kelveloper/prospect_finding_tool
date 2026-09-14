@@ -147,7 +147,7 @@ export default function CandidateDetail({
               size={112}
               stroke={8}
               accent={style.accent}
-              caption="Priority"
+              caption="Fit"
               valueSize={24}
             />
             <EvidenceBadge
