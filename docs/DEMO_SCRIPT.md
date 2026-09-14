@@ -54,11 +54,9 @@ This is who it put at the top today, already in front of the advisor on the firs
 
 He is an **orthopaedic surgeon** who got his Illinois license **this month** —
 
-but his national registration is **six years old.**
+but his national registration goes back to **2020.**
 
-So he is **not a new graduate.**
-
-He is an **established surgeon moving into Illinois.**
+So this is **not somebody just starting out in the profession.** It is somebody **new to Illinois.**
 
 And that is a person whose **financial relationships are being rebuilt right now.**
 
@@ -243,6 +241,8 @@ That is the tool.
 | "Why is Ameen greyed out in the book?" | He converted — the book steps back anyone already worked so the untouched ones stand out. |
 | "Is the property purchase really public?" | Yes — Cook County records deed transfers. We read it, score it, and never put it in the conversation. |
 | "17 months isn't new." | Right — which is why the opener says "their Illinois license", not "their new license". The adjective only survives inside a year. |
+| "How do you know he isn't a new graduate?" | From the NPI alone, we don't — it's issued when someone enters the billing system, which for many is the first day of residency. Mohamad is unambiguous at 18 years. For anyone under about 8, say "new to Illinois", never "established". |
+| "Why does a new Illinois license mean act now?" | The tool scores the same event two ways: a new licence 3+ years into a career is a **relocation** and scores 60; under 3 years it's a **graduate** and scores 30. Someone rebuilding financial relationships, versus someone with debt. |
 | "What does 'moved' mean?" | Their fit score changed since the last refresh — a signal was detected. Thirteen of today's fourteen got a career advancement. |
 
 ## NUMBERS TO HAVE IN YOUR HEAD
