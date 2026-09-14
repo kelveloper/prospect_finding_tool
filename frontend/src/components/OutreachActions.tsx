@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { revalidateBoard } from "@/lib/actions";
 import type { OutreachEntry } from "@/lib/data";
 
@@ -44,6 +44,36 @@ const NOT_PURSUED: Action = {
  *  says what the board keeps getting wrong. Each one names something the
  *  engine actually decides — specialty, career stage, evidence, identity —
  *  so a pile of them points at the input to retune. */
+const COULD_NOT_REACH_REASONS = [
+  "Gatekeeper wouldn't transfer",
+  "Left a voicemail",
+  "No answer",
+  "Number wrong or dead",
+  "Asked to call back",
+  "Other",
+] as const;
+
+/** Reached them, and it went nowhere. These are about the prospect rather
+ *  than about the board, so they say something the score cannot: whether we
+ *  are arriving too late, or at the wrong person entirely. */
+const NOT_A_FIT_REASONS = [
+  "Already has an advisor",
+  "Not interested",
+  "Assets are elsewhere",
+  "Too early — not accumulating yet",
+  "Wrong person",
+  "Other",
+] as const;
+
+/** Reached them and they are worth another call, just not today. */
+const FOLLOW_UP_REASONS = [
+  "Busy right now",
+  "Wants to think it over",
+  "Asked me to call back",
+  "Interested, timing is wrong",
+  "Other",
+] as const;
+
 const NOT_PURSUED_REASONS = [
   "Wrong specialty",
   "Too early in their career",
@@ -117,16 +147,19 @@ const MODAL_PROMPTS: Partial<
 > = {
   not_connected: {
     title: "Couldn't reach them — what happened?",
-    placeholder: "e.g. Gatekeeper wouldn't transfer; left a message with the front desk",
+    placeholder: "Anything else worth knowing (optional)",
+    reasons: COULD_NOT_REACH_REASONS,
   },
   follow_up_later: {
     title: "Following up later — what did they say?",
-    placeholder: "e.g. Interested, but wants to talk after bonus season",
+    placeholder: "Anything else worth knowing (optional)",
     askDate: true,
+    reasons: FOLLOW_UP_REASONS,
   },
   not_converted: {
     title: "Not a fit — why not?",
-    placeholder: "e.g. Already has an advisor; not interested right now",
+    placeholder: "Anything else worth knowing (optional)",
+    reasons: NOT_A_FIT_REASONS,
   },
   not_pursued: {
     title: "Skipping them without a call — why?",
@@ -166,6 +199,9 @@ export default function OutreachActions({
   const [error, setError] = useState<string | null>(null);
   const [reopened, setReopened] = useState(false);
   const [revising, setRevising] = useState(false);
+  // Picking a reason is the last required step, so the button that commits
+  // it takes focus — one click and Enter, rather than a click and a hunt.
+  const saveButton = useRef<HTMLButtonElement>(null);
 
   // This panel is reused across prospects: the book view swaps `?id=` with a
   // client navigation, so React keeps this component mounted and only changes
@@ -185,6 +221,13 @@ export default function OutreachActions({
     setReopened(false);
     setRevising(false);
   }
+
+  // After the render that enables it, not during the click that requires it:
+  // Save is disabled until a reason is picked, and a disabled button cannot
+  // take focus, so calling this from the chip's own handler does nothing.
+  useEffect(() => {
+    if (picked) saveButton.current?.focus();
+  }, [picked]);
 
   useEffect(() => {
     if (!modalFor) return;
@@ -475,6 +518,7 @@ export default function OutreachActions({
                 Cancel
               </button>
               <button
+                ref={saveButton}
                 type="button"
                 disabled={pending !== null || (!!prompt.reasons && !picked)}
                 onClick={() =>
