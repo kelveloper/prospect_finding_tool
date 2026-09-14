@@ -32,7 +32,7 @@ const REACHED: Action[] = [
  *  not compete with actually making the call. */
 const NOT_PURSUED: Action = {
   value: "not_pursued",
-  label: "Not a fit — won't contact",
+  label: "Rule out without calling",
   tone: MUTED,
   needsReason: true,
 };
@@ -56,11 +56,16 @@ const NOT_PURSUED_REASONS = [
 ] as const;
 
 /** Step 2 — only answerable once they have actually been spoken to, which
- *  is why it is never on screen at the same time as step 1. */
+ *  is why it is never on screen at the same time as step 1.
+ *
+ *  These say what pressing them does, not what the prospect is. "They became
+ *  a client" was read by a reviewer as "this person already banks with us" —
+ *  a fact about the prospect rather than an outcome being recorded — and it
+ *  took three exchanges to undo. A verb cannot be misread that way. */
 const OUTCOME: Action[] = [
-  { value: "converted", label: "They became a client", tone: GOOD, needsReason: false },
-  { value: "follow_up_later", label: "Following up later", tone: QUIET, needsReason: true },
-  { value: "not_converted", label: "Not a fit", tone: MUTED, needsReason: true },
+  { value: "converted", label: "Mark as client", tone: GOOD, needsReason: false },
+  { value: "follow_up_later", label: "Schedule a follow-up", tone: QUIET, needsReason: true },
+  { value: "not_converted", label: "Rule out", tone: MUTED, needsReason: true },
 ];
 
 /** Which question this prospect is actually at.
@@ -83,13 +88,14 @@ function stepFor(last: OutreachEntry | undefined): "reached" | "outcome" | "done
   return "reached";
 }
 
+/** The history line: past tense of the button that wrote it. */
 const LABELS: Record<EventType, string> = {
   connected: "Spoke to them",
   not_connected: "Couldn't reach them",
   follow_up_later: "Following up later",
   converted: "Became a client",
-  not_converted: "Not a fit",
-  not_pursued: "Not a fit — never contacted",
+  not_converted: "Ruled out",
+  not_pursued: "Ruled out without calling",
 };
 
 const MODAL_PROMPTS: Partial<
@@ -114,11 +120,11 @@ const MODAL_PROMPTS: Partial<
     askDate: true,
   },
   not_converted: {
-    title: "Not a fit — why not?",
+    title: "Ruling them out — why?",
     placeholder: "e.g. Already has an advisor; not interested right now",
   },
   not_pursued: {
-    title: "Not worth calling — why not?",
+    title: "Ruling them out without calling — why?",
     placeholder: "Anything else worth knowing (optional)",
     reasons: NOT_PURSUED_REASONS,
   },
@@ -338,7 +344,7 @@ export default function OutreachActions({
                 onClick={() => onClick(NOT_PURSUED)}
                 className="font-display font-semibold text-brand hover:underline disabled:opacity-50"
               >
-                Mark as not a fit
+                Rule out without calling
               </button>
             </p>
           ) : null}
