@@ -472,6 +472,37 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
   const start = current * PER_SPREAD;
   const onSpread = shown.slice(start, start + PER_SPREAD);
 
+  /* What this spread repeats.
+   *
+   * Measured over the twelve entries on screen, not the whole book, because
+   * repetition is a property of the page. A recent licence pushes a prospect
+   * up the ranking and the book is sorted by it, so "New license" is ten of
+   * twelve here and well under half the book — dominant where it is read,
+   * unremarkable in the totals. Counting the totals said the opposite of
+   * what the page shows.
+   *
+   * A value most of a spread shares tells a reader nothing and costs a
+   * fixation per line, so it is set quiet and the chips that remain mean
+   * "not like the others". */
+  const usual = (() => {
+    const mode = (pick: (e: Entry) => string | null) => {
+      const counts = new Map<string, number>();
+      for (const e of onSpread) {
+        const key = pick(e);
+        if (key) counts.set(key, (counts.get(key) ?? 0) + 1);
+      }
+      let best: string | null = null;
+      let seen = 0;
+      for (const [key, n] of counts) if (n > seen) [best, seen] = [key, n];
+      // Only worth muting when it genuinely dominates what is on screen.
+      return seen >= Math.max(3, onSpread.length * 0.5) ? best : null;
+    };
+    return {
+      evidence: mode((e) => e.evidence.level),
+      trigger: mode((e) => e.trigger?.label ?? null),
+    };
+  })();
+
   const pageAt = (spreadIndex: number, side: 0 | 1): Page => {
     const from = spreadIndex * PER_SPREAD;
     const on = shown.slice(from, from + PER_SPREAD);
@@ -605,6 +636,7 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
                 placed={entry.id === placedId}
                 onOpen={() => onOpen(entry.id)}
                 showMovement={hasMovement}
+                usual={usual}
               />
             ))}
           </div>
@@ -1206,6 +1238,7 @@ function BookEntry({
   placed,
   onOpen,
   showMovement,
+  usual,
 }: {
   candidate: Candidate;
   rank: number;
@@ -1215,8 +1248,12 @@ function BookEntry({
   onOpen: () => void;
   /** Hidden until an ingest gives it something to compare against. */
   showMovement: boolean;
+  /** The values most of the book shares, which this row sets quietly. */
+  usual: { evidence: string | null; trigger: string | null };
 }) {
   const style = tierStyle(candidate.tier);
+  const plainTrigger = candidate.trigger?.label === usual.trigger;
+  const plainEvidence = candidate.evidence.level === usual.evidence;
 
   return (
     <a
@@ -1244,10 +1281,6 @@ function BookEntry({
       <span className="w-6 shrink-0 text-center font-display text-[11px] font-bold text-ink-faint tabular-nums">
         {rank}
       </span>
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-light font-display text-[12px] font-bold text-white">
-        {candidate.initials}
-      </span>
-
       <span className="min-w-0 flex-1">
         {/* Name and location share a line. The name never fills the cell —
             the widest in the book is 175px of 269 — while the specialty
@@ -1286,7 +1319,14 @@ function BookEntry({
       </span>
 
       <span className="hidden w-[104px] shrink-0 lg:block">
-        {candidate.trigger ? (
+        {candidate.trigger && plainTrigger ? (
+          <span
+            title={`Why now — ${candidate.trigger.hint}`}
+            className="cursor-help text-[11px] text-ink-faint/70"
+          >
+            {candidate.trigger.label}
+          </span>
+        ) : candidate.trigger ? (
           <TriggerChip trigger={candidate.trigger} />
         ) : (
           <span
@@ -1299,7 +1339,16 @@ function BookEntry({
       </span>
 
       <span className="hidden w-[86px] shrink-0 md:block">
-        <EvidenceChip evidence={candidate.evidence} />
+        {plainEvidence ? (
+          <span
+            title={`Evidence — built on ${candidate.evidence.found} of ${candidate.evidence.total} signals`}
+            className="cursor-help text-[11px] text-ink-faint/70"
+          >
+            {candidate.evidence.level}
+          </span>
+        ) : (
+          <EvidenceChip evidence={candidate.evidence} />
+        )}
       </span>
 
       {showMovement ? (
@@ -1314,18 +1363,13 @@ function BookEntry({
         </span>
       ) : null}
 
-      {/* Score and band together: the band is a function of the score, so two
-          columns were one fact printed twice. */}
+      {/* The figure alone. The band is a function of the score's rank and the
+          book is sorted by it, so the word restated the number beside it on
+          every line — colour carries the band, and the tooltip names it. */}
       <span
         title={`Fit ${candidate.score} — ${candidate.tierLabel}.`}
         className="flex w-[104px] shrink-0 cursor-help items-baseline justify-end gap-1.5"
       >
-        <span
-          className="hidden text-[11px] font-medium sm:inline"
-          style={{ color: style.badgeFg }}
-        >
-          {candidate.tier}
-        </span>
         <span
           className="font-display text-[15px] font-bold tabular-nums"
           style={{ color: style.badgeFg }}
