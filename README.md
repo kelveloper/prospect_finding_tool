@@ -8,7 +8,7 @@ traceable to a source record. See `docs/PROJECT_SPEC.md` for the original spec.
 
 - **Backend** (repo root): FastAPI + SQLAlchemy — ingestion, identity
   resolution, scoring, ranking, feedback.
-- **Frontend** (`frontend/`): Next.js "ProspectIQ" scoreboard wired to the
+- **Frontend** (`frontend/`): Next.js "TellTale" scoreboard wired to the
   backend endpoints — see `frontend/README.md`.
 
 ## Docs (read in this order)

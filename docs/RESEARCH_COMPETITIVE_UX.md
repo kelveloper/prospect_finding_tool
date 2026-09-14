@@ -1,7 +1,7 @@
 # Competitive UX review — what the market does, and four changes
 
 How Catchlight, Aidentified, Apollo and ZoomInfo present prospects, and what
-follows for ProspectIQ's UI.
+follows for TellTale's UI.
 
 **Reviewed:** 2026-08-30. Five web searches, three pages read.
 **Visuals:**
@@ -47,7 +47,7 @@ Keep the explanation, drop the multiplication. That is change 01 below.
 
 ### Where we stand
 
-| Capability | ProspectIQ |
+| Capability | TellTale |
 | --- | --- |
 | Score with a number | have |
 | Per-signal contributions shown | behind a footnote |

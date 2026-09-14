@@ -187,6 +187,6 @@ app/outreach/      contact kit: trigger-matched letter templates + channel rules
 app/services/      ingestion pipeline, ranking service
 app/api/routes.py  HTTP endpoints (no business logic)
 app/models/        SQLAlchemy tables: prospects, signals, identity_matches, score_history, feedback
-frontend/          ProspectIQ UI (Next.js) — src/lib/api.ts is the API client
+frontend/          TellTale UI (Next.js) — src/lib/api.ts is the API client
 tests/             50 tests: identity, scoring, reasons, adapters, API, ownership proof
 ```

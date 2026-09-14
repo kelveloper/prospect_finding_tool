@@ -11,7 +11,7 @@ Score: **4 of 16 done**, 3 partial, 9 open. Item 17 is the deadline itself.
 
 ---
 
-## Demo / Product — Prospect IQ
+## Demo / Product — TellTale
 
 ### ✅ 12 · Score in context
 

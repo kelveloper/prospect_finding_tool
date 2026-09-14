@@ -16,7 +16,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ProspectIQ — Prospect Scoreboard",
+  title: "TellTale — Prospect Scoreboard",
   description:
     "Rank, review, and plan outreach to physician prospects by fit score.",
 };

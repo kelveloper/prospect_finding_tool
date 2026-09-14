@@ -22,7 +22,7 @@ Status as of 2026-08-30. Spec: `PROJECT_SPEC.md` · Mechanics:
 - [x] NPPES NPI Registry — real physicians by specialty/state, physician-only taxonomy filtering, license-number capture (100% on IL pull)
 - [x] IDFPR via data.illinois.gov — real license verification queried by license number; live IL run: 194 physicians, 120 license joins, 107 verified ACTIVE
 
-**Frontend (ProspectIQ, Next.js)**
+**Frontend (TellTale, Next.js)**
 - [x] Ranked scoreboard with featured prospect, tiers, tags, auto-ingest
 - [x] Candidate dossier: Career Signal / Ownership / Financial Activity cards (with "None on record" states), Identity Resolution, Score Breakdown, Practice Location, Detected Signals
 - [x] Sources document (`/prospect/{id}/sources`): the facts with source and confidence, the identity checks, and the scoring — one ledger each, plain English. Verdict buttons + history live inline on the profile

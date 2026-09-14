@@ -164,7 +164,7 @@ export function describeIdentity(c: IdentityAudit): string {
    server, so the server snapshot is "off" and the client corrects itself
    after hydration without a mismatch. */
 
-const KEY = "prospectiq_identity_audit";
+const KEY = "telltale_identity_audit";
 const listeners = new Set<() => void>();
 let cached: boolean | null = null;
 

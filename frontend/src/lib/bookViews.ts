@@ -12,7 +12,7 @@
 
 import { CHANGED_LABEL } from "./changes";
 
-export const VIEWS_KEY = "prospectiq_book_views";
+export const VIEWS_KEY = "telltale_book_views";
 
 /** Everything a view restores. Kept flat so an older saved view missing a
  *  newer field still loads, with that filter simply off. */

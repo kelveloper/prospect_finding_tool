@@ -981,7 +981,7 @@ app/
 ├── api/routes.py    HTTP endpoints — no business logic
 └── config.py        weights and thresholds (environment-overridable)
 
-frontend/            ProspectIQ UI (Next.js 16 · React 19 · Tailwind v4)
+frontend/            TellTale UI (Next.js 16 · React 19 · Tailwind v4)
 ├── src/app/                 scoreboard · dossier · sources
 ├── src/components/          SourcesDocument, MatchEvidencePanel,
 │                            OutreachActions, ContactKitCard, ScoreRing, …

@@ -12,7 +12,7 @@ export type Crumb = { label: string; href?: string };
 type Props = {
   /** Board size. Omit and the header counts the board itself. */
   candidateCount?: number;
-  /** Trailing crumbs after the ProspectIQ wordmark. */
+  /** Trailing crumbs after the TellTale wordmark. */
   crumbs?: Crumb[];
   /** Layout switch beside the wordmark (scoreboard only). It names the
    *  current view the way the old static tag did, and is also how you
@@ -58,7 +58,7 @@ export default async function Header({
               <LogoMark className="size-[18px]" />
             </span>
             <span className="font-display text-[18px] font-bold tracking-[-0.4px] text-ink">
-              ProspectIQ
+              TellTale
             </span>
           </a>
 

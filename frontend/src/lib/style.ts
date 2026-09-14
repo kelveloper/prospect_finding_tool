@@ -13,7 +13,7 @@
  */
 
 export const STYLE_ATTR = "data-style";
-export const STYLE_KEY = "prospectiq_style";
+export const STYLE_KEY = "telltale_style";
 
 export const STYLES = {
   advisor: {

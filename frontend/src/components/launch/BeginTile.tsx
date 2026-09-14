@@ -28,7 +28,7 @@ export default function BeginTile({ onBegin, total, busy }: Props) {
           <LogoMark className="size-5" />
         </span>
         <span className="font-display text-[12px] font-semibold uppercase tracking-[1px] text-white/70">
-          ProspectIQ
+          TellTale
         </span>
       </span>
 

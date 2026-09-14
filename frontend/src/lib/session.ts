@@ -10,7 +10,7 @@
  * Client-safe on purpose: no `next/headers` import, so the overlay and the
  * header can share these names.
  */
-export const LAUNCH_KEY = "prospectiq_launched";
+export const LAUNCH_KEY = "telltale_launched";
 
 /** Set on <html> while a tab is mid-review; globals.css hides the overlay. */
 export const LAUNCH_ATTR = "data-launched";

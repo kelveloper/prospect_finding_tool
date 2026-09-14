@@ -1,4 +1,4 @@
-# ProspectIQ — Frontend
+# TellTale — Frontend
 
 Next.js UI for the Emerging Affluent Prospecting backend (originally scaffolded
 in the KelvinSucksEggs repo, now integrated here and wired to live endpoints).
