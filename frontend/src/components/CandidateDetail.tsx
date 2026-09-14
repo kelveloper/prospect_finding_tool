@@ -1,4 +1,5 @@
 import CandidateDossier from "./CandidateDossier";
+import ScoreSparkline from "./ScoreSparkline";
 import SectionCard from "./SectionCard";
 import ContactKitCard from "./ContactKitCard";
 import Citation from "./Citation";
@@ -175,6 +176,19 @@ export default function CandidateDetail({
                 timing={candidate.timingScore}
               />
             </div>
+
+            {/* The trajectory belongs under the number it is the history of,
+                not in a section of its own further down. Narrow, because a
+                sparkline is a shape rather than a chart to read off — and it
+                fits in the slack this column already had beside the name. */}
+            {dossier && dossier.scoreHistory.length > 1 ? (
+              <div className="mt-2 w-[230px] text-left">
+                <ScoreSparkline
+                  history={dossier.scoreHistory}
+                  changes={dossier.fieldChanges}
+                />
+              </div>
+            ) : null}
           </div>
         </summary>
 
@@ -211,7 +225,6 @@ export default function CandidateDetail({
       {dossier && profile ? (
         <CandidateDossier
           fieldChanges={dossier.fieldChanges}
-          scoreHistory={dossier.scoreHistory}
         />
       ) : (
         <p className="mt-8 rounded-[12px] bg-canvas px-4 py-4 text-[13px] text-ink-muted">
