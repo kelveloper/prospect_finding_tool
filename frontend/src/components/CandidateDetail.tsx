@@ -327,7 +327,13 @@ function WhyNow({
       {events.length > 0 ? (
         <section>
           <Subheading className="section-title mb-2.5">Why now</Subheading>
-          <ul className="space-y-2">
+          {/* flow-root, because a float only moves text out of its way. A
+              block keeps its full width and runs underneath, so the card's
+              background slid beneath the rail while its words wrapped
+              correctly — the one arrangement that looks like a z-index bug
+              and is not. Its own formatting context makes the box respect
+              the float the same way the text already did. */}
+          <ul className="flow-root space-y-2">
             {events.map((signal) => {
               const [fact, meaning] = splitSignal(signal.description);
               return (
