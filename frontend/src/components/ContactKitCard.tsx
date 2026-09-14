@@ -121,11 +121,16 @@ function RuleHint({ rules }: { rules: string[] }) {
         tabIndex={0}
         role="note"
         aria-label={spoken}
-        title="How to approach — hover for the rules"
-        className="flex cursor-help items-center gap-1.5 rounded-full border border-tier-weak/40 bg-tier-weak-bg px-2.5 py-1 font-display text-[11px] font-semibold text-tier-weak-fg outline-none transition-colors hover:border-tier-weak focus-visible:ring-2 focus-visible:ring-brand"
+        // The count is the one thing this shape gives up, so the native
+        // tooltip carries it — a mark with no number says nothing about how
+        // much is behind it.
+        title={`${rules.length} rule${rules.length === 1 ? "" : "s"} for approaching — hover for detail`}
+        // Deliberately the same object as the "?" beside the standing: one
+        // page should not have two different shapes that both mean "there is
+        // more here on hover".
+        className="flex size-[18px] cursor-help items-center justify-center rounded-full border border-hairline bg-white font-display text-[10px] font-bold text-ink-muted outline-none transition-colors hover:border-brand hover:text-brand focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1"
       >
-        <span aria-hidden>!</span>
-        {rules.length} rule{rules.length === 1 ? "" : "s"}
+        !
       </span>
 
       <span
