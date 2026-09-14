@@ -54,9 +54,9 @@ And the third is **where to start the conversation.**
 
 This is who it put at the top today, already in front of the advisor on the first screen.
 
-He is an **orthopaedic surgeon** who got his Illinois license **this month** —
+They are an **orthopaedic surgeon** who got their Illinois license **this month** —
 
-but his national registration goes back to **2020.**
+but their national registration goes back to **2020.**
 
 So this is **not somebody just starting out in the profession.** It is somebody **new to Illinois.**
 
@@ -64,11 +64,11 @@ And that is a person whose **financial relationships are being rebuilt right now
 
 ### 👆 POINT TO #2, KEVIN ZACHARY BLACK
 
-The person **right underneath him** is also an orthopaedic surgeon.
+The person **right underneath them** is also an orthopaedic surgeon.
 
 They score **exactly the same on value — both 75.**
 
-Ameen is above him because his **Illinois license is newer** — **58.1** on timing against **55.0**.
+Ameen is above them because their **Illinois license is newer** — **58.1** on timing against **55.0**.
 
 So the tie is broken by **recency.**
 
@@ -80,8 +80,8 @@ So the tie is broken by **recency.**
 
 # 2. EVERYTHING WE FOUND
 
-> Now switch. Scroll the rail to **#9, Mohamad Bydon** — he has the **NEW**
-> badge, because he arrived in this morning's sweep.
+> Now switch. Scroll the rail to **#9, Mohamad Bydon** — they have the **NEW**
+> badge, because they arrived in this morning's sweep.
 
 ### 👆 OPEN MOHAMAD BYDON (#9)
 
@@ -97,7 +97,7 @@ Neurological surgeon. **Top 4%.**
 
 An advisor should not have to go and dig this out themselves.
 
-So when they expand it, **this is everything we hold on him.**
+So when they expand it, **this is everything we hold on them.**
 
 ### 👆 POINT TO:
 
@@ -113,11 +113,11 @@ Because we are joining **four separate databases** here, and the obvious risk is
 
 This is the part that makes the story.
 
-He has spent **eighteen years billing Medicare through Mayo.**
+They have spent **eighteen years billing Medicare through Mayo.**
 
-His license is now **Illinois**, and his practice address is **5841 South Maryland Avenue** — that is the **University of Chicago Medical Center.**
+Their license is now **Illinois**, and their practice address is **5841 South Maryland Avenue** — that is the **University of Chicago Medical Center.**
 
-So the records themselves say **he moved here** — that is our timing.
+So the records themselves say **they moved here** — that is our timing.
 
 ### 👆 POINT TO — **FINANCIAL ACTIVITY**
 
@@ -149,7 +149,7 @@ That pill only appears when the timing is **live.** If it is there, it means som
 
 And this is the part I would most want you to see.
 
-**Three rules for approaching him.** Read them out:
+**Three rules for approaching them.** Read them out:
 
 - *Send to the practice address — never a home address.*
 - *Phone is the practice landline — expect a gatekeeper; never call personal numbers.*
@@ -177,7 +177,7 @@ And when the advisor actually reaches out, they log what happened.
 
 **Did you reach them?** — *Yes, I spoke to them* / *No, couldn't reach.*
 
-And if they look at him and decide he is not worth a call at all — **Skip without calling**, with a reason.
+And if they look at them and decide they are not worth a call at all — **Skip without calling**, with a reason.
 
 Right now, that is **a record we keep**. The reasons are the useful half: they tell us **what we got wrong** about who we surfaced.
 
@@ -195,7 +195,7 @@ Day to day, an advisor may prefer working from a list, so we have this **book vi
 
 And this is the column that is **theirs, not a registry's.**
 
-**Ameen reads "✓ CLIENT" and the whole row steps back** — because I already closed him.
+**Ameen reads "✓ CLIENT" and the whole row steps back** — because I already closed them.
 
 Row three says **"SPOKE"**. Row seven says **"NO ANSWER"**.
 
@@ -215,14 +215,14 @@ And the obvious next step is that the book should **divide** the list, not just 
 
 **That part isn't built.** Today it stops them colliding by making the work visible. Tomorrow it should stop them colliding by never giving them the same person.
 
-> ⚠️ **Say it as the problem you've thought about, not a feature you've shipped.** Raising it first reads as product thinking; being asked and having no answer reads as a gap. But the line has to be exact, because he can check:
+> ⚠️ **Say it as the problem you've thought about, not a feature you've shipped.** Raising it first reads as product thinking; being asked and having no answer reads as a gap. But the line has to be exact, because they can check:
 >
 > **Built:** one board, one shared outreach log, a column showing what's been done. The second advisor sees the first one's calls.
 > **Not built:** nothing reserves a prospect, and `outreach_events` has no advisor column — so the book shows *that* someone called, not *who*. Two advisors dialling the same minute would still collide.
 >
 > So: **"they can see it"**, never **"it's assigned to them."**
 
-> ⚠️ **If he asks how you'd divide it — have a view.** Two ways, not equally good:
+> ⚠️ **If they ask how you'd divide it — have a view.** Two ways, not equally good:
 >
 > **Split by territory or specialty** — simple, but it fights the ranking. The best prospect lands in somebody's slice whether or not they're the right person to call today, and half the point of ranking the whole book disappears.
 >
@@ -272,11 +272,11 @@ and **save that view with a name**, so they can pick up where they left off.
 >
 > What we have **not** proved is that the ranking predicts who becomes a client. **That needs advisors using it** — which is why every outcome is logged from day one. If the 60–80 band converts better than the 20–40 band, the weights earned their place. If not, we change them."
 
-### 👆 HAND OVER — name him, give him something specific
+### 👆 HAND OVER — name them, give them something specific
 
 > "**Kelvin can take you through how it's actually built** — and how we know it's the same person across all four sources."
 
-**Then stop talking.** Don't add a feature you forgot, don't fill the pause. His first question tells you which screen to open next, and it's almost never the one you'd have picked.
+**Then stop talking.** Don't add a feature you forgot, don't fill the pause. Their first question tells you which screen to open next, and it's almost never the one you'd have picked.
 
 ---
 
@@ -291,10 +291,10 @@ and **save that view with a name**, so they can pick up where they left off.
 | If they ask | Say |
 |---|---|
 | "Why is #9 marked new but #1 isn't?" | New means found in the last 48 hours. Ameen has been on the board a while; Mohamad arrived this morning. |
-| "Why is Ameen greyed out in the book?" | He converted — the book steps back anyone already worked so the untouched ones stand out. |
+| "Why is Ameen greyed out in the book?" | They converted — the book steps back anyone already worked so the untouched ones stand out. |
 | "Is the property purchase really public?" | Yes — Cook County records deed transfers. We read it, score it, and never put it in the conversation. |
 | "17 months isn't new." | Right — which is why the opener says "their Illinois license", not "their new license". The adjective only survives inside a year. |
-| "How do you know he isn't a new graduate?" | From the NPI alone, we don't — it's issued when someone enters the billing system, which for many is the first day of residency. Mohamad is unambiguous at 18 years. For anyone under about 8, say "new to Illinois", never "established". |
+| "How do you know they aren't a new graduate?" | From the NPI alone, we don't — it's issued when someone enters the billing system, which for many is the first day of residency. Mohamad is unambiguous at 18 years. For anyone under about 8, say "new to Illinois", never "established". |
 | "Why does a new Illinois license mean act now?" | The tool scores the same event two ways: a new licence 3+ years into a career is a **relocation** and scores 60; under 3 years it's a **graduate** and scores 30. Someone rebuilding financial relationships, versus someone with debt. |
 | "What does 'moved' mean?" | Their fit score changed since the last refresh — a signal was detected. Thirteen of today's fourteen got a career advancement. |
 
@@ -303,5 +303,5 @@ and **save that view with a name**, so they can pick up where they left off.
 - **276** on the board · **55** new · **23** spreads in the book
 - Ameen **62.4** · Kevin **61.5** · both value **75.0**, timing **58.1** vs **55.0**
 - Mohamad **57.1** — value **65**, timing **69.5** · **5 of 7** signals · **18** years in practice
-- His deeds: **$2,050,000** (2 months ago) and **$1,500,000** (15 months ago)
+- Their deeds: **$2,050,000** (2 months ago) and **$1,500,000** (15 months ago)
 - **69** since last refresh = **55** new + **14** moved
