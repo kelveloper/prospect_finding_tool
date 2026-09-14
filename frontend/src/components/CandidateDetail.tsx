@@ -122,10 +122,14 @@ export default function CandidateDetail({
 
                   {/* The affordance for the whole block, not a control of its
                       own — it sits inside the summary, so the click is already
-                      handled. Beside the pill rather than under it: two rows
-                      for a badge and four words is more than either is
-                      worth. */}
-                  <span className="flex w-fit items-center gap-1.5 font-display text-[13px] font-semibold text-brand opacity-80 transition-opacity group-hover:opacity-100">
+                      handled, and the name, the location and the pill all open
+                      the records too.
+                      Bordered, because a reader complained they could not find
+                      it and the reason was never where it sat: a 13px link at
+                      80% opacity, beside a filled pill of twice the visual
+                      weight, loses on its own line as well. A border is what
+                      makes a thing read as a control. */}
+                  <span className="flex w-fit items-center gap-1.5 rounded-[8px] border border-hairline bg-white px-3 py-1.5 font-display text-[12.5px] font-semibold text-brand transition-colors group-hover:border-brand group-hover:bg-canvas">
                     <span className="group-open:hidden">See the records</span>
                     <span className="hidden group-open:inline">
                       Hide the records

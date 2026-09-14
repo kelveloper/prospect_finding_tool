@@ -1,0 +1,78 @@
+<meta charset="utf-8">
+<title>See the records — options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+  :root{color-scheme:light;
+    --ink:#0f3a5c;--ink-muted:#4a6b82;--ink-faint:#8aaec5;--brand:#1d6fa4;--brand-dark:#0d5fa3;
+    --canvas:#f0f7fc;--hair:#b8ddef;--page:#eef4f8;--card:#fff;
+    --good:#0b7a4b;--good-bg:#d6f4e8;
+    --disp:"DM Sans",system-ui,sans-serif;--body:"Inter",system-ui,sans-serif}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --ink:#e6edf3;--ink-muted:#aeb9c4;--ink-faint:#7d8894;--canvas:#161d26;--hair:#2b3a47;
+    --good:#7fd3a8;--good-bg:#14291f;--page:#0d1117;--card:#161b22}}
+  :root[data-theme="dark"]{
+    --ink:#e6edf3;--ink-muted:#aeb9c4;--ink-faint:#7d8894;--canvas:#161d26;--hair:#2b3a47;
+    --good:#7fd3a8;--good-bg:#14291f;--page:#0d1117;--card:#161b22}
+  body{background:var(--page);color:var(--ink);font-family:var(--body);font-size:15px;margin:0;padding-block:32px}
+  .wrap{max-width:900px;margin:0 auto;padding:0 20px}
+  h1{font-family:var(--disp);font-size:25px;font-weight:700;letter-spacing:-.5px;margin:0 0 6px}
+  .lede{color:var(--ink-muted);margin:0 0 12px}
+  .hint{background:var(--canvas);border-radius:10px;padding:11px 14px;color:var(--ink-muted);font-size:13.5px;margin:0 0 22px}
+  .opt{background:var(--card);border:1px solid var(--hair);border-radius:14px;padding:16px 18px;margin:0 0 13px}
+  .lbl{font-family:var(--disp);font-size:11px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--ink-faint);margin:0 0 10px}
+  .why{color:var(--ink-muted);font-size:13.5px;margin:11px 0 0}
+  .cost{float:right;font-family:var(--disp);font-size:11px;font-weight:700;color:var(--ink-faint)}
+  .eb{font-family:var(--disp);font-size:10.5px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--ink-faint);margin:0}
+  .nm{font-family:var(--disp);font-size:26px;font-weight:700;letter-spacing:-.6px;margin:2px 0 1px}
+  .loc{color:var(--ink-muted);margin:0;font-size:15px}
+  .pill{display:inline-flex;align-items:center;gap:6px;background:var(--good-bg);color:var(--good);
+        border-radius:99px;padding:6px 12px;font-family:var(--disp);font-size:12px;font-weight:600}
+  .row{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:9px}
+  /* treatments */
+  .t-link{font-family:var(--disp);font-size:13px;font-weight:600;color:var(--brand);opacity:.8}
+  .t-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--hair);background:var(--card);
+          border-radius:8px;padding:5px 11px;font-family:var(--disp);font-size:12.5px;font-weight:600;color:var(--brand)}
+  .t-chip .cv{font-size:9px}
+  .t-pillbtn{display:inline-flex;align-items:center;gap:8px;background:var(--good-bg);color:var(--good);
+             border:1px solid color-mix(in srgb,var(--good) 30%,transparent);
+             border-radius:99px;padding:6px 12px;font-family:var(--disp);font-size:12px;font-weight:600}
+  .t-pillbtn .sep{opacity:.45}
+  .t-und{font-family:var(--disp);font-size:13px;font-weight:600;color:var(--brand);border-bottom:1.5px solid currentColor;padding-bottom:1px}
+</style>
+
+<div class="wrap">
+  <h1>“See the records” — making it obvious</h1>
+  <p class="lede">Your teammate could not find it. Four ways to fix that, with what each costs in height.</p>
+  <p class="hint"><b>Worth knowing first:</b> the whole header row is already a <code>&lt;summary&gt;</code> with <code>cursor-pointer</code> — clicking the name, the location or the pill already opens the records. So nothing is broken; the affordance simply never advertises itself. That means the fix is about <em>looking</em> clickable, not about adding a control.</p>
+
+  <div class="opt">
+    <p class="lbl">A · text link, inline — what is live now <span class="cost">+0px</span></p>
+    <p class="eb">Orthopaedic Surgery</p><p class="nm">Alex C Brewer</p><p class="loc">Mattoon, IL</p>
+    <div class="row"><span class="pill">✓ Identity verified across NPI + IL License — 100% match confidence</span><span class="t-link">See the records ▾</span></div>
+    <p class="why">A 13px link at 80% opacity, beside a filled green pill that is twice its visual weight. It loses, every time.</p>
+  </div>
+
+  <div class="opt">
+    <p class="lbl">B · bordered chip, inline <span class="cost">+0px</span></p>
+    <p class="eb">Orthopaedic Surgery</p><p class="nm">Alex C Brewer</p><p class="loc">Mattoon, IL</p>
+    <div class="row"><span class="pill">✓ Identity verified across NPI + IL License — 100% match confidence</span><span class="t-chip">See the records <span class="cv">▾</span></span></div>
+    <p class="why">A border is what makes a thing read as a control. Same row, same height, and it stops being a caption beside a badge. Cheapest real fix.</p>
+  </div>
+
+  <div class="opt">
+    <p class="lbl">C · the pill becomes the control <span class="cost">+0px</span></p>
+    <p class="eb">Orthopaedic Surgery</p><p class="nm">Alex C Brewer</p><p class="loc">Mattoon, IL</p>
+    <div class="row"><span class="t-pillbtn">✓ Identity verified across NPI + IL License — 100% match confidence <span class="sep">·</span> See the records ▾</span></div>
+    <p class="why">One object instead of two, and it says the honest thing: the records <em>are</em> the evidence for the claim in the pill. Largest target on the page. But it makes a status badge into a button, which is a rule most design systems keep for a reason.</p>
+  </div>
+
+  <div class="opt">
+    <p class="lbl">D · own line, bordered — closest to before <span class="cost">+34px</span></p>
+    <p class="eb">Orthopaedic Surgery</p><p class="nm">Alex C Brewer</p><p class="loc">Mattoon, IL</p>
+    <div class="row"><span class="pill">✓ Identity verified across NPI + IL License — 100% match confidence</span></div>
+    <div class="row"><span class="t-chip">See the records <span class="cv">▾</span></span></div>
+    <p class="why">Nothing competes with it, which is why it was findable before. Costs a row — and we just spent an hour getting rows back.</p>
+  </div>
+</div>
