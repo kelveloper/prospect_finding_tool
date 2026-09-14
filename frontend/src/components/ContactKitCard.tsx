@@ -47,43 +47,48 @@ export default function ContactKitCard({
         ) : null}
       </div>
 
-      <div className="rounded-[12px] bg-canvas px-5 py-4">
-        {/* The number leads. It was one of two equal tiles, which said the
-            address mattered as much as placing the call — and the advisor
-            only wants the address at the moment they are writing. */}
-        {kit.phone ? (
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <a
-              href={telHref(kit.phone)}
-              title={`Call ${kit.name} on ${kit.phone}`}
-              className="font-display text-[22px] font-bold tracking-[-0.3px] text-brand-dark hover:underline"
-            >
-              {kit.phone}
-            </a>
-            {kit.phoneNote ? (
-              <span className="text-[12px] text-ink-muted">
-                {kit.phoneNote}
-              </span>
-            ) : null}
-          </div>
-        ) : (
-          <p className="font-display text-[15px] font-semibold text-ink-muted">
-            No practice line on record
-          </p>
-        )}
+      {/* Asymmetric on purpose. Two equal tiles said the address mattered
+          as much as placing the call, which is what this block was before;
+          a wider, louder left column says call now, address when you write.
+          The box measures 796–1076px everywhere it actually appears — the
+          board, and the book's slide-over — so the stacked fallback is for
+          genuinely small screens rather than for any normal use. */}
+      <div className="grid grid-cols-1 gap-x-7 gap-y-4 rounded-[12px] bg-canvas px-5 py-4 sm:grid-cols-[1.55fr_1fr] sm:items-start">
+        <div className="min-w-0">
+          {kit.phone ? (
+            <>
+              <a
+                href={telHref(kit.phone)}
+                title={`Call ${kit.name} on ${kit.phone}`}
+                className="font-display text-[22px] font-bold tracking-[-0.3px] text-brand-dark hover:underline"
+              >
+                {kit.phone}
+              </a>
+              {kit.phoneNote ? (
+                <p className="mt-0.5 text-[12px] text-ink-muted">
+                  {kit.phoneNote}
+                </p>
+              ) : null}
+            </>
+          ) : (
+            <p className="font-display text-[15px] font-semibold text-ink-muted">
+              No practice line on record
+            </p>
+          )}
 
-        {/* What to say first — already chosen by the scoring, and until now
-            only visible as the "why now" card further up the page. */}
-        {kit.opening ? (
-          <p className="mt-2.5 text-[14px] leading-[20px] text-ink">
-            <span className="font-display font-semibold">Open with:</span>{" "}
-            {tidyPlural(kit.opening)}
-          </p>
-        ) : null}
+          {/* What to say first — already chosen by the scoring, and until now
+              only visible as the "why now" card further up the page. */}
+          {kit.opening ? (
+            <p className="mt-2.5 text-[14px] leading-[20px] text-ink">
+              <span className="font-display font-semibold">Open with:</span>{" "}
+              {tidyPlural(kit.opening)}
+            </p>
+          ) : null}
+        </div>
 
-        <div className="mt-3 border-t border-hairline/50 pt-3">
+        <div className="min-w-0">
           <p className="eyebrow">Practice address</p>
-          <p className="mt-0.5 text-[14px] leading-[20px] text-ink">
+          <p className="mt-0.5 text-[13.5px] leading-[19px] text-ink-muted">
             {address || "Not on record"}
             {!kit.addressComplete && kit.addressLines.length > 0 ? (
               <span className="mt-1 block text-[12px] text-tier-poor">

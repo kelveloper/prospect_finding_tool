@@ -1,0 +1,92 @@
+<meta charset="utf-8">
+<title>Do this next — layout</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+  :root{color-scheme:light;
+    --ink:#0f3a5c;--ink-muted:#4a6b82;--ink-faint:#8aaec5;--brand:#1d6fa4;--brand-dark:#0d5fa3;
+    --canvas:#f0f7fc;--hair:#b8ddef;--page:#eef4f8;--card:#fff;
+    --disp:"DM Sans",system-ui,sans-serif;--body:"Inter",system-ui,sans-serif}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --ink:#e6edf3;--ink-muted:#aeb9c4;--ink-faint:#7d8894;--canvas:#161d26;--hair:#2b3a47;--page:#0d1117;--card:#161b22}}
+  :root[data-theme="dark"]{
+    --ink:#e6edf3;--ink-muted:#aeb9c4;--ink-faint:#7d8894;--canvas:#161d26;--hair:#2b3a47;--page:#0d1117;--card:#161b22}
+  body{background:var(--page);color:var(--ink);font-family:var(--body);font-size:15px;margin:0;padding-block:34px}
+  .wrap{max-width:900px;margin:0 auto;padding:0 20px}
+  h1{font-family:var(--disp);font-size:26px;font-weight:700;letter-spacing:-.5px;margin:0 0 6px}
+  .lede{color:var(--ink-muted);margin:0 0 24px}
+  .opt{background:var(--card);border:1px solid var(--hair);border-radius:14px;padding:16px 18px;margin:0 0 14px}
+  .lbl{font-family:var(--disp);font-size:11px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--ink-faint);margin:0 0 9px}
+  .why{color:var(--ink-muted);font-size:13.5px;margin:11px 0 0}
+  .h{font-family:var(--disp);font-size:12px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;
+     color:var(--ink-muted);display:flex;align-items:center;gap:9px;margin:0 0 10px}
+  .h::before{content:"";flex:none;width:3px;height:14px;border-radius:99px;background:var(--brand)}
+  .mark{width:18px;height:18px;border:1px solid var(--hair);border-radius:99px;display:inline-flex;
+        align-items:center;justify-content:center;font-family:var(--disp);font-size:10px;font-weight:700;color:var(--ink-muted)}
+  .box{background:var(--canvas);border-radius:12px;padding:14px 16px}
+  .tel{font-family:var(--disp);font-size:22px;font-weight:700;color:var(--brand-dark);letter-spacing:-.3px}
+  .note{font-size:12px;color:var(--ink-muted)}
+  .eb{font-family:var(--disp);font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--ink-faint);margin:0}
+  .open{margin:9px 0 0;font-size:14px}.open b{font-weight:600}
+  .rule{margin-top:11px;border-top:1px solid rgb(0 0 0/.06);padding-top:11px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .asym{display:grid;grid-template-columns:1.55fr 1fr;gap:20px;align-items:start}
+  .addr1{margin-top:11px;border-top:1px solid rgb(0 0 0/.06);padding-top:10px;font-size:13.5px}
+  .addr1 span{color:var(--ink-faint)}
+  .cnt{font-family:var(--disp);font-size:11px;font-weight:700;color:var(--ink-faint);float:right}
+</style>
+
+<div class="wrap">
+  <h1>“Do this next” — stacked or two columns?</h1>
+  <p class="lede">Same content four ways. The line count is on the right of each label.</p>
+
+  <div class="opt">
+    <p class="lbl">A · stacked — what is live now <span class="cnt">5 lines</span></p>
+    <div class="h">Do this next <span class="mark">!</span></div>
+    <div class="box">
+      <div><span class="tel">217-238-3435</span> <span class="note">Practice landline from NPPES (business line)</span></div>
+      <p class="open"><b>Open with:</b> Illinois license issued 2 months ago</p>
+      <div class="rule"><p class="eb">Practice address</p><div style="font-size:14px;margin-top:2px">1004 Health Center Dr, Mattoon, IL 61938</div></div>
+    </div>
+    <p class="why">The number is unmistakably the point; the address is clearly available but subordinate. Costs the most height.</p>
+  </div>
+
+  <div class="opt">
+    <p class="lbl">B · two equal columns — the shape before the critique <span class="cnt">3 lines</span></p>
+    <div class="h">Do this next <span class="mark">!</span></div>
+    <div class="two">
+      <div class="box"><p class="eb">Practice line</p><div style="margin-top:3px"><span class="tel" style="font-size:18px">217-238-3435</span></div><div class="note" style="margin-top:3px">Practice landline from NPPES</div></div>
+      <div class="box"><p class="eb">Practice address</p><div style="font-size:14px;margin-top:3px">1004 Health Center Dr<br>Mattoon, IL 61938</div></div>
+    </div>
+    <p class="why">Tightest, and the one a reviewer looked at and said the address and phone “seem not really relevant to me.” Two equal boxes assert the address matters as much as placing the call — and it does not, because you mail later and you call now. The “Open with” line also has nowhere to go.</p>
+  </div>
+
+  <div class="opt">
+    <p class="lbl">C · stacked, address on one line <span class="cnt">4 lines</span></p>
+    <div class="h">Do this next <span class="mark">!</span></div>
+    <div class="box">
+      <div><span class="tel">217-238-3435</span> <span class="note">Practice landline from NPPES (business line)</span></div>
+      <p class="open"><b>Open with:</b> Illinois license issued 2 months ago</p>
+      <div class="addr1"><span>Practice address ·</span> 1004 Health Center Dr, Mattoon, IL 61938</div>
+    </div>
+    <p class="why">Keeps A’s hierarchy exactly, gives back one of the two lines B was buying. The label becomes a prefix instead of its own row.</p>
+  </div>
+
+  <div class="opt">
+    <p class="lbl">D · asymmetric columns <span class="cnt">3 lines</span></p>
+    <div class="h">Do this next <span class="mark">!</span></div>
+    <div class="box asym">
+      <div>
+        <div><span class="tel">217-238-3435</span></div>
+        <div class="note" style="margin-top:2px">Practice landline from NPPES (business line)</div>
+        <p class="open"><b>Open with:</b> Illinois license issued 2 months ago</p>
+      </div>
+      <div>
+        <p class="eb">Practice address</p>
+        <div style="font-size:13.5px;margin-top:3px;color:var(--ink-muted)">1004 Health Center Dr<br>Mattoon, IL 61938</div>
+      </div>
+    </div>
+    <p class="why">As short as B while keeping the call dominant. But it only holds while the panel is wide — in the book’s slide-over, and on any narrow screen, it stacks back into C anyway.</p>
+  </div>
+</div>

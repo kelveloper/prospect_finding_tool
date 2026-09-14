@@ -164,6 +164,12 @@ export type ContactKit = {
   urgency: "standard" | "elevated";
 };
 
+function openingOf(description?: string | null): string | null {
+  if (!description) return null;
+  const fact = description.split(" — ")[0];
+  return fact.replace(/\s*\([^)]*\)\s*$/, "").trim() || null;
+}
+
 function toContactKit(k: ApiContactKit): ContactKit {
   const cityLine = [k.mail.city, k.mail.state].filter(Boolean).join(", ");
   return {
@@ -176,9 +182,12 @@ function toContactKit(k: ApiContactKit): ContactKit {
     phone: k.phone.number,
     phoneNote: k.phone.note,
     rules: k.rules ?? [],
-    // The description carries the fact and its meaning either side of a
-    // dash; the opening line only wants the fact.
-    opening: k.primary_trigger?.description?.split(" — ")[0] ?? null,
+    // The description carries the fact, then its meaning after a dash and
+    // its provenance in a trailing parenthetical — "Bills Medicare under own
+    // entity 'Abbasi M.D.S.C.' (name-matched billing group; 19 years in
+    // practice)". An opening line is what you say first, so it wants the
+    // fact alone: a hundred characters of sourcing is not a way into a call.
+    opening: openingOf(k.primary_trigger?.description),
     urgency: k.urgency,
   };
 }
