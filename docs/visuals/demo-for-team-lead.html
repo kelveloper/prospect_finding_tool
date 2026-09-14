@@ -562,57 +562,160 @@
     <p style="margin:0;font-size:15.5px;">If he starts giving architecture feedback, that is a good sign. Write it down rather than defending it. You do not have to have every answer in a one-to-one.</p>
   </div>
 
-  <h2>5 &middot; How you would prove it works</h2>
+  <h2>5 &middot; Study sheet &mdash; questions from the room</h2>
 
-  <p style="font-size:15.5px;color:var(--ink-2);margin:0 0 12px;">This is the part that is <b>not</b> about the screen, and the one a reviewer rated above the functionality: <em>&ldquo;for some part of it, I feel it is much, much more important than showing the functionality.&rdquo;</em> He also said it is a certainty that Christina and Brenda ask. You do not need to have run anything. You need an answer.</p>
+  <p style="font-size:15.5px;color:var(--ink-2);margin:0 0 4px;">Not lines to read out. These are for <b>you</b>, beforehand &mdash; so that when one lands you are recalling something rather than composing it. Read the question, answer it out loud in your own words, <em>then</em> open it.</p>
+  <p style="font-size:15.5px;color:var(--ink-2);margin:0 0 14px;">The first four a reviewer called certainties, and rated above the demo itself.</p>
 
-  <div class="card">
-    <p style="margin:0 0 6px;font-size:13px;font-weight:600;color:var(--key);">THE ONE SENTENCE TO KNOW COLD</p>
-    <p style="margin:0;font-size:16px;">&ldquo;The ranking is a hypothesis &mdash; that someone we rank high converts more often than someone we rank low. Everything the tool logs is built to test it.&rdquo;</p>
-  </div>
+  <h3 style="font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin:22px 0 8px;">Proving it works</h3>
 
-  <div class="card">
-    <p style="margin:0 0 6px;font-size:13px;font-weight:600;color:var(--key);">&ldquo;HOW WOULD YOU MEASURE IT?&rdquo;</p>
-    <p style="margin:0 0 8px;font-size:16px;">&ldquo;Conversion rate by score band. If the sixty-to-eighty band converts better than the twenty-to-forty band, the ranking is earning its place. If the line comes out flat, our weights are wrong and we retune them.&rdquo;</p>
-    <p style="margin:0;font-size:14.5px;color:var(--ink-2);">That is one number and it is falsifiable. Say it before anything about clicks or time saved &mdash; those are easier to measure and worth much less.</p>
-  </div>
+  <details>
+    <summary>How will you evaluate whether this actually works?</summary>
+    <div class="answer">
+      <div class="say"><p>&ldquo;The ranking is a hypothesis &mdash; that someone we rank high converts more often than someone we rank low. Everything the tool logs is built to test it.&rdquo;</p></div>
+      <p><b>Lead with this framing, not with a metric.</b> It tells them you know the ranking is a claim and not a fact, which is the thing they are actually checking.</p>
+    </div>
+  </details>
 
-  <div class="card">
-    <p style="margin:0 0 6px;font-size:13px;font-weight:600;color:var(--key);">&ldquo;WHAT DATA WOULD YOU COLLECT?&rdquo;</p>
-    <p style="margin:0 0 8px;font-size:16px;">&ldquo;We already collect it. Every outcome an advisor logs is stored against that prospect&rsquo;s score &mdash; whether we reached them, whether they became a client, and when an advisor rules someone out, the reason from a fixed list. The funnel is already broken out by score band.&rdquo;</p>
-    <p style="margin:0;font-size:14.5px;color:var(--ink-2);"><b>This one is true today, so say it with confidence.</b> The measuring instrument was built before the thing it measures &mdash; that is the answer, and it is a good one.</p>
-  </div>
+  <details>
+    <summary>What would you measure?</summary>
+    <div class="answer">
+      <div class="say"><p>&ldquo;Conversion rate by score band. If the sixty-to-eighty band converts better than the twenty-to-forty band, the ranking is earning its place. If the line comes out flat, our weights are wrong and we retune them.&rdquo;</p></div>
+      <p>One number, and it can be proved wrong &mdash; which is what makes it a real answer. Say it before anything about clicks or hours saved; those are easier to measure and worth much less.</p>
+    </div>
+  </details>
 
-  <div class="say">
-    <p>The rule-out reasons are the fastest signal in the system, and worth naming out loud. They say what the model is getting wrong <em>before</em> anyone picks up a phone. If half of them come back &ldquo;wrong specialty&rdquo;, the specialty weights are off &mdash; and we learn that without spending a single call to find out.</p>
-  </div>
+  <details>
+    <summary>What data are you collecting to support that?</summary>
+    <div class="answer">
+      <div class="say"><p>&ldquo;We already collect it. Every outcome an advisor logs is stored against that prospect&rsquo;s score &mdash; whether we reached them, whether they became a client, and when an advisor rules someone out, the reason from a fixed list. The funnel is already broken out by score band.&rdquo;</p></div>
+      <p><b>True today, so say it with confidence.</b> The measuring instrument was built before the thing it measures. The rule-out reasons are the faster signal of the two &mdash; they say what the model is getting wrong <em>before</em> a single call is spent finding out. If half come back &ldquo;wrong specialty&rdquo;, the specialty weights are off.</p>
+    </div>
+  </details>
 
-  <div class="card">
-    <p style="margin:0 0 6px;font-size:13px;font-weight:600;color:var(--key);">&ldquo;WHAT IS THE BUSINESS VALUE?&rdquo;</p>
-    <p style="margin:0 0 8px;font-size:16px;">&ldquo;Reaching someone before they are obviously wealthy &mdash; because once they are obvious, somebody else has already called. What I would measure is the time from a trigger event to first contact, and conversion by band.&rdquo;</p>
-    <p style="margin:0;font-size:14.5px;color:var(--ink-2);">Name the metric, not a figure. You do not have a figure.</p>
-  </div>
+  <details>
+    <summary>What is the business value? Can you put a number on it?</summary>
+    <div class="answer">
+      <div class="say"><p>&ldquo;The value is reaching someone before they are obviously wealthy &mdash; because once they are obvious, somebody else has already called. I can&rsquo;t put a figure on it yet. What I would measure is the time from a trigger event to first contact, and conversion by band.&rdquo;</p></div>
+      <p><b>Do not invent a number.</b> Not a percentage, not a pound figure, not &ldquo;saves two hours a week&rdquo;. Naming the metric you would use is the stronger answer, and a made-up number is the one thing here that can actually lose you the room.</p>
+    </div>
+  </details>
 
-  <div class="card">
-    <p style="margin:0 0 6px;font-size:13px;font-weight:600;color:var(--key);">&ldquo;WHAT WOULD YOU DO BEFORE AN ADVISOR USES IT?&rdquo;</p>
-    <p style="margin:0 0 8px;font-size:16px;">&ldquo;A task, not a demo. Sit someone in front of it and ask one question &mdash; who would you call first, and why &mdash; and see whether they can answer inside a minute with no help from me. If the ranking is not legible, nothing downstream matters.&rdquo;</p>
-    <p style="margin:0;font-size:14.5px;color:var(--ink-2);">Small enough to actually run with a teammate before the next presentation. Running it once, even with two people, changes this from a plan into evidence &mdash; and a reviewer has already offered to be a participant.</p>
-  </div>
+  <details>
+    <summary>What would you do before an advisor ever touches it?</summary>
+    <div class="answer">
+      <div class="say"><p>&ldquo;A task, not a demo. Sit someone in front of it and ask one question &mdash; who would you call first, and why &mdash; and see whether they can answer inside a minute with no help from me. If the ranking is not legible, nothing downstream matters.&rdquo;</p></div>
+      <p>Small enough to actually run with a teammate before the next presentation. Running it once, even with two people, turns this from a plan into evidence.</p>
+    </div>
+  </details>
 
-  <div class="card">
-    <p style="margin:0 0 6px;font-size:13px;font-weight:600;color:var(--key);">THE HONEST STOP</p>
-    <p style="margin:0;font-size:16px;">&ldquo;We have no advisor outcomes yet, so the weights are ours and uncalibrated. That is exactly the part we would want real data for &mdash; which is why the loop that collects it is built before the model is tuned.&rdquo;</p>
-  </div>
+  <h3 style="font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin:22px 0 8px;">Why this, at all</h3>
+
+  <details>
+    <summary>Why doctors?</summary>
+    <div class="answer">
+      <div class="say"><p>&ldquo;Because their careers leave a public trail. They get a licence, they enter practice, some open their own practice, some buy a house &mdash; and every one of those is a public record. Very few professions are documented that well.&rdquo;</p></div>
+      <p>Then the honest second half: it is a <b>test cohort</b>, chosen because the data exists &mdash; not a claim that doctors are the best prospects in the bank. If it works here, the same shape works anywhere the trail is public. Lawyers next.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Why only Illinois?</summary>
+    <div class="answer">
+      <div class="say"><p>&ldquo;To prove the idea out we narrowed to one state where the licensing data is public and usable. The national pieces &mdash; the doctor registry and the Medicare billing &mdash; already cover everywhere. It is the state licence board and the property deeds that are local.&rdquo;</p></div>
+      <p><b>Be exact about what scaling costs</b>, because someone technical will ask. Another state needs a new licence adapter and a new deeds source. The other two sources come for free.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Where do the seventeen years and the million come from?</summary>
+    <div class="answer">
+      <div class="say"><p>&ldquo;Medscape&rsquo;s physician wealth reporting. It is one source and we footnote it &mdash; if someone has better data on when physicians actually accumulate, that changes our curve and we would want it.&rdquo;</p></div>
+      <p>Two people have now asked where these came from. Have the source ready and do not defend the exact figures &mdash; the shape of the curve is the argument, not the numbers on it.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>A million is not a private bank threshold. Why that number?</summary>
+    <div class="answer">
+      <div class="say"><p>&ldquo;It isn&rsquo;t the threshold, and we are not claiming it is. It is the marker of someone crossing from paying down debt into accumulating. The whole point is to reach them on the way up, before the threshold &mdash; not at it.&rdquo;</p></div>
+      <p>Christina raised this directly. If the deck still says &ldquo;a million&rdquo; without that framing, it reads as though you think a million buys you a private bank client.</p>
+    </div>
+  </details>
+
+  <h3 style="font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin:22px 0 8px;">Data, trust and limits</h3>
+
+  <details>
+    <summary>Is this real data, or a mock-up?</summary>
+    <div class="answer">
+      <div class="say"><p>&ldquo;Real, and live. Four public government sources &mdash; the national doctor registry, Illinois licensing, Medicare billing records, and Cook County property deeds. These are real people; you can look any of them up.&rdquo;</p></div>
+      <p>This lands harder than anything else in the demo. Say it early rather than waiting to be asked.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Are we allowed to use this? What about privacy?</summary>
+    <div class="answer">
+      <div class="say"><p>&ldquo;Every source is a public government record &mdash; nothing purchased, nothing private, nothing scraped from behind a login. And we deliberately do not surface home addresses even where the deed gives us one; the advisor gets the practice address and the practice phone.&rdquo;</p></div>
+      <p><b>Volunteer the home address decision rather than waiting to be asked.</b> It shows the restraint was deliberate, which is the thing a compliance-minded room is listening for.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Do you know how much money these people actually have?</summary>
+    <div class="answer">
+      <div class="say"><p>&ldquo;No, and we don&rsquo;t claim to. We infer likelihood from specialty, how long they have been practising, whether they appear to own their practice, and whether they have bought property. It is a ranked guess with the reasoning attached, not a net worth figure.&rdquo;</p></div>
+      <p>Answer the <em>no</em> first and plainly. Anyone who thinks you are claiming net worth will stop trusting the rest.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>What if you have matched the wrong person?</summary>
+    <div class="answer">
+      <div class="say"><p>&ldquo;That is the risk we spent the most time on. We join four databases, so the obvious failure is putting one person&rsquo;s records on someone else&rsquo;s file. We only merge on evidence we can show, we drop what we cannot prove, and every profile carries the match confidence and what it was matched on.&rdquo;</p></div>
+      <p>Then open the identity panel if it is to hand. A named, visible failure mode reads as engineering maturity &mdash; hiding it does the opposite.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Are any of these already J.P. Morgan clients?</summary>
+    <div class="answer">
+      <div class="say"><p>&ldquo;We don&rsquo;t know yet &mdash; the tool has no view of the existing client book. That is the first integration I would want, because right now an advisor could be handed someone they already bank.&rdquo;</p></div>
+      <p><b>A gap, and a good one to volunteer.</b> A reviewer misread the &ldquo;became a client&rdquo; button as meaning this person <em>is</em> a client, so the confusion is live. Naming it before they find it is worth more than hoping they don&rsquo;t.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Do all the high-earning specialties bill Medicare?</summary>
+    <div class="answer">
+      <div class="say"><p>&ldquo;No &mdash; and that is a real gap we know about. Cosmetic dermatology and a lot of plastic surgery run private-pay on purpose, so no Medicare record is not evidence of no practice. For those specialties the absence should not count against them, and right now it can.&rdquo;</p></div>
+      <p>Christina raised exactly this. Do not discover it live &mdash; say it as a known limitation with a fix in mind, and it becomes a point in your favour.</p>
+    </div>
+  </details>
+
+  <h3 style="font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin:22px 0 8px;">Scope and after</h3>
+
+  <details>
+    <summary>What would it take to run this for the whole bank?</summary>
+    <div class="answer">
+      <div class="say"><p>&ldquo;The method carries; the plumbing is per-source. Another state needs its licence board and its property records. Another profession needs whatever its public trail is. None of that is research any more &mdash; it is adapters.&rdquo;</p></div>
+      <p>Say <b>what is done</b> and <b>what is wiring</b>. That distinction is what tells a senior listener whether this is an idea or a prototype.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>What happens to this after the apprenticeship?</summary>
+    <div class="answer">
+      <div class="say"><p>&ldquo;It is a proof of concept, and it is documented as one &mdash; the known gaps are written down, not buried. What we would hand over is the method and the evidence loop, so whoever picks it up starts from what we learned rather than from the idea.&rdquo;</p></div>
+      <p>Have an answer ready. It is often the last question, it is about you rather than the project, and a shrug undoes a good hour.</p>
+    </div>
+  </details>
 
   <div class="warn">
-    <p><b>Do not invent a number.</b> Not a percentage, not a pound figure, not &ldquo;saves two hours a week&rdquo;. You do not have one, and an engineer will test it. Naming the metric you would use is the stronger answer &mdash; a made-up number is the only thing here that can actually lose you the room.</p>
+    <p><b>Undecided is not the same as unknown.</b> Whether the book is split per advisor, what the weights should be, whether outcomes feed back into the score &mdash; nobody has decided those yet. &ldquo;We have not decided&rdquo; is the correct answer on a proof of concept and a completely different answer from &ldquo;I do not know&rdquo;. Know which one you are giving.</p>
   </div>
 
-  <div class="warn">
-    <p><b>Undecided is not the same as unknown.</b> Whether the book is split per advisor, what the weights should be, whether outcomes feed back into the score &mdash; those are decisions nobody has made yet. &ldquo;We have not decided&rdquo; is the correct answer on a proof of concept, and a completely different answer from &ldquo;I do not know&rdquo;. Know which one you are giving.</p>
-  </div>
-
-  <div class="do"><span class="tag">Check first</span><span>Confirm with Christina that <b>doctors</b> are a cohort the bank actually wants. The whole ranking rests on that premise and it has not been tested with her directly. A reviewer also suggested a second cohort worth naming if asked &mdash; founders from public VC and accelerator lists.</span></div>
+  <div class="do"><span class="tag">Check first</span><span>Confirm with Christina that <b>doctors</b> are a cohort the bank actually wants &mdash; the whole ranking rests on that premise and it has not been put to her directly. A reviewer also offered a second cohort worth naming if asked: founders from public VC and accelerator lists.</span></div>
 
   <footer>ProspectIQ &middot; built from a real dry run &middot; companion: KNOWN_GAPS.md</footer>
 
