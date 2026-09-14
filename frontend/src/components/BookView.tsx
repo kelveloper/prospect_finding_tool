@@ -437,18 +437,21 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
               <ColumnHead
                 heading="Outreach"
                 hint="The last thing you logged against this prospect. Blank means nobody has contacted them yet."
+                inset="tag"
               />
             </span>
             <span className="hidden w-[104px] shrink-0 lg:block">
               <ColumnHead
                 heading="Why now"
                 hint="The most recent event worth calling about — a new license, a practice, a property purchase."
+                inset="chip"
               />
             </span>
             <span className="hidden w-[72px] shrink-0 md:block">
               <ColumnHead
                 heading="Evidence"
                 hint="How many of the seven signals we look for were actually found for this prospect."
+                inset="chip"
               />
             </span>
             {hasMovement ? (
@@ -863,17 +866,24 @@ function ColumnHead({
   heading,
   hint,
   align = "left",
+  inset,
 }: {
   heading: string;
   /** Plain-English meaning — a column head is a label, not an explanation. */
   hint?: string;
   align?: "left" | "right";
+  /** Columns whose cells hold a chip or a tag start their text one padding
+   *  in from the cell edge, so the heading starts there too. Without it the
+   *  heading sits 10px left of everything it heads. */
+  inset?: "chip" | "tag";
 }) {
   return (
     <span
       title={hint ? `${heading} — ${hint}` : heading}
       className={
-        "eyebrow block cursor-help " + (align === "right" ? "text-right" : "")
+        "eyebrow block cursor-help " +
+        (align === "right" ? "text-right " : "") +
+        (inset === "chip" ? "pl-2.5" : inset === "tag" ? "pl-1.5" : "")
       }
     >
       {heading}
@@ -1136,7 +1146,7 @@ function BookEntry({
         {candidate.trigger && plainTrigger ? (
           <span
             title={`Why now — ${candidate.trigger.hint}`}
-            className="cursor-help text-[11px] text-ink-faint/70"
+            className="inline-block cursor-help px-2.5 text-[11px] text-ink-faint/70"
           >
             {candidate.trigger.label}
           </span>
@@ -1145,7 +1155,7 @@ function BookEntry({
         ) : (
           <span
             title="Nothing recent on record for this prospect."
-            className="cursor-help text-[11px] text-ink-faint"
+            className="inline-block cursor-help px-2.5 text-[11px] text-ink-faint"
           >
             —
           </span>
@@ -1156,7 +1166,7 @@ function BookEntry({
         {plainEvidence ? (
           <span
             title={`Evidence — built on ${candidate.evidence.found} of ${candidate.evidence.total} signals`}
-            className="cursor-help text-[11px] text-ink-faint/70"
+            className="inline-block cursor-help px-2.5 text-[11px] text-ink-faint/70"
           >
             {candidate.evidence.level}
           </span>
