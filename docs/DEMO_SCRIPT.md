@@ -217,19 +217,43 @@ and **save that view with a name**, so they can pick up where they left off.
 
 ---
 
-# CLOSE
+# CLOSE — about forty seconds
 
-So —
+> Stop clicking. Come off the screen and say this to the room, not to the laptop.
 
-**Who to call first.**
+**"So — three things.**
 
-**Everything we know about them.**
+**Who to call first.** 276 doctors, already in order, so the advisor isn't the one deciding where to start.
 
-**And where to start — including what not to say.**
+**Everything we found about them.** In one place, including the blanks — because what we *didn't* find is part of the answer.
 
-That is the tool.
+**And where to start the conversation** — including the one thing not to say.
 
-**Kelvin can tell you how it actually gets built — and how we know it is the same person.**
+**And all of it came out of four public government sources.** Nothing bought, nothing scraped, nothing guessed."
+
+### 👆 THEN THE ONE LINE THAT SEPARATES IT — say it slowly
+
+> "A bigger house two years ago ranks **121 places below** a smaller one two months ago.
+>
+> **That is the difference between this and a list you could buy.**"
+
+### 👆 THEN BE HONEST, ON PURPOSE — don't skip this
+
+> "What we have proved is that **these are real people, correctly joined** across four separate systems — and we show our confidence on every profile rather than hiding it.
+>
+> What we have **not** proved is that the ranking predicts who becomes a client. **That needs advisors using it** — which is why every outcome is logged from day one. If the 60–80 band converts better than the 20–40 band, the weights earned their place. If not, we change them."
+
+### 👆 HAND OVER — name him, give him something specific
+
+> "**Kelvin can take you through how it's actually built** — and how we know it's the same person across all four sources."
+
+**Then stop talking.** Don't add a feature you forgot, don't fill the pause. His first question tells you which screen to open next, and it's almost never the one you'd have picked.
+
+---
+
+**If you're out of time, the whole close is one breath:**
+
+> "Who to call first, everything we know, and where to start — out of four public sources. We've proved these are the right people; whether the ranking predicts conversion is what the outcome logging is there to test. Kelvin can tell you how it's built."
 
 ---
 
