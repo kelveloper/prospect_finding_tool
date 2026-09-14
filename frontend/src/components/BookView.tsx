@@ -430,13 +430,22 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
                 hint="Where they practice."
               />
             </span>
+            {/* Read in the order the advisor asks the questions: who is
+                this, what have I already done about them, and only then why
+                they are worth a call. */}
+            <span className="hidden w-[84px] shrink-0 md:block">
+              <ColumnHead
+                heading="Outreach"
+                hint="The last thing you logged against this prospect. Blank means nobody has contacted them yet."
+              />
+            </span>
             <span className="hidden w-[104px] shrink-0 lg:block">
               <ColumnHead
                 heading="Why now"
                 hint="The most recent event worth calling about — a new license, a practice, a property purchase."
               />
             </span>
-            <span className="hidden w-[86px] shrink-0 md:block">
+            <span className="hidden w-[72px] shrink-0 md:block">
               <ColumnHead
                 heading="Evidence"
                 hint="How many of the seven signals we look for were actually found for this prospect."
@@ -451,7 +460,7 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
               />
               </span>
             ) : null}
-            <span className="w-[104px] shrink-0">
+            <span className="w-[44px] shrink-0">
               <ColumnHead
                 heading="Fit"
                 hint="Fit — value × how fresh the trigger is — and the band it falls in by standing. The board is ranked by it."
@@ -1084,30 +1093,6 @@ function BookEntry({
             {candidate.location}
           </span>
         </span>
-        {/* Its own line, directly under the name.
-            Filled, and square where every signal chip on the row is a
-            rounded pill: what the registries found and what the advisor did
-            about it are two kinds of fact, so they are not given the same
-            shape — and now not the same line either. Sharing with the
-            specialty set the one thing the advisor wrote beside the one
-            thing a taxonomy wrote, and pushed the longest specialties into a
-            wrap the row did not otherwise need.
-            Above the specialty rather than below it, so the tag sits the
-            same distance from the top of the row whatever the specialty
-            does — a mark worth scanning for should not move. */}
-        {worked ? (
-          <span
-            title={worked.spoken}
-            className={
-              "mt-1 inline-block rounded-[4px] px-1.5 py-[1px] font-display text-[9.5px] font-bold uppercase tracking-[0.6px] " +
-              (worked.won
-                ? "bg-tier-strong-bg text-tier-strong-fg"
-                : "bg-tier-neutral-bg text-tier-neutral-fg")
-            }
-          >
-            {worked.label}
-          </span>
-        ) : null}
         {/* Wraps to a second line instead of truncating. Two lines hold the
             longest taxonomy string in the book; one held none of the worst
             three. */}
@@ -1120,6 +1105,31 @@ function BookEntry({
         >
           {candidate.specialty}
         </span>
+      </span>
+
+      {/* Its own column, because it is its own kind of fact. On the
+          specialty's line it sat beside what a taxonomy wrote, and pushed
+          the longest specialties into a wrap the row did not otherwise need.
+          Filled and square where every signal chip on the row is a rounded
+          pill: what the registries found and what the advisor did about it
+          do not get the same shape.
+          Nothing printed when nobody has been contacted — the ordinary case,
+          and eight rows in twelve. A column of dashes would say "we looked
+          and found none", which is not what an empty outreach log means. */}
+      <span className="hidden w-[84px] shrink-0 md:block">
+        {worked ? (
+          <span
+            title={worked.spoken}
+            className={
+              "inline-block rounded-[4px] px-1.5 py-[1px] font-display text-[9.5px] font-bold uppercase tracking-[0.6px] " +
+              (worked.won
+                ? "bg-tier-strong-bg text-tier-strong-fg"
+                : "bg-tier-neutral-bg text-tier-neutral-fg")
+            }
+          >
+            {worked.label}
+          </span>
+        ) : null}
       </span>
 
       <span className={"hidden w-[104px] shrink-0 lg:block " + recede}>
@@ -1142,7 +1152,7 @@ function BookEntry({
         )}
       </span>
 
-      <span className={"hidden w-[86px] shrink-0 md:block " + recede}>
+      <span className={"hidden w-[72px] shrink-0 md:block " + recede}>
         {plainEvidence ? (
           <span
             title={`Evidence — built on ${candidate.evidence.found} of ${candidate.evidence.total} signals`}
@@ -1172,7 +1182,7 @@ function BookEntry({
           every line — colour carries the band, and the tooltip names it. */}
       <span
         title={`Fit ${candidate.score} — ${candidate.tierLabel}.`}
-        className="flex w-[104px] shrink-0 cursor-help items-baseline justify-end gap-1.5"
+        className="flex w-[44px] shrink-0 cursor-help items-baseline justify-end"
       >
         <span
           className={

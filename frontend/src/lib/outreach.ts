@@ -1,6 +1,7 @@
 import type { OutreachEntry } from "@/lib/data";
 
-/** How a prospect's last logged outreach event reads on a list row.
+/** How a prospect's last logged outreach event reads in the book's
+ *  Outreach column.
  *
  *  The advisor's own work is the one thing on the board that did not come
  *  from a registry, and until now it was the one thing the board did not
@@ -8,12 +9,15 @@ import type { OutreachEntry } from "@/lib/data";
  *  every row since tracking was built, and nothing read it.
  *
  *  Kept apart from the past-tense history lines in OutreachActions on
- *  purpose. Those sit alone in a panel and can run long; these sit on the
- *  row's quiet second line, beside a specialty that is often longer than
- *  the cell, so "Couldn't reach them" becomes "No answer".
+ *  purpose. Those sit alone in a panel with a full row to themselves and
+ *  can run long; these sit in a 92px column under a heading that has
+ *  already said what they are, so "Couldn't reach them" becomes "No answer"
+ *  and "Following up later" becomes "Follow-up". The heading carries the
+ *  rest.
  */
 export type WorkedState = {
-  /** What the row prints. Short — it shares a line with the specialty. */
+  /** What the cell prints. Short — the column is 84px and the heading
+   *  above it already supplies the context the words would otherwise. */
   label: string;
   /** Spelled out for the tooltip and for screen readers. */
   spoken: string;
@@ -36,13 +40,13 @@ const STATES: Record<OutreachEntry["eventType"], WorkedState> = {
     settled: true,
   },
   connected: {
-    label: "Spoke to them",
+    label: "Spoke",
     spoken: "Spoke to them — outcome not logged yet",
     won: false,
     settled: true,
   },
   follow_up_later: {
-    label: "Following up",
+    label: "Follow-up",
     spoken: "Spoke to them; following up later",
     won: false,
     settled: true,
