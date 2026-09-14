@@ -554,17 +554,18 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
                       set from two controls is a dimension you have to go
                       looking for in two places. */}
           <div className="-mx-2 flex items-start gap-3 border-b border-hairline/60 px-2 pb-2">
-            <span className="w-6 shrink-0">
+            <span className="w-6 shrink-0 text-center">
               <span title="Rank on the board, by fit score" className="eyebrow">
                 #
               </span>
             </span>
-            <span className="size-9 shrink-0" />
             {/* Two heads, because the cell prints two facts and either can
-                order the book. They stack rather than sharing a menu: a
-                reader looking to sort by city should not have to open one
-                labelled "Specialty" to find it. */}
-            <span className="flex min-w-0 flex-1 flex-col gap-1">
+                order the book. Side by side rather than stacked: the pair
+                fits the cell twice over, and stacking them made the header
+                two lines deep to say what fits on one. Separate menus, not
+                one shared: a reader looking to sort by city should not have
+                to open a menu labelled "Specialty" to find it. */}
+            <span className="flex min-w-0 flex-1 items-center gap-4">
               <ColumnMenu
                 sortKey="specialty"
                 heading="Specialty"
@@ -1333,17 +1334,22 @@ function BookEntry({
         <span className="mt-0.5 line-clamp-2 text-[12px] leading-[16px]">
           {worked ? (
             <>
+              {/* Filled, and square where every signal chip on the row is a
+                  rounded pill. Two different things are being marked — what
+                  the registries found, and what the advisor did about it —
+                  so they are not given the same shape. Set as plain text it
+                  was the same pale blue as the specialty beside it and did
+                  not survive a scan. */}
               <span
                 title={worked.spoken}
                 className={
-                  "font-display text-[10px] font-bold uppercase tracking-[0.5px] " +
-                  (worked.won ? "text-tier-strong-fg" : "text-ink-faint")
+                  "mr-2 inline-block rounded-[4px] px-1.5 py-[1px] font-display text-[9.5px] font-bold uppercase tracking-[0.6px] " +
+                  (worked.won
+                    ? "bg-tier-strong-bg text-tier-strong-fg"
+                    : "bg-tier-neutral-bg text-tier-neutral-fg")
                 }
               >
                 {worked.label}
-              </span>
-              <span aria-hidden className="mx-1.5 text-hairline">
-                ·
               </span>
             </>
           ) : null}
