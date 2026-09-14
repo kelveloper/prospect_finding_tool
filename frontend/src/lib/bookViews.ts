@@ -18,6 +18,10 @@ export type BookViewState = {
   specialty: string;
   tier: string;
   location: string;
+  /** "Why now" — the trigger label a row carries, or the quiet bucket for
+   *  prospects with nothing recent. Absent on views saved before the book
+   *  could filter on it, which reads as "any". */
+  trigger?: string;
   query: string;
   /** Built-ins narrow the board in ways the filter controls cannot.
    *  `onlyNew` survives for views saved before "What changed" replaced it. */
@@ -39,6 +43,7 @@ export const EMPTY_STATE: BookViewState = {
   specialty: "all",
   tier: "all",
   location: "all",
+  trigger: "all",
   query: "",
   onlyNew: false,
   onlyChanged: false,
@@ -51,6 +56,7 @@ export function isEmpty(s: BookViewState): boolean {
     s.specialty === "all" &&
     s.tier === "all" &&
     (s.location ?? "all") === "all" &&
+    (s.trigger ?? "all") === "all" &&
     s.query.trim() === "" &&
     !s.onlyNew &&
     !s.onlyChanged &&
@@ -64,6 +70,7 @@ export function sameState(a: BookViewState, b: BookViewState): boolean {
     a.specialty === b.specialty &&
     a.tier === b.tier &&
     (a.location ?? "all") === (b.location ?? "all") &&
+    (a.trigger ?? "all") === (b.trigger ?? "all") &&
     a.query.trim() === b.query.trim() &&
     !!a.onlyNew === !!b.onlyNew &&
     !!a.onlyChanged === !!b.onlyChanged &&
@@ -92,6 +99,7 @@ export function describe(s: BookViewState): string {
   if (s.onlyNew) parts.push("New arrivals");
   if (s.specialty !== "all") parts.push(s.specialty);
   if ((s.location ?? "all") !== "all") parts.push(s.location);
+  if ((s.trigger ?? "all") !== "all") parts.push(s.trigger as string);
   if (s.tier !== "all")
     parts.push(s.tier.charAt(0).toUpperCase() + s.tier.slice(1));
   if (s.query.trim()) parts.push(`"${s.query.trim()}"`);

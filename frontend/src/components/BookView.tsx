@@ -1,14 +1,16 @@
 "use client";
 
 import {
+  useCallback,
   useEffect,
   useMemo,
   useState,
   useSyncExternalStore,
   type ReactNode,
 } from "react";
+import FilterSelect from "./FilterSelect";
 import { EvidenceChip, MovementChip, TriggerChip } from "./RowChips";
-import { ChevronLeft, ChevronRight } from "./icons";
+import { ChevronLeft, ChevronRight, CloseIcon } from "./icons";
 import { changeHint, changeMatcher, summarizeChanges } from "@/lib/changes";
 import type { Candidate } from "@/lib/data";
 import { tierStyle } from "@/lib/tier";
@@ -44,6 +46,11 @@ type Entry = Candidate & { rank: number };
 
 /** Tier reads best by quality, never alphabetically. */
 const TIER_ORDER = ["strong", "promising", "neutral", "weak", "poor"];
+
+/** Prospects with nothing recent are a real answer to "why now", not the
+ *  absence of one — they are exactly who the "Quiet prospects first" sort
+ *  is for. Giving them a bucket makes them reachable by filter too. */
+const QUIET = "No recent event";
 
 /** Every column an entry prints, orderable both ways. A ledger has no
  *  "ascending" — it has a front and a back, so the flip is worded that way
@@ -136,6 +143,7 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
   const [specialty, setSpecialty] = useState("all");
   const [tier, setTier] = useState("all");
   const [location, setLocation] = useState("all");
+  const [trigger, setTrigger] = useState("all");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("rank");
   const [fromBack, setFromBack] = useState(false);
@@ -191,21 +199,36 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
     viewStore.getServerSnapshot,
   );
 
-  const viewState: BookViewState = {
-    specialty,
-    tier,
-    location,
-    query,
-    onlyNew,
-    onlyChanged,
-    sort,
-    fromBack,
-  };
+  const viewState: BookViewState = useMemo(
+    () => ({
+      specialty,
+      tier,
+      location,
+      trigger,
+      query,
+      onlyNew,
+      onlyChanged,
+      sort,
+      fromBack,
+    }),
+    [
+      specialty,
+      tier,
+      location,
+      trigger,
+      query,
+      onlyNew,
+      onlyChanged,
+      sort,
+      fromBack,
+    ],
+  );
 
   function applyState(next: BookViewState) {
     setSpecialty(next.specialty ?? "all");
     setTier(next.tier ?? "all");
     setLocation(next.location ?? "all");
+    setTrigger(next.trigger ?? "all");
     setQuery(next.query ?? "");
     setOnlyNew(!!next.onlyNew);
     setOnlyChanged(!!next.onlyChanged);
@@ -264,6 +287,33 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
   // formula-wide rescore cannot make this chip claim the whole book.
   const isChanged = useMemo(() => changeMatcher(changes), [changes]);
 
+  /** Does this entry belong in a book filtered to `state`?
+   *
+   *  One predicate, shared by the spread and by the count on every saved-view
+   *  chip. They used to be two hand-copied chains, and the copy had already
+   *  fallen behind: it never learned about location, so a view saved on a
+   *  city counted the whole book at itself — "Saint Louis, MO · 221". It
+   *  would not have learned about "why now" either. */
+  const matches = useCallback(
+    (state: BookViewState) => {
+      const q = (state.query ?? "").trim().toLowerCase();
+      return (e: Entry) =>
+        (!state.onlyNew || e.isNew) &&
+        (!state.onlyChanged || isChanged(e)) &&
+        (state.specialty === "all" || e.specialty === state.specialty) &&
+        ((state.location ?? "all") === "all" ||
+          e.location === state.location) &&
+        ((state.trigger ?? "all") === "all" ||
+          (e.trigger?.label ?? QUIET) === state.trigger) &&
+        (state.tier === "all" || e.tier === state.tier) &&
+        (q === "" ||
+          e.name.toLowerCase().includes(q) ||
+          e.specialty.toLowerCase().includes(q) ||
+          e.location.toLowerCase().includes(q));
+    },
+    [isChanged],
+  );
+
   /** Commonest first, so the value that matches most of the board is the
    *  first thing you see. Ties fall back to alphabetical. */
   const optionsFor = useMemo(
@@ -288,6 +338,10 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
     [optionsFor],
   );
   const locations = useMemo(() => optionsFor((e) => e.location), [optionsFor]);
+  const triggers = useMemo(
+    () => optionsFor((e) => e.trigger?.label ?? QUIET),
+    [optionsFor],
+  );
   /** Tier keeps quality order rather than frequency — strong to poor reads
    *  as a scale, and shuffling it by count would break that. */
   const tiers = useMemo(() => {
@@ -304,22 +358,9 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
     ];
   }, [entries]);
 
-  const shown = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return entries
-      .filter(
-        (e) =>
-          (!onlyNew || e.isNew) &&
-          (!onlyChanged || isChanged(e)) &&
-          (specialty === "all" || e.specialty === specialty) &&
-          (location === "all" || e.location === location) &&
-          (tier === "all" || e.tier === tier) &&
-          (q === "" ||
-            e.name.toLowerCase().includes(q) ||
-            e.specialty.toLowerCase().includes(q) ||
-            e.location.toLowerCase().includes(q)),
-      )
-      .sort((a, b) => {
+  const shown = useMemo(
+    () =>
+      entries.filter(matches(viewState)).sort((a, b) => {
         // A prospect that has not moved is no more a faller than a riser, so
         // it sits after everything that has moved — whichever end we read
         // from. Parking therefore has to survive the flip, not invert with it.
@@ -329,19 +370,9 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
           if ((am === 0) !== (bm === 0)) return am === 0 ? 1 : -1;
         }
         return SORTS[sort].cmp(a, b) * (fromBack ? -1 : 1);
-      });
-  }, [
-    entries,
-    isChanged,
-    specialty,
-    tier,
-    location,
-    query,
-    sort,
-    fromBack,
-    onlyNew,
-    onlyChanged,
-  ]);
+      }),
+    [entries, matches, viewState, sort, fromBack],
+  );
 
   /** Clicking a menu entry both picks the column and sets which end to read
    *  from, so one call covers what were two controls. */
@@ -374,16 +405,22 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
   }, [entries, onlyChanged]);
 
   const filtered = !isEmpty(viewState);
-  const clear = () => {
-    setSpecialty("all");
-    setTier("all");
-    setLocation("all");
-    setQuery("");
-    setOnlyNew(false);
-    setOnlyChanged(false);
-    setSort("rank");
-    setFromBack(false);
-  };
+  /** How many controls are actually narrowing the book — what Reset undoes.
+   *  Order is not a filter, so it is not counted; the button still restores
+   *  it, which is why it can be live with nothing here to show. */
+  const narrowing =
+    (specialty !== "all" ? 1 : 0) +
+    (location !== "all" ? 1 : 0) +
+    (trigger !== "all" ? 1 : 0) +
+    (tier !== "all" ? 1 : 0) +
+    (query.trim() ? 1 : 0) +
+    (onlyNew ? 1 : 0) +
+    (onlyChanged ? 1 : 0);
+  /* The same thing the "Whole book" chip does, and deliberately the same
+     call: this used to reset each filter by hand, so every filter added to
+     the book was one more chance to leave Reset behind — which is exactly
+     what happened when "Why now" arrived. EMPTY_STATE is the one list. */
+  const clear = () => applyState(EMPTY_STATE);
 
   const spreadCount = Math.max(1, Math.ceil(shown.length / PER_SPREAD));
   const placedIndex = placedId ? shown.findIndex((c) => c.id === placedId) : -1;
@@ -473,7 +510,12 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
         <>
           {/* Column headings, printed on each page like a ledger's.
                       Widths mirror BookEntry exactly, responsive rules and
-                      all, so a heading always sits over its own column. */}
+                      all, so a heading always sits over its own column.
+
+                      Ordering only. Filtering lives in one place — the row
+                      of quick filters above — because a dimension you can
+                      set from two controls is a dimension you have to go
+                      looking for in two places. */}
           <div className="-mx-2 flex items-start gap-3 border-b border-hairline/60 px-2 pb-2">
             <span className="w-6 shrink-0">
               <span title="Rank on the board, by fit score" className="eyebrow">
@@ -481,23 +523,15 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
               </span>
             </span>
             <span className="size-9 shrink-0" />
-            {/* Two triggers, not one menu holding two filters. A
-                        location filter tucked under a "Specialty" heading is
-                        there but unfindable — the label is the only thing
-                        anyone reads before deciding to click. */}
+            {/* Two heads, because the cell prints two facts and either can
+                order the book. They stack rather than sharing a menu: a
+                reader looking to sort by city should not have to open one
+                labelled "Specialty" to find it. */}
             <span className="flex min-w-0 flex-1 flex-col gap-1">
               <ColumnMenu
                 sortKey="specialty"
                 heading="Specialty"
                 hint="What they practice."
-                filters={[
-                  {
-                    label: "Show specialty",
-                    options: specialties,
-                    value: specialty,
-                    onValue: setSpecialty,
-                  },
-                ]}
                 activeSort={sort}
                 fromBack={fromBack}
                 onSort={setOrder}
@@ -506,14 +540,6 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
                 sortKey="location"
                 heading="Location"
                 hint="Where they practice."
-                filters={[
-                  {
-                    label: "Show location",
-                    options: locations,
-                    value: location,
-                    onValue: setLocation,
-                  },
-                ]}
                 activeSort={sort}
                 fromBack={fromBack}
                 onSort={setOrder}
@@ -558,14 +584,6 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
                 heading="Fit"
                 hint="Priority — value × how fresh the trigger is — and the band it falls in by standing. The board is ranked by it."
                 align="right"
-                filters={[
-                  {
-                    label: "Show tier",
-                    options: tiers,
-                    value: tier,
-                    onValue: setTier,
-                  },
-                ]}
                 activeSort={sort}
                 fromBack={fromBack}
                 onSort={setOrder}
@@ -599,8 +617,13 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
               <button
                 type="button"
                 onClick={clear}
-                className="mt-4 rounded-[8px] bg-brand px-4 py-2 font-display text-[13px] font-semibold text-white shadow-brand transition-colors hover:bg-brand-dark"
+                // The same action as the toolbar's, so it carries the same
+                // cross — one affordance, said twice. Solid rather than
+                // outlined only because here it is the way out of an empty
+                // page, not one control among several.
+                className="mt-4 inline-flex items-center gap-1.5 rounded-[8px] bg-brand py-2 pl-3.5 pr-4 font-display text-[13px] font-semibold text-white shadow-brand transition-colors hover:bg-brand-dark"
               >
+                <CloseIcon className="size-3.5 shrink-0" />
                 Reset the book
               </button>
             </span>
@@ -640,129 +663,44 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
       <div className="relative mt-6 overflow-hidden rounded-[16px] bg-white shadow-panel ring-1 ring-hairline/60">
         {/* ── Front matter: how the book is indexed ──── */}
         <div className="border-b border-hairline/60 bg-canvas px-6 py-4 sm:px-8">
-          {/* Saved views — preset filters, sitting with the filters they
-              replace. "New arrivals" is the one that turns the board from a
-              database into a morning routine.
-
-              Labeled, because a bare row of chips says nothing about what
-              clicking one does. The controls below all carry a label; this
-              was the only thing in the strip without one. */}
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-            <span
-              className="eyebrow w-[104px] shrink-0"
-              title="Whole filter sets in one click. Pick one, or build your own in the columns below and keep it here."
-            >
-              Quick filters
-            </span>
-            <ViewChip
-              label="Whole book"
-              count={entries.length}
-              active={isEmpty(viewState)}
-              onClick={() => applyState(EMPTY_STATE)}
-              title="Every prospect on the board, no filters"
+          {/* ── The four an advisor actually narrows by ──────
+              Specialty, location, why now and fit, out in the open rather
+              than tucked inside the column menus below — those are where
+              you go to re-order the book, which is not where anyone looks
+              to filter it. Search covers everything else. Both controls
+              write the same state, so a column menu and this row can never
+              disagree. */}
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="eyebrow w-[104px] shrink-0">Quick filters</span>
+            <FilterSelect
+              label="Specialty"
+              value={specialty}
+              options={specialties}
+              onValue={setSpecialty}
+              title="Show only prospects practising this"
             />
-
-            {/* New arrivals and movers together; absent when the last
-                sweep changed nothing, since there is nothing to show */}
-            {changes.total > 0 ? (
-              <ViewChip
-                label="What changed"
-                count={changes.total}
-                active={
-                  onlyChanged &&
-                  specialty === "all" &&
-                  tier === "all" &&
-                  !query.trim()
-                }
-                onClick={() =>
-                  applyState({ ...EMPTY_STATE, onlyChanged: true })
-                }
-                title={changeHint(changes)}
-              />
-            ) : null}
-
-            {views.map((view) => (
-              <ViewChip
-                key={view.id}
-                label={view.name}
-                count={
-                  entries.filter(
-                    (e) =>
-                      (!view.state.onlyNew || e.isNew) &&
-                      (!view.state.onlyChanged || isChanged(e)) &&
-                      (view.state.specialty === "all" ||
-                        e.specialty === view.state.specialty) &&
-                      (view.state.tier === "all" ||
-                        e.tier === view.state.tier) &&
-                      (view.state.query.trim() === "" ||
-                        e.name
-                          .toLowerCase()
-                          .includes(view.state.query.trim().toLowerCase())),
-                  ).length
-                }
-                active={sameState(viewState, view.state)}
-                onClick={() => applyState(view.state)}
-                onRemove={() => removeView(view.id)}
-                title={`Saved filter — ${describe(view.state)}`}
-              />
-            ))}
-
-            {/* The dashed chip is the shape of what you get, sitting where it
-                will appear — a Save button parked among the controls said
-                nothing about the result. */}
-            {naming !== null ? (
-              <span className="flex items-center gap-1.5">
-                <input
-                  autoFocus
-                  value={draftName}
-                  onChange={(e) => setDraftName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") commitName();
-                    if (e.key === "Escape") setNaming(null);
-                  }}
-                  aria-label="Name for this filter"
-                  placeholder="Name this filter"
-                  maxLength={40}
-                  className="w-[168px] rounded-full border border-brand bg-white px-3 py-1.5 text-[12px] text-ink placeholder:text-ink-faint focus:outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={commitName}
-                  className="rounded-full bg-brand px-3 py-1.5 font-display text-[12px] font-semibold text-white transition-colors hover:bg-brand-dark"
-                >
-                  Save
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setNaming(null)}
-                  className="px-1 font-display text-[12px] font-semibold text-ink-muted transition-colors hover:text-ink"
-                >
-                  Cancel
-                </button>
-              </span>
-            ) : (
-              <button
-                type="button"
-                onClick={() => startNaming("")}
-                disabled={saveBlockedBecause !== null}
-                title={
-                  saveBlockedBecause === null
-                    ? "Name these filters and keep them here"
-                    : saveBlockedBecause.startsWith("Nothing to save") ||
-                        saveBlockedBecause.startsWith("This is already")
-                      ? saveBlockedBecause
-                      : `These filters are already saved as "${saveBlockedBecause}".`
-                }
-                className="rounded-full border border-hairline px-3 py-1.5 font-display text-[12px] font-semibold text-brand transition-colors hover:border-brand hover:bg-white disabled:cursor-not-allowed disabled:border-hairline/60 disabled:text-ink-faint disabled:hover:bg-transparent"
-              >
-                {/* One label at one width. It used to swap between a
-                    20-character invitation and a 27-character instruction,
-                    so the whole strip reflowed as you filtered — and the
-                    widest thing in the row was the one you could not click.
-                    Why it is disabled is a job for the tooltip. */}
-                + Save filter
-              </button>
-            )}
+            <FilterSelect
+              label="Location"
+              value={location}
+              options={locations}
+              onValue={setLocation}
+              title="Show only prospects practising here"
+            />
+            <FilterSelect
+              label="Why now"
+              value={trigger}
+              options={triggers}
+              onValue={setTrigger}
+              title="Show only prospects carrying this trigger"
+            />
+            <FilterSelect
+              label="Fit"
+              value={tier}
+              options={tiers}
+              onValue={setTier}
+              title="Show only prospects in this band"
+              format={(t) => t.charAt(0).toUpperCase() + t.slice(1)}
+            />
           </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-hairline/60 pt-3">
@@ -781,10 +719,103 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
               />
             </label>
 
-            {/* Both act on the current filters, so they live with them. The
-                group is what carries the auto margin — pinning Reset to the
-                right edge, so it stays put when Save comes and goes rather
-                than sliding across as the row reflows. */}
+            {/* Saved views live here rather than in a row of their own:
+                they are whole filter sets, so they belong beside the search
+                and the reset that act on the same state — not above the
+                controls they stand in for. "What changed" is the one that
+                turns the board from a database into a morning routine. */}
+            <div className="flex flex-wrap items-center gap-2">
+              {/* New arrivals and movers together; absent when the last
+                sweep changed nothing, since there is nothing to show */}
+              {changes.total > 0 ? (
+                <ViewChip
+                  label="What changed"
+                  count={changes.total}
+                  active={
+                    onlyChanged &&
+                    specialty === "all" &&
+                    tier === "all" &&
+                    !query.trim()
+                  }
+                  onClick={() =>
+                    applyState({ ...EMPTY_STATE, onlyChanged: true })
+                  }
+                  title={changeHint(changes)}
+                />
+              ) : null}
+
+              {views.map((view) => (
+                <ViewChip
+                  key={view.id}
+                  label={view.name}
+                  count={entries.filter(matches(view.state)).length}
+                  active={sameState(viewState, view.state)}
+                  onClick={() => applyState(view.state)}
+                  onRemove={() => removeView(view.id)}
+                  title={`Saved filter — ${describe(view.state)}`}
+                />
+              ))}
+
+              {/* The dashed chip is the shape of what you get, sitting where it
+                will appear — a Save button parked among the controls said
+                nothing about the result. */}
+              {naming !== null ? (
+                <span className="flex items-center gap-1.5">
+                  <input
+                    autoFocus
+                    value={draftName}
+                    onChange={(e) => setDraftName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") commitName();
+                      if (e.key === "Escape") setNaming(null);
+                    }}
+                    aria-label="Name for this filter"
+                    placeholder="Name this filter"
+                    maxLength={40}
+                    className="w-[168px] rounded-full border border-brand bg-white px-3 py-1.5 text-[12px] text-ink placeholder:text-ink-faint focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={commitName}
+                    className="rounded-full bg-brand px-3 py-1.5 font-display text-[12px] font-semibold text-white transition-colors hover:bg-brand-dark"
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNaming(null)}
+                    className="px-1 font-display text-[12px] font-semibold text-ink-muted transition-colors hover:text-ink"
+                  >
+                    Cancel
+                  </button>
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => startNaming("")}
+                  disabled={saveBlockedBecause !== null}
+                  title={
+                    saveBlockedBecause === null
+                      ? "Name these filters and keep them here"
+                      : saveBlockedBecause.startsWith("Nothing to save") ||
+                          saveBlockedBecause.startsWith("This is already")
+                        ? saveBlockedBecause
+                        : `These filters are already saved as "${saveBlockedBecause}".`
+                  }
+                  className="rounded-full border border-hairline px-3 py-1.5 font-display text-[12px] font-semibold text-brand transition-colors hover:border-brand hover:bg-white disabled:cursor-not-allowed disabled:border-hairline/60 disabled:text-ink-faint disabled:hover:bg-transparent"
+                >
+                  {/* One label at one width. It used to swap between a
+                    20-character invitation and a 27-character instruction,
+                    so the whole strip reflowed as you filtered — and the
+                    widest thing in the row was the one you could not click.
+                    Why it is disabled is a job for the tooltip. */}
+                  + Save filter
+                </button>
+              )}
+            </div>
+
+            {/* The group carries the auto margin — pinning Reset to the
+                right edge, so it stays put as the row reflows. */}
             <div className="ml-auto flex items-center gap-2">
               {/* Kept mounted and dimmed rather than removed: a button that
                   vanishes takes its width with it, and everything beside it
@@ -794,27 +825,30 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
                 onClick={clear}
                 disabled={!filtered}
                 title={
-                  filtered
-                    ? "Clear every filter and go back to the whole book"
-                    : "Nothing to reset — the whole book is showing"
+                  !filtered
+                    ? "Nothing to reset — the whole book is showing"
+                    : narrowing > 0
+                      ? `Clear ${narrowing} ${narrowing === 1 ? "filter" : "filters"} and go back to the whole book`
+                      : "Put the book back in rank order"
                 }
-                className="rounded-[8px] border border-hairline bg-white px-3 py-1.5 font-display text-[12px] font-semibold text-brand transition-colors hover:bg-surface-soft disabled:cursor-not-allowed disabled:border-hairline/50 disabled:text-ink-faint disabled:hover:bg-white"
+                // Next to "+ Save filter" this was the same white bordered
+                // control in the same weight — only the corners differed, and
+                // nobody reads corners. The cross says it takes something
+                // away, and the count says how much, so the pair now reads as
+                // add-one against clear-these rather than as two buttons.
+                className="flex items-center gap-1.5 rounded-[8px] border border-hairline bg-white py-1.5 pl-2.5 pr-3 font-display text-[12px] font-semibold text-brand transition-colors hover:bg-surface-soft disabled:cursor-not-allowed disabled:border-hairline/50 disabled:text-ink-faint disabled:hover:bg-white"
               >
+                <CloseIcon className="size-3 shrink-0" />
                 Reset the book
+                {narrowing > 0 ? (
+                  <span className="rounded-full bg-surface-tint px-1.5 py-px text-[11px] tabular-nums text-brand-dark">
+                    {narrowing}
+                  </span>
+                ) : null}
               </button>
             </div>
           </div>
         </div>
-
-        {/* Gutter shading — the fold where the two pages meet */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-y-0 left-1/2 hidden w-12 -translate-x-1/2 lg:block"
-          style={{
-            background:
-              "linear-gradient(90deg, transparent, rgb(var(--shadow-ink) / 0.08), transparent)",
-          }}
-        />
 
         {/* The spread, and the leaf turning above it. Perspective sits here
             rather than on the card so the turn has depth without the
@@ -837,6 +871,20 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
               </section>
             ))}
           </div>
+
+          {/* Gutter shading — the fold where the two pages meet. Scoped to
+              the spread, not the card: hung on the card it ran the full
+              height, creasing the toolbar above and the page-turn footer
+              below, neither of which is paper. Left under the leaf's z-20,
+              so a page in the air is not printed through by the fold. */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 left-1/2 hidden w-12 -translate-x-1/2 lg:block"
+            style={{
+              background:
+                "linear-gradient(90deg, transparent, rgb(var(--shadow-ink) / 0.08), transparent)",
+            }}
+          />
 
           {/* ── The turning leaf ──────────────────────────
             On screen only while a page is in the air. It is the spread's
@@ -919,14 +967,14 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
 }
 
 /** One column heading. The caret opens an Excel-style menu: sort both ways,
- *  then the values to filter to. Native <details>, so no open/close state and
- *  the keyboard works for free. */
+ *  Ordering only — filtering moved out to the quick filters above the book,
+ *  so a dimension has one home rather than two. Native <details>, so no
+ *  open/close state and the keyboard works for free. */
 function ColumnMenu({
   sortKey,
   heading,
   hint,
   align = "left",
-  filters = [],
   activeSort,
   fromBack,
   onSort,
@@ -936,28 +984,11 @@ function ColumnMenu({
   /** Plain-English meaning — a column head is a label, not an explanation. */
   hint?: string;
   align?: "left" | "right";
-  /** Filters this column offers, stacked in the order given. A cell that
-   *  prints two facts can filter on both. Empty for a sort-only column. */
-  filters?: {
-    label: string;
-    options: readonly { value: string; count: number }[];
-    value: string;
-    onValue: (v: string) => void;
-  }[];
   activeSort: SortKey;
   fromBack: boolean;
   onSort: (key: SortKey, back: boolean) => void;
 }) {
   const active = activeSort === sortKey;
-  const live = filters.filter((f) => f.value !== "all");
-  const filtered = live.length > 0;
-  // With two filters on, the head cannot show both — it says how many.
-  const value =
-    live.length === 1
-      ? live[0].value
-      : live.length > 1
-        ? `${live.length} filters`
-        : "";
   const sort = SORTS[sortKey];
 
   return (
@@ -970,7 +1001,6 @@ function ColumnMenu({
       <summary
         title={
           (hint ? `${heading} — ${hint}` : `Sort or filter by ${heading}`) +
-          (filtered ? `\n\nShowing only: ${value}` : "") +
           (active
             ? `\n\nSorting by this, ${fromBack ? SORTS[sortKey].back : SORTS[sortKey].front}.`
             : "")
@@ -981,14 +1011,12 @@ function ColumnMenu({
         }
       >
         <span
-          className={"eyebrow " + (filtered ? "truncate" : "")}
+          className="eyebrow"
           // A filtered column prints the value it is filtered to, so the
           // heading answers "what is hiding rows?" without being opened.
-          style={
-            active || filtered ? { color: "var(--color-brand)" } : undefined
-          }
+          style={active ? { color: "var(--color-brand)" } : undefined}
         >
-          {filtered ? value : heading}
+          {heading}
         </span>
         <svg
           aria-hidden
@@ -999,8 +1027,7 @@ function ColumnMenu({
               ? fromBack
                 ? "text-brand"
                 : "rotate-180 text-brand"
-              : "group-open/menu:rotate-180 " +
-                (filtered ? "text-brand" : "text-ink-faint"))
+              : "group-open/menu:rotate-180 " + "text-ink-faint")
           }
         >
           <path
@@ -1040,44 +1067,6 @@ function ColumnMenu({
           </span>
           {sort.back}
         </button>
-
-        {filters.map((filter) => (
-          <div key={filter.label}>
-            <hr className="my-1.5 border-surface-soft" />
-            <p className="px-2 pb-1 text-[10px] uppercase tracking-[0.6px] text-ink-faint">
-              {filter.label}
-              {filter.value !== "all" ? (
-                <span className="ml-1 text-brand">· 1 on</span>
-              ) : null}
-            </p>
-            <div className="max-h-[132px] overflow-y-auto">
-              {filter.options.map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => filter.onValue(opt.value)}
-                  className="flex w-full items-center gap-2 rounded-[6px] px-2 py-1.5 text-left text-[12px] text-ink hover:bg-canvas"
-                >
-                  <span aria-hidden className="w-3 shrink-0 text-brand">
-                    {filter.value === opt.value ? "✓" : ""}
-                  </span>
-                  <span
-                    className="truncate"
-                    title={opt.value === "all" ? undefined : opt.value}
-                  >
-                    {opt.value === "all"
-                      ? "All"
-                      : opt.value.charAt(0).toUpperCase() + opt.value.slice(1)}
-                  </span>
-                  {/* The count says what the filter will leave you with. */}
-                  <span className="ml-auto shrink-0 font-display text-[11px] tabular-nums text-ink-faint">
-                    {opt.count}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
       </div>
     </details>
   );
