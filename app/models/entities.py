@@ -342,7 +342,8 @@ class OutreachEvent(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     prospect_id: Mapped[str] = mapped_column(ForeignKey("prospects.id"), index=True)
     event_type: Mapped[str] = mapped_column(String(20), index=True)
-    # connected | not_connected | follow_up_later | converted | not_converted
+    # connected | not_connected | follow_up_later | converted
+    # | not_converted | not_pursued
     channel: Mapped[str | None] = mapped_column(String(10))  # mail | phone | email | other
     notes: Mapped[str | None] = mapped_column(Text)
     occurred_at: Mapped[date] = mapped_column(Date, default=date.today)

@@ -134,7 +134,9 @@ export type OutreachEntry = {
     | "not_connected"
     | "follow_up_later"
     | "converted"
-    | "not_converted";
+    | "not_converted"
+    /** Judged not worth calling, so never called — not an attempt. */
+    | "not_pursued";
   channel: "mail" | "phone" | "email" | "other" | null;
   notes: string | null;
   occurredAt: string;

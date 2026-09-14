@@ -207,6 +207,7 @@ class OutreachEventIn(BaseModel):
         "follow_up_later",
         "converted",
         "not_converted",
+        "not_pursued",
     ]
     channel: Literal["mail", "phone", "email", "other"] | None = None
     notes: str | None = None
@@ -236,6 +237,7 @@ class FunnelBandOut(BaseModel):
     follow_up_later: int
     converted: int
     not_converted: int
+    not_pursued: int  # screened out without a call; not counted in attempted
     conversion_rate: float  # converted / attempted
 
 

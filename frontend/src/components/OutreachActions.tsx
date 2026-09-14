@@ -26,6 +26,35 @@ const REACHED: Action[] = [
   { value: "not_connected", label: "No, couldn't reach", tone: QUIET, needsReason: true },
 ];
 
+/** Not an answer to "did you reach them?" but a way out of the question:
+ *  the advisor has looked at this prospect and decided not to call at all.
+ *  Offered quietly beneath step 1, because it is the rarer choice and must
+ *  not compete with actually making the call. */
+const NOT_PURSUED: Action = {
+  value: "not_pursued",
+  label: "Not a fit — won't contact",
+  tone: MUTED,
+  needsReason: true,
+};
+
+/** Why a prospect was not worth calling.
+ *
+ *  Picked from a list rather than typed, because the point of collecting it
+ *  is to count it: free prose says what one advisor thought, a fixed set
+ *  says what the board keeps getting wrong. Each one names something the
+ *  engine actually decides — specialty, career stage, evidence, identity —
+ *  so a pile of them points at the input to retune. */
+const NOT_PURSUED_REASONS = [
+  "Wrong specialty",
+  "Too early in their career",
+  "Too established already",
+  "Already has an advisor",
+  "Identity looks wrong",
+  "Evidence too thin",
+  "Outside my territory",
+  "Other",
+] as const;
+
 /** Step 2 — only answerable once they have actually been spoken to, which
  *  is why it is never on screen at the same time as step 1. */
 const OUTCOME: Action[] = [
@@ -45,7 +74,12 @@ const OUTCOME: Action[] = [
 function stepFor(last: OutreachEntry | undefined): "reached" | "outcome" | "done" {
   if (!last) return "reached";
   if (last.eventType === "connected") return "outcome";
-  if (last.eventType === "converted" || last.eventType === "not_converted") return "done";
+  if (
+    last.eventType === "converted" ||
+    last.eventType === "not_converted" ||
+    last.eventType === "not_pursued"
+  )
+    return "done";
   return "reached";
 }
 
@@ -55,10 +89,20 @@ const LABELS: Record<EventType, string> = {
   follow_up_later: "Following up later",
   converted: "Became a client",
   not_converted: "Not a fit",
+  not_pursued: "Not a fit — never contacted",
 };
 
 const MODAL_PROMPTS: Partial<
-  Record<EventType, { title: string; placeholder: string; askDate?: boolean }>
+  Record<
+    EventType,
+    {
+      title: string;
+      placeholder: string;
+      askDate?: boolean;
+      /** Present when the reason is picked rather than typed, and required. */
+      reasons?: readonly string[];
+    }
+  >
 > = {
   not_connected: {
     title: "Couldn't reach them — what happened?",
@@ -72,6 +116,11 @@ const MODAL_PROMPTS: Partial<
   not_converted: {
     title: "Not a fit — why not?",
     placeholder: "e.g. Already has an advisor; not interested right now",
+  },
+  not_pursued: {
+    title: "Not worth calling — why not?",
+    placeholder: "Anything else worth knowing (optional)",
+    reasons: NOT_PURSUED_REASONS,
   },
 };
 
@@ -99,6 +148,8 @@ export default function OutreachActions({
   const [history, setHistory] = useState(initialHistory);
   const [modalFor, setModalFor] = useState<EventType | null>(null);
   const [reason, setReason] = useState("");
+  // Picked from the prompt's list; the textarea below it is extra detail.
+  const [picked, setPicked] = useState<string | null>(null);
   const [followUpOn, setFollowUpOn] = useState("");
   const [pending, setPending] = useState<EventType | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -116,6 +167,7 @@ export default function OutreachActions({
     setHistory(initialHistory);
     setModalFor(null);
     setReason("");
+    setPicked(null);
     setFollowUpOn("");
     setPending(null);
     setError(null);
@@ -172,6 +224,7 @@ export default function OutreachActions({
       void revalidateBoard();
       setModalFor(null);
       setReason("");
+      setPicked(null);
       setFollowUpOn("");
       setReopened(false);
       setRevising(false);
@@ -185,6 +238,7 @@ export default function OutreachActions({
   function onClick(action: Action) {
     if (action.needsReason) {
       setReason("");
+      setPicked(null);
       setFollowUpOn("");
       setError(null);
       setModalFor(action.value);
@@ -199,11 +253,13 @@ export default function OutreachActions({
 
   // Revising shows the same set the mislogged event came from, so a wrong
   // "Not a fit" is one click from being right rather than a restart.
-  const revisable = last
-    ? OUTCOME.some((a) => a.value === last.eventType)
+  const revisable = !last
+    ? REACHED
+    : OUTCOME.some((a) => a.value === last.eventType)
       ? OUTCOME
-      : REACHED
-    : REACHED;
+      : last.eventType === "not_pursued"
+        ? [...REACHED, NOT_PURSUED]
+        : REACHED;
   const actions = revising ? revisable : step === "outcome" ? OUTCOME : REACHED;
 
   // The heading is the question, so the buttons read as answers to it
@@ -270,6 +326,22 @@ export default function OutreachActions({
               </button>
             ) : null}
           </div>
+
+          {/* The way out of the question, rather than an answer to it —
+              quiet, because calling is what this panel is for. */}
+          {step === "reached" && !revising ? (
+            <p className="mt-3 text-[13px] text-ink-muted">
+              Not going to call them?{" "}
+              <button
+                type="button"
+                disabled={pending !== null}
+                onClick={() => onClick(NOT_PURSUED)}
+                className="font-display font-semibold text-brand hover:underline disabled:opacity-50"
+              >
+                Mark as not a fit
+              </button>
+            </p>
+          ) : null}
         </>
       )}
 
@@ -323,6 +395,30 @@ export default function OutreachActions({
               <p className="mt-1 text-[13px] text-ink-muted">{prospectName}</p>
             ) : null}
 
+            {prompt.reasons ? (
+              <fieldset className="mt-4">
+                <legend className="eyebrow">Pick the closest reason</legend>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {prompt.reasons.map((option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      aria-pressed={picked === option}
+                      onClick={() => setPicked(option)}
+                      className={
+                        "rounded-full border px-3 py-1.5 font-display text-[12px] font-semibold transition-colors " +
+                        (picked === option
+                          ? "border-brand bg-brand text-white"
+                          : "border-hairline bg-white text-brand hover:bg-surface-soft")
+                      }
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+            ) : null}
+
             <textarea
               value={reason}
               onChange={(e) => setReason(e.target.value)}
@@ -348,7 +444,9 @@ export default function OutreachActions({
             ) : null}
 
             <p className="mt-1.5 text-[12px] text-ink-muted">
-              This is stored with the prospect and feeds scoring recalibration.
+              {prompt.reasons && !picked
+                ? "Pick a reason to save this."
+                : "This is stored with the prospect and feeds scoring recalibration."}
             </p>
 
             {error ? (
@@ -367,8 +465,16 @@ export default function OutreachActions({
               </button>
               <button
                 type="button"
-                disabled={pending !== null}
-                onClick={() => void log(modalFor, reason.trim() || null)}
+                disabled={pending !== null || (!!prompt.reasons && !picked)}
+                onClick={() =>
+                  void log(
+                    modalFor,
+                    // The picked reason leads so it can be counted; typed
+                    // detail follows it.
+                    [picked, reason.trim() || null].filter(Boolean).join(" — ") ||
+                      null,
+                  )
+                }
                 className="rounded-[8px] bg-brand px-5 py-2.5 font-display text-[13px] font-semibold text-white shadow-brand transition-colors hover:bg-brand-dark disabled:opacity-50"
               >
                 {pending ? "Saving…" : "Save Outcome"}

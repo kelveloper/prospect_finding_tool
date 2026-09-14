@@ -8,6 +8,15 @@ profile, next to the contact info — no separate logging page):
     follow_up_later — connected; the prospect asked to reconnect on a date
     converted       — became a client
     not_converted   — reached but it went nowhere (reason goes in notes)
+    not_pursued     — judged not worth calling, so never called (reason
+                      goes in notes)
+
+`not_pursued` is the only one of these that is not an attempt, and the
+funnel below treats it that way: it is deliberately left out of
+`attempted`, so screening a prospect out never counts against the
+conversion rate of its score band. Its reasons are the useful half —
+they say what the advisor thought was wrong with what we surfaced, which
+is the one signal the funnel itself cannot produce.
 
 The score-band funnel built from these rows is the recalibration loop:
 if 20-point prospects convert as often as 80-point ones, the weights
@@ -26,7 +35,11 @@ VALID_EVENT_TYPES = (
     "follow_up_later",
     "converted",
     "not_converted",
+    "not_pursued",
 )
+
+#: Logged instead of an attempt, not as one. Excluded from `attempted`.
+NOT_AN_ATTEMPT = ("not_pursued",)
 VALID_CHANNELS = ("mail", "phone", "email", "other")
 
 
@@ -124,7 +137,11 @@ class OutreachTrackingService:
                 band, {t: set() for t in (*VALID_EVENT_TYPES, "attempted")}
             )
             band_stages[event_type].add(prospect_id)
-            band_stages["attempted"].add(prospect_id)
+            # A prospect screened out without a call was never attempted.
+            # One who was screened out and later called still is — these
+            # are sets, so the real attempt puts them back.
+            if event_type not in NOT_AN_ATTEMPT:
+                band_stages["attempted"].add(prospect_id)
 
         bands = []
         for band in sorted(stages, reverse=True):
@@ -140,6 +157,7 @@ class OutreachTrackingService:
                     "follow_up_later": len(by_stage["follow_up_later"]),
                     "converted": converted,
                     "not_converted": len(by_stage["not_converted"]),
+                    "not_pursued": len(by_stage["not_pursued"]),
                     "conversion_rate": (
                         round(converted / attempted, 3) if attempted else 0.0
                     ),
