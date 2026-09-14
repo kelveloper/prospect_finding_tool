@@ -95,7 +95,14 @@ export default function CandidateDetail({
     <div className="max-w-[65rem]">
       {/* ── The numbers, and nothing else. First in the DOM so the content
              after it can wrap around the float. ────────── */}
-      <aside className="mb-5 rounded-[14px] bg-canvas px-4 py-4 lg:float-right lg:mb-4 lg:ml-8 lg:w-[250px]">
+      {/* No box. A filled card puts a hard edge beside the why-now cards and
+          invites the eye to line the two up — and they cannot be lined up:
+          the rail's height is fixed by what it holds, the cards' height by
+          how many triggers a prospect has, so any alignment is a
+          coincidence that breaks on the next profile. Without the fill
+          these are numbers set in the margin, and nothing is being measured
+          against anything. */}
+      <aside className="mb-5 border-hairline/60 pl-0 lg:float-right lg:mb-4 lg:ml-8 lg:w-[250px] lg:border-l lg:pl-5">
         {/* Standing leads. A reader meeting 60.9 cold cannot tell whether
             that is good — a reviewer said exactly that — but "#4 of 221"
             needs no explanation. Fit and evidence stay, as the line that
