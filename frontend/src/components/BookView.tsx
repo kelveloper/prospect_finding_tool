@@ -14,7 +14,6 @@ import { ChevronLeft, ChevronRight, CloseIcon } from "./icons";
 import {
   changeHint,
   changeMatcher,
-  scoreMoved,
   summarizeChanges,
 } from "@/lib/changes";
 import type { Candidate } from "@/lib/data";
@@ -252,20 +251,20 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
       ? "This is already the What changed view."
       : (views.find((v) => sameState(viewState, v.state))?.name ?? null);
 
-  /** After a single ingest there is nothing to compare against, so the column
-   *  prints "no change yet" on all but a stray row or two. One mover out of
-   *  219 does not earn a column and a header; the cutoff is a twentieth of the
-   *  board, below which the column is 95% identical text. */
-  const hasMovement = useMemo(() => {
-    if (entries.length === 0) return false;
-    // Movement is the whole point of the What changed view, so it always
-    // earns the column there
-    if (onlyChanged) return true;
-    // Same test as the What changed count, so the column cannot appear for
-    // movement the board has decided is not movement.
-    const moved = entries.filter(scoreMoved).length;
-    return moved / entries.length >= 0.05;
-  }, [entries, onlyChanged]);
+  /** Movement earns a column in the What changed view and nowhere else.
+   *
+   *  It used to appear in the open book too, whenever a twentieth of the
+   *  board had moved. The spread cannot afford it: six columns already fill
+   *  the page, and the seventh comes out of the one cell that has real text
+   *  in it. After the sweep that added 55 prospects the name cell fell from
+   *  295px to 205px and started clipping ordinary names — "Kevin Zachary
+   *  Black", "Lauren Ashley Barber" — to buy a column that says "no change"
+   *  on 187 rows in 276.
+   *
+   *  Nothing is lost. The board prints an arrow on every card that moved,
+   *  and "What changed" is one chip away — where the reader has asked for
+   *  movement, so the column is worth its width. */
+  const hasMovement = onlyChanged;
 
   const filtered = !isEmpty(viewState);
   /** How many controls are actually narrowing the book — what Reset undoes.
