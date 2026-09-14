@@ -44,6 +44,10 @@ export default function Board({ ranked, initial, seedId, seed }: Props) {
 
   const shownId = book ? entry : (id ?? ranked[0].id);
   const dossier = useDossier(shownId, seedId, seed);
+  /* The ranked row arrives instantly and the dossier takes 125–170ms, so
+     between the two the panel has a name and nothing else — every section
+     renders empty and then expands, which is the jump. */
+  const loading = shownId !== null && dossier === null;
 
   // Fall back to the ranked row while the dossier is in flight, so the panel
   // names the right prospect from the first frame.
@@ -91,6 +95,7 @@ export default function Board({ ranked, initial, seedId, seed }: Props) {
             }
             contactKit={dossier?.contactKit}
             signals={detail?.signals}
+            loading={loading}
             outreach={dossier?.outreach}
             rank={rank}
             total={ranked.length}

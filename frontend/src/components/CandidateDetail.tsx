@@ -34,6 +34,9 @@ type Props = {
    *  alone; "#1 · Top 1%" is the actual pitch. */
   rank?: number;
   total?: number;
+  /** The dossier is still in flight. The header already has real data from
+   *  the ranked row, so only the body below it stands in. */
+  loading?: boolean;
   /** 1 on the board, where the name titles the page; 2 in the slide-over,
    *  which sits under the book's own heading. */
   headingLevel?: 1 | 2;
@@ -50,6 +53,7 @@ export default function CandidateDetail({
   dossier,
   contactKit,
   signals,
+  loading = false,
   outreach,
   rank,
   total,
@@ -241,14 +245,18 @@ export default function CandidateDetail({
           needed first. The findings were all in the prose, which is the one
           thing nobody reads before deciding. So the findings lead now and
           the paragraph supports them. */}
-      <WhyNow
-        signals={signals}
-        summary={candidate.summary}
-        Subheading={Subheading}
-      />
+      {loading ? (
+        <BodySkeleton Subheading={Subheading} />
+      ) : (
+        <WhyNow
+          signals={signals}
+          summary={candidate.summary}
+          Subheading={Subheading}
+        />
+      )}
 
       {/* ── ACT — contact details and outcome capture in one block ── */}
-      {contactKit ? (
+      {!loading && contactKit ? (
         <ContactKitCard
           kit={contactKit}
           prospectId={candidate.id}
@@ -257,7 +265,7 @@ export default function CandidateDetail({
       ) : null}
 
       {/* ── What changed, and how the score has moved ─── */}
-      {dossier && profile ? (
+      {loading ? null : dossier && profile ? (
         <CandidateDossier fieldChanges={dossier.fieldChanges} />
       ) : (
         <p className="mt-8 rounded-[12px] bg-canvas px-4 py-4 text-[13px] text-ink-muted">
@@ -443,4 +451,37 @@ function lastClause(summary?: string): string | null {
     return lead.charAt(0).toUpperCase() + lead.slice(1);
   }
   return summary;
+}
+
+/** What the body looks like while the dossier is in flight.
+ *
+ *  Not a spinner. The fetch takes 125–170ms, which is long enough to notice
+ *  and short enough that a spinner is itself a flash — and a spinner would
+ *  not fix the actual complaint, which is that the sections render at zero
+ *  height and then shove everything down. Bars of roughly the right size
+ *  hold the page still, so what arrives replaces something the same shape.
+ */
+function BodySkeleton({ Subheading }: { Subheading: "h2" | "h3" }) {
+  const bar = "rounded-[6px] bg-canvas";
+  return (
+    <div aria-hidden className="animate-pulse">
+      <section>
+        <Subheading className="section-title mb-3">Why now</Subheading>
+        <div className={`${bar} h-[72px]`} />
+      </section>
+      <section className="mt-7">
+        <Subheading className="section-title mb-3">Why them</Subheading>
+        <div className="max-w-[45rem] space-y-2.5">
+          <div className={`${bar} h-4 w-[62%]`} />
+          <div className={`${bar} h-4 w-[74%]`} />
+          <div className={`${bar} h-4 w-[68%]`} />
+        </div>
+      </section>
+      <section className="mt-7">
+        <Subheading className="section-title mb-3">Do this next</Subheading>
+        <div className={`${bar} h-[118px]`} />
+      </section>
+      <span className="sr-only">Loading this prospect</span>
+    </div>
+  );
 }
