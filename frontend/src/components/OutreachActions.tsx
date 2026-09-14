@@ -401,7 +401,7 @@ export default function OutreachActions({
         : "Did you reach them?";
 
   return (
-    <div className="mt-5">
+    <div className="mt-7">
       <p className="section-title mb-2.5">Log the outcome</p>
 
       {step === "done" && !revising ? (
@@ -588,7 +588,7 @@ export default function OutreachActions({
               </p>
             ) : null}
 
-            <div className="mt-5 flex justify-end gap-3">
+            <div className="mt-7 flex justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setModalFor(null)}

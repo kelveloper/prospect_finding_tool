@@ -154,7 +154,7 @@ export default function CandidateDetail({
         >
           <div className="min-w-0">
             <p className="eyebrow">{candidate.category}</p>
-            <Heading className="mt-0.5 font-display text-[26px] font-bold tracking-[-0.6px] text-ink">
+            <Heading className="mt-0.5 font-display text-[28px] font-bold tracking-[-0.65px] text-ink">
               {candidate.name}
             </Heading>
             {/* The location is the practice address. On the rows where that
@@ -326,7 +326,7 @@ function WhyNow({
     <>
       {events.length > 0 ? (
         <section>
-          <Subheading className="section-title mb-2.5">Why now</Subheading>
+          <Subheading className="section-title mb-3">Why now</Subheading>
           {/* flow-root, because a float only moves text out of its way. A
               block keeps its full width and runs underneath, so the card's
               background slid beneath the rail while its words wrapped
@@ -365,8 +365,8 @@ function WhyNow({
 
       {standing.length > 0 ? (
         <section className="mt-6">
-          <Subheading className="section-title mb-2.5">Why them</Subheading>
-          <ul className="grid gap-x-8 gap-y-1.5 sm:grid-cols-2">
+          <Subheading className="section-title mb-3">Why them</Subheading>
+          <ul className="grid gap-x-8 gap-y-2.5 sm:grid-cols-2">
             {standing.map((signal) => {
               const [fact, meaning] = splitSignal(signal.description);
               return (

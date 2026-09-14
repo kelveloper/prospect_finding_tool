@@ -27,7 +27,7 @@ export default function ContactKitCard({
   const address = kit.addressLines.join(", ");
 
   return (
-    <section className="mt-5">
+    <section className="mt-7">
       <div className="mb-2 flex items-center gap-3">
         {/* Named for the act, not the reference. Two facts side by side in
             equal tiles is a card you consult; this is the step you take. */}

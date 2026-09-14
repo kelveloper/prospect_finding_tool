@@ -29,7 +29,7 @@ export default function CandidateDossier({
   if (!hasChanges) return null;
 
   return (
-    <div className="mt-5 flex flex-col gap-3">
+    <div className="mt-7 flex flex-col gap-3">
       {hasChanges ? (
         <Collapsible
           title="What Changed"
