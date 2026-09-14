@@ -159,18 +159,72 @@ export type ContactKit = {
    *  mapper used to drop them, so the one piece of judgement the product
    *  exercises on the advisor's behalf was invisible. */
   rules: string[];
-  /** The event worth opening the call with, already chosen by the backend. */
+  /** What to raise first, phrased as a thing you could say rather than as
+   *  the record it came from. */
   opening: string | null;
+  /** Whether that phrasing actually reads as a noun phrase. False means we
+   *  did not recognise the wording and are showing the record as-is, which
+   *  needs a label that stays grammatical in front of anything. */
+  openingPhrased: boolean;
   urgency: "standard" | "elevated";
 };
 
-function openingOf(description?: string | null): string | null {
+/** The opening line, as a topic rather than a record.
+ *
+ *  The backend writes these as log entries — "Illinois license issued 2
+ *  months ago" — which is a fact about a row, not something an advisor can
+ *  open a call with. A licence is seven of every ten triggers, so that one
+ *  is worth phrasing properly; the rest keep their wording, which is at
+ *  least accurate.
+ *
+ *  Never "his": the board does not know a prospect's gender and has been
+ *  bitten by assuming it before.
+ */
+function openingOf(
+  description?: string | null,
+  type?: string | null,
+): { text: string; phrased: boolean } | null {
   if (!description) return null;
-  const fact = description.split(" — ")[0];
-  return fact.replace(/\s*\([^)]*\)\s*$/, "").trim() || null;
+  // Trailing parentheticals are provenance — "(name-matched billing group;
+  // 19 years in practice)" — and a hundred characters of sourcing is not a
+  // way into a conversation.
+  const fact = description
+    .split(" — ")[0]
+    .replace(/\s*\([^)]*\)\s*$/, "")
+    .trim();
+  if (!fact) return null;
+
+  // Never "his": the board does not know a prospect's gender, and has been
+  // bitten by assuming it before.
+  const licence = fact.match(/^(.+?)\s+licen[sc]e\s+issued\s+(.+)$/i);
+  if (type === "NEW_LICENSE" && licence)
+    return {
+      text: `their new ${licence[1]} license — issued ${licence[2]}`,
+      phrased: true,
+    };
+
+  const moved = fact.match(/new group\s+'([^']+)'(?:,\s*(.+))?$/i);
+  if (type === "CAREER_ADVANCEMENT" && moved)
+    return {
+      text: `their move to ${moved[1]}${moved[2] ? ` — ${moved[2]}` : ""}`,
+      phrased: true,
+    };
+
+  const entity = fact.match(/own entity\s+'([^']+)'/i);
+  if (type === "OWNERSHIP" && entity)
+    return {
+      text: `the practice they bill through — ${entity[1]}`,
+      phrased: true,
+    };
+
+  return { text: fact, phrased: false };
 }
 
 function toContactKit(k: ApiContactKit): ContactKit {
+  const opening = openingOf(
+    k.primary_trigger?.description,
+    k.primary_trigger?.signal_type,
+  );
   const cityLine = [k.mail.city, k.mail.state].filter(Boolean).join(", ");
   return {
     name: k.name,
@@ -187,7 +241,8 @@ function toContactKit(k: ApiContactKit): ContactKit {
     // entity 'Abbasi M.D.S.C.' (name-matched billing group; 19 years in
     // practice)". An opening line is what you say first, so it wants the
     // fact alone: a hundred characters of sourcing is not a way into a call.
-    opening: openingOf(k.primary_trigger?.description),
+    opening: opening?.text ?? null,
+    openingPhrased: opening?.phrased ?? false,
     urgency: k.urgency,
   };
 }

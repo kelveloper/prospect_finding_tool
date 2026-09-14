@@ -80,7 +80,14 @@ export default function ContactKitCard({
               only visible as the "why now" card further up the page. */}
           {kit.opening ? (
             <p className="mt-2.5 text-[14px] leading-[20px] text-ink">
-              <span className="font-display font-semibold">Open with:</span>{" "}
+              {/* Said plainly. "Open with:" reads as a setting rather than an
+                  instruction — it is the phrasing of a config file, not of
+                  advice to a person about to dial. */}
+              <span className="font-display font-semibold">
+                {kit.openingPhrased
+                  ? "Open the conversation with"
+                  : "Worth raising:"}
+              </span>{" "}
               {tidyPlural(kit.opening)}
             </p>
           ) : null}
