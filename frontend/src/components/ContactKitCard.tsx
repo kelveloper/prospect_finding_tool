@@ -32,6 +32,14 @@ export default function ContactKitCard({
         {/* Named for the act, not the reference. Two facts side by side in
             equal tiles is a card you consult; this is the step you take. */}
         <h2 className="section-title">Do this next</h2>
+        {/* How to approach, kept to one marker rather than two amber slabs.
+            The rules are constraints — read once, obeyed thereafter — so
+            they do not need to shout on every profile. The badge stays
+            visible so the advisor knows they exist; the words are a hover
+            away. Not attached per field, because one of them ("never
+            reference the property purchase") governs what you say rather
+            than the phone or the address. */}
+        {kit.rules.length > 0 ? <RuleHint rules={kit.rules} /> : null}
         {kit.urgency === "elevated" ? (
           <span className="rounded-full bg-tier-neutral-bg px-3 py-1 font-display text-[11px] font-semibold text-tier-neutral-fg">
             Hot — Act Soon
@@ -53,7 +61,9 @@ export default function ContactKitCard({
               {kit.phone}
             </a>
             {kit.phoneNote ? (
-              <span className="text-[12px] text-ink-muted">{kit.phoneNote}</span>
+              <span className="text-[12px] text-ink-muted">
+                {kit.phoneNote}
+              </span>
             ) : null}
           </div>
         ) : (
@@ -82,25 +92,6 @@ export default function ContactKitCard({
             ) : null}
           </p>
         </div>
-
-        {/* How to approach. These come from the API and were dropped in the
-            mapper, so the one piece of judgement the product exercises on
-            the advisor's behalf has never been on screen. */}
-        {kit.rules.length > 0 ? (
-          <ul className="mt-3 space-y-1.5">
-            {kit.rules.map((rule) => (
-              <li
-                key={rule}
-                className="flex gap-2 rounded-[9px] bg-tier-weak-bg px-3 py-2 text-[12.5px] leading-[18px] text-tier-weak-fg"
-              >
-                <span aria-hidden className="shrink-0">
-                  !
-                </span>
-                {rule}
-              </li>
-            ))}
-          </ul>
-        ) : null}
       </div>
 
       {prospectId ? (
@@ -111,5 +102,49 @@ export default function ContactKitCard({
         />
       ) : null}
     </section>
+  );
+}
+
+/** The rules for approaching this prospect, behind one badge.
+ *
+ *  Same shape as the evidence badge beside the standing: a small marked
+ *  circle you can tab to, and a card on hover or focus. Amber rather than
+ *  grey, because these are the one place the product tells an advisor not
+ *  to do something.
+ */
+function RuleHint({ rules }: { rules: string[] }) {
+  const spoken = `${rules.length} rule${rules.length === 1 ? "" : "s"} for approaching this prospect: ${rules.join(" ")}`;
+
+  return (
+    <span className="group/rule relative inline-flex">
+      <span
+        tabIndex={0}
+        role="note"
+        aria-label={spoken}
+        title="How to approach — hover for the rules"
+        className="flex cursor-help items-center gap-1.5 rounded-full border border-tier-weak/40 bg-tier-weak-bg px-2.5 py-1 font-display text-[11px] font-semibold text-tier-weak-fg outline-none transition-colors hover:border-tier-weak focus-visible:ring-2 focus-visible:ring-brand"
+      >
+        <span aria-hidden>!</span>
+        {rules.length} rule{rules.length === 1 ? "" : "s"}
+      </span>
+
+      <span
+        aria-hidden
+        className="pointer-events-none invisible absolute left-0 top-full z-30 mt-2 w-[300px] rounded-[10px] border border-hairline bg-white p-3 text-left opacity-0 shadow-panel transition-opacity group-hover/rule:visible group-hover/rule:opacity-100 group-focus-within/rule:visible group-focus-within/rule:opacity-100"
+      >
+        <span className="eyebrow block">How to approach</span>
+        {rules.map((rule) => (
+          <span
+            key={rule}
+            className="mt-2 flex gap-2 text-[12.5px] leading-[17px] text-ink-muted"
+          >
+            <span aria-hidden className="shrink-0 text-tier-weak-fg">
+              !
+            </span>
+            {rule}
+          </span>
+        ))}
+      </span>
+    </span>
   );
 }
