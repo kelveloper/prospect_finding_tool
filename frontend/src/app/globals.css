@@ -94,6 +94,29 @@ body {
     border-radius: 999px;
     background: var(--color-brand);
   }
+
+  /* The rule is what makes these scannable. The bar marks where a section
+     starts; it does not separate one from the last, so the eye still had to
+     read to find a boundary. A line running to the edge turns every section
+     start into a horizontal anchor you can jump between without reading —
+     and it costs nothing, because it lives on the title's own row. */
+  &::after {
+    content: "";
+    flex: 1;
+    /* Drawn as a repeating gradient rather than a dotted border: a border's
+       dots sit as tight as the border is wide, and at 1px that reads as a
+       solid line with a texture. A 2px mark every 8px is unmistakably dots,
+       which is quieter than a rule while still giving the eye the line it
+       needs to jump between sections. */
+    height: 1px;
+    background-image: linear-gradient(
+      to right,
+      var(--color-hairline) 0 2px,
+      transparent 2px 100%
+    );
+    background-size: 8px 1px;
+    background-repeat: repeat-x;
+  }
 }
 
 @utility eyebrow {

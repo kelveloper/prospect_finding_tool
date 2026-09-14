@@ -31,7 +31,7 @@ export default function ContactKitCard({
       <div className="mb-2 flex items-center gap-3">
         {/* Named for the act, not the reference. Two facts side by side in
             equal tiles is a card you consult; this is the step you take. */}
-        <h2 className="section-title">Do this next</h2>
+        <h2 className="section-title grow">Do this next</h2>
         {/* How to approach, kept to one marker rather than two amber slabs.
             The rules are constraints — read once, obeyed thereafter — so
             they do not need to shout on every profile. The badge stays
