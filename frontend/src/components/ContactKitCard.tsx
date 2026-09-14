@@ -53,7 +53,7 @@ export default function ContactKitCard({
           The box measures 796–1076px everywhere it actually appears — the
           board, and the book's slide-over — so the stacked fallback is for
           genuinely small screens rather than for any normal use. */}
-      <div className="grid grid-cols-1 gap-x-7 gap-y-4 rounded-[12px] bg-canvas px-5 py-4 sm:grid-cols-[1.55fr_1fr] sm:items-start">
+      <div className="max-w-[45rem] rounded-[12px] bg-canvas px-5 py-4">
         <div className="min-w-0">
           {kit.phone ? (
             <>
@@ -93,7 +93,7 @@ export default function ContactKitCard({
           ) : null}
         </div>
 
-        <div className="min-w-0">
+        <div className="mt-3 min-w-0 border-t border-hairline/50 pt-3">
           <p className="eyebrow">Practice address</p>
           <p className="mt-0.5 text-[13.5px] leading-[19px] text-ink-muted">
             {address || "Not on record"}

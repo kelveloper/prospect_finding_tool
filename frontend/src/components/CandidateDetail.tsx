@@ -333,7 +333,7 @@ function WhyNow({
               correctly — the one arrangement that looks like a z-index bug
               and is not. Its own formatting context makes the box respect
               the float the same way the text already did. */}
-          <ul className="flow-root space-y-2">
+          <ul className="flow-root max-w-[45rem] space-y-2">
             {events.map((signal) => {
               const [fact, meaning] = splitSignal(signal.description);
               return (
@@ -366,7 +366,11 @@ function WhyNow({
       {standing.length > 0 ? (
         <section className="mt-6">
           <Subheading className="section-title mb-3">Why them</Subheading>
-          <ul className="grid gap-x-8 gap-y-2.5 sm:grid-cols-2">
+          {/* One column. Two of them orphaned the last tick on 39 of 40
+              prospects — the standing signals are almost always three — so
+              the layout was ragged on essentially every profile to save a
+              row the page no longer needs. */}
+          <ul className="max-w-[45rem] space-y-2">
             {standing.map((signal) => {
               const [fact, meaning] = splitSignal(signal.description);
               return (
