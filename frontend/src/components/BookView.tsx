@@ -1084,42 +1084,41 @@ function BookEntry({
             {candidate.location}
           </span>
         </span>
+        {/* Its own line, directly under the name.
+            Filled, and square where every signal chip on the row is a
+            rounded pill: what the registries found and what the advisor did
+            about it are two kinds of fact, so they are not given the same
+            shape — and now not the same line either. Sharing with the
+            specialty set the one thing the advisor wrote beside the one
+            thing a taxonomy wrote, and pushed the longest specialties into a
+            wrap the row did not otherwise need.
+            Above the specialty rather than below it, so the tag sits the
+            same distance from the top of the row whatever the specialty
+            does — a mark worth scanning for should not move. */}
+        {worked ? (
+          <span
+            title={worked.spoken}
+            className={
+              "mt-1 inline-block rounded-[4px] px-1.5 py-[1px] font-display text-[9.5px] font-bold uppercase tracking-[0.6px] " +
+              (worked.won
+                ? "bg-tier-strong-bg text-tier-strong-fg"
+                : "bg-tier-neutral-bg text-tier-neutral-fg")
+            }
+          >
+            {worked.label}
+          </span>
+        ) : null}
         {/* Wraps to a second line instead of truncating. Two lines hold the
             longest taxonomy string in the book; one held none of the worst
             three. */}
-        {/* The row's quietest line, and the only one with slack: the
-            specialty rarely fills it. Stamping the outcome here buys the
-            fact a place to live without a sixth column — which would cost
-            two more headings and two more sort menus on a spread that
-            already prints ten of each. */}
-        <span className="mt-0.5 line-clamp-2 text-[12px] leading-[16px]">
-          {worked ? (
-            <>
-              {/* Filled, and square where every signal chip on the row is a
-                  rounded pill. Two different things are being marked — what
-                  the registries found, and what the advisor did about it —
-                  so they are not given the same shape. Set as plain text it
-                  was the same pale blue as the specialty beside it and did
-                  not survive a scan. */}
-              <span
-                title={worked.spoken}
-                className={
-                  "mr-2 inline-block rounded-[4px] px-1.5 py-[1px] font-display text-[9.5px] font-bold uppercase tracking-[0.6px] " +
-                  (worked.won
-                    ? "bg-tier-strong-bg text-tier-strong-fg"
-                    : "bg-tier-neutral-bg text-tier-neutral-fg")
-                }
-              >
-                {worked.label}
-              </span>
-            </>
-          ) : null}
-          <span
-            title={candidate.specialty}
-            className={"text-ink-faint " + recede}
-          >
-            {candidate.specialty}
-          </span>
+        <span
+          title={candidate.specialty}
+          className={
+            "mt-0.5 line-clamp-2 text-[12px] leading-[16px] text-ink-faint " +
+            recede
+          }
+        >
+          {candidate.specialty}
         </span>
       </span>
 
