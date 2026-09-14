@@ -59,9 +59,19 @@ export const TIER_LABELS: Record<Tier, string> = {
  *  percentile says against how many, which is all the denominator was for.
  *  `bookSize` is still the divisor; it just isn't shown. */
 export function standingLabel(rank: number, bookSize: number): string {
-  if (rank < 1 || bookSize < 1) return "Not ranked";
-  const pct = Math.max(1, Math.ceil((rank / bookSize) * 100));
-  return `#${rank} · Top ${pct}%`;
+  const parts = standingParts(rank, bookSize);
+  return parts ? `#${parts.rank} · Top ${parts.pct}%` : "Not ranked";
+}
+
+/** The same standing, in halves — for the profile, which sets the rank large
+ *  and the percentile under it. Shares the arithmetic with the label above so
+ *  the two can never disagree about what percentile someone is in. */
+export function standingParts(
+  rank: number,
+  bookSize: number,
+): { rank: number; pct: number } | null {
+  if (rank < 1 || bookSize < 1) return null;
+  return { rank, pct: Math.max(1, Math.ceil((rank / bookSize) * 100)) };
 }
 
 /** Is this licence status one the gate refuses? Mirrors app/scoring/engine.py. */

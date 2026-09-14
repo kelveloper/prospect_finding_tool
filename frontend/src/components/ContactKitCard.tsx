@@ -1,6 +1,7 @@
 "use client";
 
 import OutreachActions from "./OutreachActions";
+import { tidyPlural } from "@/lib/text";
 import type { ContactKit } from "@/lib/api";
 import type { OutreachEntry } from "@/lib/data";
 
@@ -23,54 +24,14 @@ export default function ContactKitCard({
   prospectId?: string;
   outreach?: OutreachEntry[];
 }) {
-  const tiles: { label: string; value: React.ReactNode }[] = [
-    {
-      label: "Practice Address",
-      value:
-        kit.addressLines.length > 0 ? (
-          <>
-            {kit.addressLines.map((line) => (
-              <span key={line} className="block">
-                {line}
-              </span>
-            ))}
-            {!kit.addressComplete && (
-              <span className="mt-1 block text-[12px] font-normal text-tier-poor">
-                Incomplete — verify before mailing
-              </span>
-            )}
-          </>
-        ) : (
-          "Not on record"
-        ),
-    },
-    {
-      label: "Practice Line",
-      value: kit.phone ? (
-        <>
-          <a
-            href={telHref(kit.phone)}
-            title={`Call ${kit.name} on ${kit.phone}`}
-            className="text-brand hover:underline"
-          >
-            {kit.phone}
-          </a>
-          {kit.phoneNote ? (
-            <span className="mt-1 block text-[12px] font-normal text-ink-muted">
-              {kit.phoneNote}
-            </span>
-          ) : null}
-        </>
-      ) : (
-        "Not on record"
-      ),
-    },
-  ];
+  const address = kit.addressLines.join(", ");
 
   return (
     <section className="mt-7">
       <div className="flex items-center gap-3">
-        <h2 className="section-title">Reach Out</h2>
+        {/* Named for the act, not the reference. Two facts side by side in
+            equal tiles is a card you consult; this is the step you take. */}
+        <h2 className="section-title">Do this next</h2>
         {kit.urgency === "elevated" ? (
           <span className="rounded-full bg-tier-neutral-bg px-3 py-1 font-display text-[11px] font-semibold text-tier-neutral-fg">
             Hot — Act Soon
@@ -78,15 +39,68 @@ export default function ContactKitCard({
         ) : null}
       </div>
 
-      <div className="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {tiles.map((tile) => (
-          <div key={tile.label} className="rounded-[12px] bg-canvas px-4 py-4">
-            <p className="eyebrow">{tile.label}</p>
-            <p className="mt-1 font-display text-[14px] font-semibold leading-[20px] text-ink">
-              {tile.value}
-            </p>
+      <div className="rounded-[12px] bg-canvas px-5 py-4">
+        {/* The number leads. It was one of two equal tiles, which said the
+            address mattered as much as placing the call — and the advisor
+            only wants the address at the moment they are writing. */}
+        {kit.phone ? (
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <a
+              href={telHref(kit.phone)}
+              title={`Call ${kit.name} on ${kit.phone}`}
+              className="font-display text-[22px] font-bold tracking-[-0.3px] text-brand-dark hover:underline"
+            >
+              {kit.phone}
+            </a>
+            {kit.phoneNote ? (
+              <span className="text-[12px] text-ink-muted">{kit.phoneNote}</span>
+            ) : null}
           </div>
-        ))}
+        ) : (
+          <p className="font-display text-[15px] font-semibold text-ink-muted">
+            No practice line on record
+          </p>
+        )}
+
+        {/* What to say first — already chosen by the scoring, and until now
+            only visible as the "why now" card further up the page. */}
+        {kit.opening ? (
+          <p className="mt-2.5 text-[14px] leading-[20px] text-ink">
+            <span className="font-display font-semibold">Open with:</span>{" "}
+            {tidyPlural(kit.opening)}
+          </p>
+        ) : null}
+
+        <div className="mt-3 border-t border-hairline/50 pt-3">
+          <p className="eyebrow">Practice address</p>
+          <p className="mt-0.5 text-[14px] leading-[20px] text-ink">
+            {address || "Not on record"}
+            {!kit.addressComplete && kit.addressLines.length > 0 ? (
+              <span className="mt-1 block text-[12px] text-tier-poor">
+                Incomplete — verify before mailing
+              </span>
+            ) : null}
+          </p>
+        </div>
+
+        {/* How to approach. These come from the API and were dropped in the
+            mapper, so the one piece of judgement the product exercises on
+            the advisor's behalf has never been on screen. */}
+        {kit.rules.length > 0 ? (
+          <ul className="mt-3 space-y-1.5">
+            {kit.rules.map((rule) => (
+              <li
+                key={rule}
+                className="flex gap-2 rounded-[9px] bg-tier-weak-bg px-3 py-2 text-[12.5px] leading-[18px] text-tier-weak-fg"
+              >
+                <span aria-hidden className="shrink-0">
+                  !
+                </span>
+                {rule}
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </div>
 
       {prospectId ? (

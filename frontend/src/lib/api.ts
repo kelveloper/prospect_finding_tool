@@ -154,6 +154,13 @@ export type ContactKit = {
   addressComplete: boolean;
   phone: string | null;
   phoneNote: string;
+  /** How to approach, not just who. The API has always sent these — never
+   *  call a personal number, never write to a home address — and this
+   *  mapper used to drop them, so the one piece of judgement the product
+   *  exercises on the advisor's behalf was invisible. */
+  rules: string[];
+  /** The event worth opening the call with, already chosen by the backend. */
+  opening: string | null;
   urgency: "standard" | "elevated";
 };
 
@@ -168,6 +175,10 @@ function toContactKit(k: ApiContactKit): ContactKit {
     addressComplete: k.mail.complete,
     phone: k.phone.number,
     phoneNote: k.phone.note,
+    rules: k.rules ?? [],
+    // The description carries the fact and its meaning either side of a
+    // dash; the opening line only wants the fact.
+    opening: k.primary_trigger?.description?.split(" — ")[0] ?? null,
     urgency: k.urgency,
   };
 }

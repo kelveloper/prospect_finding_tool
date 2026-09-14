@@ -3,7 +3,6 @@ import SectionCard from "./SectionCard";
 import ContactKitCard from "./ContactKitCard";
 import Citation from "./Citation";
 import EvidenceBadge from "./EvidenceBadge";
-import ScoreRing from "./ScoreRing";
 import type { ContactKit } from "@/lib/api";
 import type {
   Candidate,
@@ -13,7 +12,8 @@ import type {
   ScoreSnapshotItem,
   SignalItem,
 } from "@/lib/data";
-import { isLicenseGated, standingLabel, tierStyle } from "@/lib/tier";
+import { isLicenseGated, standingParts, tierStyle } from "@/lib/tier";
+import { tidyPlural } from "@/lib/text";
 
 type Props = {
   candidate: Candidate;
@@ -62,11 +62,11 @@ export default function CandidateDetail({
   // fallback for lists that predate the stamp.
   const gated = isLicenseGated(candidate.licenseStatus);
   const standing = gated
-    ? `Not ranked — license ${candidate.licenseStatus}`
+    ? null
     : candidate.bookSize > 0
-      ? standingLabel(candidate.rank, candidate.bookSize)
+      ? standingParts(candidate.rank, candidate.bookSize)
       : rank && total
-        ? standingLabel(rank, total)
+        ? standingParts(rank, total)
         : null;
 
   // The record itself, rendered inside the trust line's disclosure.
@@ -141,30 +141,35 @@ export default function CandidateDetail({
             ) : null}
           </div>
 
-          <div className="flex shrink-0 flex-col items-center gap-2.5">
-            <ScoreRing
-              score={candidate.score}
-              size={112}
-              stroke={8}
-              accent={style.accent}
-              caption="Fit"
-              valueSize={24}
-            />
-            <EvidenceBadge
-              evidence={candidate.evidence}
-              value={candidate.qualificationScore}
-              timing={candidate.timingScore}
-            />
-            {standing !== null ? (
-              <p
-                className={
-                  "font-display text-[12px] font-semibold " +
-                  (gated ? "text-tier-poor" : "text-ink-muted")
-                }
-              >
-                {standing}
+          {/* Standing leads. A reader meeting 60.9 cold cannot tell whether
+              that is good — a reviewer said exactly that — but "#4 of 221"
+              needs no explanation. Fit and evidence stay, as the line that
+              supports it rather than three numbers competing. */}
+          <div className="flex shrink-0 flex-col items-end gap-1 text-right">
+            {gated ? (
+              <p className="font-display text-[13px] font-semibold text-tier-poor">
+                Not ranked — license {candidate.licenseStatus}
               </p>
+            ) : standing ? (
+              <>
+                <p className="font-display text-[32px] font-bold leading-none tracking-[-0.6px] text-ink">
+                  #{standing.rank}
+                </p>
+                <p className="font-display text-[12px] font-bold tracking-[0.6px] text-brand">
+                  TOP {standing.pct}%
+                </p>
+              </>
             ) : null}
+            <div className="mt-1.5 flex items-center gap-2 border-t border-hairline/60 pt-2">
+              <span className="font-display text-[12px] font-semibold text-ink-faint">
+                Fit {candidate.score}
+              </span>
+              <EvidenceBadge
+                evidence={candidate.evidence}
+                value={candidate.qualificationScore}
+                timing={candidate.timingScore}
+              />
+            </div>
           </div>
         </summary>
 
@@ -182,10 +187,11 @@ export default function CandidateDetail({
           needed first. The findings were all in the prose, which is the one
           thing nobody reads before deciding. So the findings lead now and
           the paragraph supports them. */}
-      <section>
-        <Subheading className="section-title">Why This Prospect, Now</Subheading>
-        <WhyNow signals={signals} summary={candidate.summary} />
-      </section>
+      <WhyNow
+        signals={signals}
+        summary={candidate.summary}
+        Subheading={Subheading}
+      />
 
       {/* ── ACT — contact details and outcome capture in one block ── */}
       {contactKit ? (
@@ -232,19 +238,6 @@ export default function CandidateDetail({
  *  established physician, new to Illinois". Splitting them is what lets the
  *  fact be loud and the meaning quiet, instead of one grey line doing both.
  */
-/** Stored signal copy pluralises as "6 year(s)" — unremarkable in a log,
- *  wrong in bold at the top of a profile. The generator no longer writes it
- *  (see _plural in app/scoring/detector.py), but descriptions are written at
- *  ingest, so every prospect already in the book still carries the old
- *  wording. Tidied on the way out rather than by re-running a sweep. */
-function tidyPlural(text: string): string {
-  return text.replace(
-    /\b(\d+)\s+([A-Za-z]+)\(s\)/g,
-    (_m, n: string, unit: string) =>
-      `${n} ${unit}${Number(n) === 1 ? "" : "s"}`,
-  );
-}
-
 function splitSignal(raw: string): [string, string | null] {
   const description = tidyPlural(raw);
   const paren = /^(.*?)\s*\(([^)]+)\)\s*$/;
@@ -281,82 +274,121 @@ function fmtSignalDate(iso: string): string {
 function WhyNow({
   signals,
   summary,
+  Subheading,
 }: {
   signals?: SignalItem[];
   summary?: string;
+  Subheading: "h2" | "h3";
 }) {
   const found = signals ?? [];
   const events = found.filter((s) => s.eventDate);
   const standing = found.filter((s) => !s.eventDate);
+  const insight = lastClause(summary);
 
   // Nothing found: the paragraph is all there is, so it carries the section.
   if (found.length === 0)
     return (
-      <p className="mt-2 max-w-[680px] text-[15px] leading-[24px] text-ink-muted">
-        {summary}
-      </p>
+      <section>
+        <Subheading className="section-title">
+          Why This Prospect, Now
+        </Subheading>
+        <p className="max-w-[680px] text-[15px] leading-[24px] text-ink-muted">
+          {summary}
+        </p>
+      </section>
     );
 
   return (
     <>
       {events.length > 0 ? (
-        <ul className="mt-3 space-y-2">
-          {events.map((signal) => {
-            const [fact, meaning] = splitSignal(signal.description);
-            return (
-              <li
-                key={signal.type}
-                className="rounded-[12px] border border-hairline bg-surface-soft px-4 py-3"
-              >
-                <p className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-                  <span className="font-display text-[16px] font-bold text-ink">
-                    {fact}
-                  </span>
-                  {signal.eventDate ? (
-                    <span className="font-display text-[12px] font-semibold text-brand">
-                      {fmtSignalDate(signal.eventDate)}
+        <section>
+          <Subheading className="section-title">Why now</Subheading>
+          <ul className="space-y-2">
+            {events.map((signal) => {
+              const [fact, meaning] = splitSignal(signal.description);
+              return (
+                <li
+                  key={signal.type}
+                  className="rounded-[12px] border border-hairline bg-surface-soft px-4 py-3"
+                >
+                  <p className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+                    <span className="font-display text-[16px] font-bold text-ink">
+                      {fact}
                     </span>
-                  ) : null}
-                </p>
-                {meaning ? (
-                  <p className="mt-0.5 text-[14px] leading-[20px] text-ink-muted">
-                    {meaning}
+                    {signal.eventDate ? (
+                      <span className="font-display text-[12px] font-semibold text-brand">
+                        {fmtSignalDate(signal.eventDate)}
+                      </span>
+                    ) : null}
                   </p>
-                ) : null}
-              </li>
-            );
-          })}
-        </ul>
+                  {meaning ? (
+                    <p className="mt-0.5 text-[14px] leading-[20px] text-ink-muted">
+                      {meaning}
+                    </p>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
       ) : null}
 
       {standing.length > 0 ? (
-        <ul className="mt-3 grid gap-x-8 gap-y-1.5 sm:grid-cols-2">
-          {standing.map((signal) => {
-            const [fact, meaning] = splitSignal(signal.description);
-            return (
-              <li key={signal.type} className="flex items-baseline gap-2">
-                <span aria-hidden className="text-[12px] text-tier-strong-fg">
-                  ✓
-                </span>
-                <span className="min-w-0 text-[14px] leading-[20px]">
-                  <span className="font-display font-semibold text-ink">
-                    {fact}
+        <section className="mt-6">
+          <Subheading className="section-title">Why them</Subheading>
+          <ul className="grid gap-x-8 gap-y-1.5 sm:grid-cols-2">
+            {standing.map((signal) => {
+              const [fact, meaning] = splitSignal(signal.description);
+              return (
+                <li key={signal.type} className="flex items-baseline gap-2">
+                  <span aria-hidden className="text-[12px] text-tier-strong-fg">
+                    ✓
                   </span>
-                  {meaning ? (
-                    <span className="text-ink-muted"> — {meaning}</span>
-                  ) : null}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      ) : null}
-
-      {summary ? (
-        <p className="mt-3 max-w-[680px] text-[14px] leading-[22px] text-ink-muted">
-          {summary}
-        </p>
+                  <span className="min-w-0 text-[14px] leading-[20px]">
+                    <span className="font-display font-semibold text-ink">
+                      {fact}
+                    </span>
+                    {meaning ? (
+                      <span className="text-ink-muted"> — {meaning}</span>
+                    ) : null}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+          {/* Only the judgement survives. Every fact the paragraph used to
+              recite is now printed above it in larger type, so what is left
+              is the one thing the bullets cannot say. */}
+          {insight ? (
+            <p className="mt-3 max-w-[620px] border-l-2 border-hairline pl-3 text-[14px] leading-[21px] text-ink-muted">
+              {insight}
+            </p>
+          ) : null}
+        </section>
       ) : null}
     </>
   );
+}
+
+/** The part of the summary the bullets above it do not already say.
+ *
+ *  The paragraph was written when it was the only place the case lived, so
+ *  it opens by reciting the specialty, the licence date and the years in
+ *  practice — all of which are now printed above it, larger. What it adds is
+ *  the interpretation it closes on, and that is worth keeping.
+ */
+function lastClause(summary?: string): string | null {
+  if (!summary) return null;
+  const parts = summary.split(" — ");
+  const tail = (parts.length > 1 ? parts[parts.length - 1] : summary).trim();
+  // Only trade the whole paragraph for its tail when the tail is a sentence
+  // in its own right; otherwise keep what we were given.
+  if (parts.length > 1 && tail.split(" ").length >= 5) {
+    // The tail was a clause, so it often opens on the conjunction that
+    // joined it — "and relocations are when…" reads as a fragment once the
+    // first half is gone.
+    const lead = tail.replace(/^(and|but|so|which|because)\s+/i, "");
+    return lead.charAt(0).toUpperCase() + lead.slice(1);
+  }
+  return summary;
 }

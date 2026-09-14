@@ -29,6 +29,12 @@ export default function CandidateDossier({
   const hasChanges = fieldChanges.length > 0;
   // One snapshot is a dot, not a trajectory — there is nothing to plot yet.
   const hasTrajectory = scoreHistory.length > 1;
+  // A flat line across eight sweeps is real information, and it is "nothing
+  // happened" — which does not deserve a section and a chart above the
+  // reason to call. Folded away until the fit has actually moved.
+  const moved =
+    hasTrajectory &&
+    scoreHistory.some((s) => s.total !== scoreHistory[0].total);
 
   // Nothing here until an ingest gives it something to say, so the whole
   // band disappears rather than standing empty under a heading.
@@ -36,7 +42,16 @@ export default function CandidateDossier({
 
   return (
     <div className="mt-7 flex flex-col gap-3">
-      {hasTrajectory ? (
+      {hasTrajectory && !moved ? (
+        <p className="text-[13px] text-ink-muted">
+          <span className="font-display font-semibold text-ink">
+            Fit steady at {scoreHistory[scoreHistory.length - 1].total}
+          </span>{" "}
+          across {scoreHistory.length} ingests — nothing has moved.
+        </p>
+      ) : null}
+
+      {hasTrajectory && moved ? (
         <section className="rounded-[16px] bg-white px-6 py-4 shadow-card">
           <div className="flex items-center gap-2">
             <h2 className="section-title">Fit Across Ingests</h2>
