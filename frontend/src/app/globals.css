@@ -85,7 +85,6 @@ body {
   letter-spacing: 1.1px;
   text-transform: uppercase;
   color: var(--color-ink-muted);
-  margin-bottom: 10px;
 
   &::before {
     content: "";

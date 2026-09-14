@@ -219,7 +219,7 @@ export default function CandidateDetail({
           lives in the Reach Out block above. This only answers "how do you
           know?", so it is cited, not offered as a button. */}
       <div className="sources-note mt-7 border-t border-surface-soft pt-3">
-        <p className="section-title">How we know</p>
+        <p className="section-title mb-2.5">How we know</p>
         <div className="mt-2">
           <Citation
             href={`/prospect/${candidate.id}/how-we-know`}
@@ -289,7 +289,7 @@ function WhyNow({
   if (found.length === 0)
     return (
       <section>
-        <Subheading className="section-title">
+        <Subheading className="section-title mb-2.5">
           Why This Prospect, Now
         </Subheading>
         <p className="max-w-[680px] text-[15px] leading-[24px] text-ink-muted">
@@ -302,7 +302,7 @@ function WhyNow({
     <>
       {events.length > 0 ? (
         <section>
-          <Subheading className="section-title">Why now</Subheading>
+          <Subheading className="section-title mb-2.5">Why now</Subheading>
           <ul className="space-y-2">
             {events.map((signal) => {
               const [fact, meaning] = splitSignal(signal.description);
@@ -335,7 +335,7 @@ function WhyNow({
 
       {standing.length > 0 ? (
         <section className="mt-6">
-          <Subheading className="section-title">Why them</Subheading>
+          <Subheading className="section-title mb-2.5">Why them</Subheading>
           <ul className="grid gap-x-8 gap-y-1.5 sm:grid-cols-2">
             {standing.map((signal) => {
               const [fact, meaning] = splitSignal(signal.description);

@@ -53,7 +53,7 @@ export default function CandidateDossier({
 
       {hasTrajectory && moved ? (
         <section className="rounded-[16px] bg-white px-6 py-4 shadow-card">
-          <div className="flex items-center gap-2">
+          <div className="mb-2.5 flex items-center gap-2">
             <h2 className="section-title">Fit Across Ingests</h2>
             <span className="ml-auto rounded-full bg-canvas px-2.5 py-1 font-display text-[11px] font-semibold text-ink-muted">
               {scoreHistory.length} snapshots

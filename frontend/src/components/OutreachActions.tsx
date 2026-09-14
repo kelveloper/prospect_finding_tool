@@ -402,7 +402,7 @@ export default function OutreachActions({
 
   return (
     <div className="mt-7">
-      <p className="section-title">Log the outcome</p>
+      <p className="section-title mb-2.5">Log the outcome</p>
 
       {step === "done" && !revising ? (
         <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-2">

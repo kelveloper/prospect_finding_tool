@@ -28,7 +28,7 @@ export default function ContactKitCard({
 
   return (
     <section className="mt-7">
-      <div className="flex items-center gap-3">
+      <div className="mb-2.5 flex items-center gap-3">
         {/* Named for the act, not the reference. Two facts side by side in
             equal tiles is a card you consult; this is the step you take. */}
         <h2 className="section-title">Do this next</h2>
