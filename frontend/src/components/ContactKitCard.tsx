@@ -68,9 +68,9 @@ export default function ContactKitCard({
   ];
 
   return (
-    <section className="mt-5">
+    <section className="mt-7">
       <div className="flex items-center gap-3">
-        <h2 className="eyebrow">Reach Out</h2>
+        <h2 className="section-title">Reach Out</h2>
         {kit.urgency === "elevated" ? (
           <span className="rounded-full bg-tier-neutral-bg px-3 py-1 font-display text-[11px] font-semibold text-tier-neutral-fg">
             Hot — Act Soon

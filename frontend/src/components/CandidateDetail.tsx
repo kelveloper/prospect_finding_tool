@@ -183,7 +183,7 @@ export default function CandidateDetail({
           thing nobody reads before deciding. So the findings lead now and
           the paragraph supports them. */}
       <section>
-        <Subheading className="eyebrow">Why This Prospect, Now</Subheading>
+        <Subheading className="section-title">Why This Prospect, Now</Subheading>
         <WhyNow signals={signals} summary={candidate.summary} />
       </section>
 
@@ -212,8 +212,8 @@ export default function CandidateDetail({
       {/* The advisor's actual next step — call, write, log the outcome —
           lives in the Reach Out block above. This only answers "how do you
           know?", so it is cited, not offered as a button. */}
-      <div className="sources-note mt-5 border-t border-surface-soft pt-3">
-        <p className="eyebrow">How we know</p>
+      <div className="sources-note mt-7 border-t border-surface-soft pt-3">
+        <p className="section-title">How we know</p>
         <div className="mt-2">
           <Citation
             href={`/prospect/${candidate.id}/how-we-know`}

@@ -401,8 +401,8 @@ export default function OutreachActions({
         : "Did you reach them?";
 
   return (
-    <div className="mt-5">
-      <p className="eyebrow">Log the outcome</p>
+    <div className="mt-7">
+      <p className="section-title">Log the outcome</p>
 
       {step === "done" && !revising ? (
         <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-2">
