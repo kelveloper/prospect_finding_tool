@@ -14,7 +14,6 @@ import { ChevronLeft, ChevronRight, CloseIcon } from "./icons";
 import {
   changeHint,
   changeMatcher,
-  realMove,
   scoreMoved,
   summarizeChanges,
 } from "@/lib/changes";
@@ -59,73 +58,6 @@ const TIER_ORDER = ["strong", "promising", "neutral", "weak", "poor"];
  *  is for. Giving them a bucket makes them reachable by filter too. */
 const QUIET = "No recent event";
 
-/** Every column an entry prints, orderable both ways. A ledger has no
- *  "ascending" — it has a front and a back, so the flip is worded that way
- *  and each field says what its two ends mean. */
-const SORTS = {
-  rank: {
-    // The board is ranked by fit score, so this is both orderings at once —
-    // named for both so neither reader goes looking for a missing option.
-    label: "Rank / fit score",
-    front: "Best first",
-    back: "Lowest first",
-    cmp: (a: Entry, b: Entry) => a.rank - b.rank,
-  },
-  evidence: {
-    label: "Evidence",
-    front: "Best evidenced first",
-    back: "Thinnest first",
-    cmp: (a: Entry, b: Entry) =>
-      b.evidence.found - a.evidence.found || a.rank - b.rank,
-  },
-  tier: {
-    label: "Tier",
-    front: "Strong first",
-    back: "Poor first",
-    cmp: (a: Entry, b: Entry) =>
-      TIER_ORDER.indexOf(a.tier) - TIER_ORDER.indexOf(b.tier) ||
-      a.rank - b.rank,
-  },
-  movement: {
-    label: "Movement",
-    front: "Biggest risers",
-    back: "Biggest fallers",
-    cmp: (a: Entry, b: Entry) => realMove(b) - realMove(a) || a.rank - b.rank,
-  },
-  name: {
-    label: "Name",
-    front: "A–Z",
-    back: "Z–A",
-    cmp: (a: Entry, b: Entry) => a.name.localeCompare(b.name),
-  },
-  specialty: {
-    label: "Specialty",
-    front: "A–Z",
-    back: "Z–A",
-    cmp: (a: Entry, b: Entry) =>
-      a.specialty.localeCompare(b.specialty) || a.rank - b.rank,
-  },
-  trigger: {
-    label: "Why now",
-    front: "Most recent events first",
-    back: "Quiet prospects first",
-    // Rank keeps the order stable inside each group.
-    cmp: (a: Entry, b: Entry) =>
-      Number(!!b.trigger) - Number(!!a.trigger) ||
-      (a.trigger?.label ?? "").localeCompare(b.trigger?.label ?? "") ||
-      a.rank - b.rank,
-  },
-  location: {
-    label: "Location",
-    front: "A–Z",
-    back: "Z–A",
-    cmp: (a: Entry, b: Entry) =>
-      a.location.localeCompare(b.location) || a.rank - b.rank,
-  },
-} as const;
-
-type SortKey = keyof typeof SORTS;
-
 type Props = {
   ranked: Candidate[];
   /** Where the reader is placed: the line is marked and the book opens on
@@ -151,51 +83,8 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
   const [location, setLocation] = useState("all");
   const [trigger, setTrigger] = useState("all");
   const [query, setQuery] = useState("");
-  const [sort, setSort] = useState<SortKey>("rank");
-  const [fromBack, setFromBack] = useState(false);
   const [onlyNew, setOnlyNew] = useState(false);
   const [onlyChanged, setOnlyChanged] = useState(false);
-  // A native <details> only closes from its own summary, so an open column
-  // menu followed the advisor around the page. Close on any click outside one,
-  // and on Escape. Done against the DOM rather than React state because the
-  // open flag belongs to the element — mirroring it would be a second source
-  // of truth to keep in step.
-  useEffect(() => {
-    const menus = () =>
-      document.querySelectorAll<HTMLDetailsElement>(
-        'details[name="book-column-menu"][open]',
-      );
-
-    const onPointerDown = (event: MouseEvent) => {
-      const target = event.target;
-      if (
-        target instanceof Element &&
-        target.closest('details[name="book-column-menu"]')
-      ) {
-        return;
-      }
-      menus().forEach((menu) => (menu.open = false));
-    };
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
-      const open = menus();
-      if (open.length === 0) return;
-      // Put focus back where it came from, so Escape does not strand it.
-      open.forEach((menu) => {
-        menu.open = false;
-        menu.querySelector("summary")?.focus();
-      });
-    };
-
-    document.addEventListener("mousedown", onPointerDown);
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("mousedown", onPointerDown);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, []);
-
   /** null = not naming; "" = naming a new view; an id = renaming that one. */
   const [naming, setNaming] = useState<string | null>(null);
   const [draftName, setDraftName] = useState("");
@@ -214,20 +103,8 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
       query,
       onlyNew,
       onlyChanged,
-      sort,
-      fromBack,
     }),
-    [
-      specialty,
-      tier,
-      location,
-      trigger,
-      query,
-      onlyNew,
-      onlyChanged,
-      sort,
-      fromBack,
-    ],
+    [specialty, tier, location, trigger, query, onlyNew, onlyChanged],
   );
 
   function applyState(next: BookViewState) {
@@ -238,12 +115,6 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
     setQuery(next.query ?? "");
     setOnlyNew(!!next.onlyNew);
     setOnlyChanged(!!next.onlyChanged);
-    setSort(
-      ((next.sort as SortKey) ?? "rank") in SORTS
-        ? (next.sort as SortKey)
-        : "rank",
-    );
-    setFromBack(!!next.fromBack);
     setTurned({ spread: 0, forPlacement: placedId });
   }
 
@@ -364,33 +235,19 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
     ];
   }, [entries]);
 
+  /* Rank order, always. The book's whole claim is that the advisor is not
+     choosing who to work on because the ranking already did — so the one
+     thing it must not offer is a way to un-rank itself. Filtering narrows
+     the book and leaves the order intact; sorting replaced it. */
   const shown = useMemo(
-    () =>
-      entries.filter(matches(viewState)).sort((a, b) => {
-        // A prospect that has not moved is no more a faller than a riser, so
-        // it sits after everything that has moved — whichever end we read
-        // from. Parking therefore has to survive the flip, not invert with it.
-        if (sort === "movement") {
-          const am = realMove(a);
-          const bm = realMove(b);
-          if ((am === 0) !== (bm === 0)) return am === 0 ? 1 : -1;
-        }
-        return SORTS[sort].cmp(a, b) * (fromBack ? -1 : 1);
-      }),
-    [entries, matches, viewState, sort, fromBack],
+    () => entries.filter(matches(viewState)).sort((a, b) => a.rank - b.rank),
+    [entries, matches, viewState],
   );
-
-  /** Clicking a menu entry both picks the column and sets which end to read
-   *  from, so one call covers what were two controls. */
-  const setOrder = (key: SortKey, back: boolean) => {
-    setSort(key);
-    setFromBack(back);
-  };
 
   /** Nothing to save when the filters are empty, already stored, or exactly
    *  one of the built-in chips. */
   const saveBlockedBecause = isEmpty(viewState)
-    ? "Nothing to save yet — filter or re-order the book first, then save that as a view you can come back to."
+    ? "Nothing to save yet — filter the book first, then save that as a view you can come back to."
     : sameState(viewState, { ...EMPTY_STATE, onlyChanged: true })
       ? "This is already the What changed view."
       : (views.find((v) => sameState(viewState, v.state))?.name ?? null);
@@ -559,72 +416,46 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
                 #
               </span>
             </span>
-            {/* Two heads, because the cell prints two facts and either can
-                order the book. Side by side rather than stacked: the pair
-                fits the cell twice over, and stacking them made the header
-                two lines deep to say what fits on one. Separate menus, not
-                one shared: a reader looking to sort by city should not have
-                to open a menu labelled "Specialty" to find it. */}
+            {/* Two heads, because the cell prints two facts. Side by side
+                rather than stacked: the pair fits the cell twice over, and
+                stacking them made the header two lines deep to say what
+                fits on one. */}
             <span className="flex min-w-0 flex-1 items-center gap-4">
-              <ColumnMenu
-                sortKey="specialty"
+              <ColumnHead
                 heading="Specialty"
                 hint="What they practice."
-                activeSort={sort}
-                fromBack={fromBack}
-                onSort={setOrder}
               />
-              <ColumnMenu
-                sortKey="location"
+              <ColumnHead
                 heading="Location"
                 hint="Where they practice."
-                activeSort={sort}
-                fromBack={fromBack}
-                onSort={setOrder}
               />
             </span>
             <span className="hidden w-[104px] shrink-0 lg:block">
-              <ColumnMenu
-                sortKey="trigger"
+              <ColumnHead
                 heading="Why now"
                 hint="The most recent event worth calling about — a new license, a practice, a property purchase."
-                activeSort={sort}
-                fromBack={fromBack}
-                onSort={setOrder}
               />
             </span>
             <span className="hidden w-[86px] shrink-0 md:block">
-              <ColumnMenu
-                sortKey="evidence"
+              <ColumnHead
                 heading="Evidence"
                 hint="How many of the seven signals we look for were actually found for this prospect."
-                activeSort={sort}
-                fromBack={fromBack}
-                onSort={setOrder}
               />
             </span>
             {hasMovement ? (
               <span className="hidden w-[78px] shrink-0 text-right md:block">
-                <ColumnMenu
-                  sortKey="movement"
-                  heading="Move"
-                  hint="How the fit score has changed since the last data refresh."
-                  align="right"
-                  activeSort={sort}
-                  fromBack={fromBack}
-                  onSort={setOrder}
-                />
+                <ColumnHead
+                heading="Move"
+                hint="How the fit score has changed since the last data refresh."
+                align="right"
+              />
               </span>
             ) : null}
             <span className="w-[104px] shrink-0">
-              <ColumnMenu
-                sortKey="tier"
+              <ColumnHead
                 heading="Fit"
                 hint="Fit — value × how fresh the trigger is — and the band it falls in by standing. The board is ranked by it."
                 align="right"
-                activeSort={sort}
-                fromBack={fromBack}
-                onSort={setOrder}
               />
             </span>
           </div>
@@ -1005,109 +836,39 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
   );
 }
 
-/** One column heading. The caret opens an Excel-style menu: sort both ways,
- *  Ordering only — filtering moved out to the quick filters above the book,
- *  so a dimension has one home rather than two. Native <details>, so no
- *  open/close state and the keyboard works for free. */
-function ColumnMenu({
-  sortKey,
+/** One column heading.
+
+ *  A label and its meaning, and nothing to click. It used to open a menu
+ *  that sorted the book both ways, on all five columns — ten menus and
+ *  twenty buttons per spread, against four quick filters. Four of the five
+ *  sorts were a worse version of a filter that already existed: filtering to
+ *  Orthopaedic Surgery gives you that group, tells you it is 84 people, and
+ *  leaves them ranked, where sorting A–Z gave you all 221 in an order no
+ *  advisor asked for. The fifth was "Fit", whose front end is the book's own
+ *  order and whose back end is the board upside down.
+ *
+ *  The hint survives because it is the half that was doing work: "Evidence"
+ *  means nothing until it says "how many of the seven signals we look for
+ *  were actually found". */
+function ColumnHead({
   heading,
   hint,
   align = "left",
-  activeSort,
-  fromBack,
-  onSort,
 }: {
-  sortKey: SortKey;
   heading: string;
   /** Plain-English meaning — a column head is a label, not an explanation. */
   hint?: string;
   align?: "left" | "right";
-  activeSort: SortKey;
-  fromBack: boolean;
-  onSort: (key: SortKey, back: boolean) => void;
 }) {
-  const active = activeSort === sortKey;
-  const sort = SORTS[sortKey];
-
   return (
-    <details
-      // Shared name makes these an exclusive accordion: opening one column's
-      // menu closes whichever was open, across both pages, with no state.
-      name="book-column-menu"
-      className="group/menu relative"
+    <span
+      title={hint ? `${heading} — ${hint}` : heading}
+      className={
+        "eyebrow block cursor-help " + (align === "right" ? "text-right" : "")
+      }
     >
-      <summary
-        title={
-          (hint ? `${heading} — ${hint}` : `Sort or filter by ${heading}`) +
-          (active
-            ? `\n\nSorting by this, ${fromBack ? SORTS[sortKey].back : SORTS[sortKey].front}.`
-            : "")
-        }
-        className={
-          "flex cursor-pointer list-none items-center gap-1 [&::-webkit-details-marker]:hidden " +
-          (align === "right" ? "justify-end" : "")
-        }
-      >
-        <span
-          className="eyebrow"
-          // A filtered column prints the value it is filtered to, so the
-          // heading answers "what is hiding rows?" without being opened.
-          style={active ? { color: "var(--color-brand)" } : undefined}
-        >
-          {heading}
-        </span>
-        <svg
-          aria-hidden
-          viewBox="0 0 12 12"
-          className={
-            "size-3 shrink-0 transition-transform " +
-            (active
-              ? fromBack
-                ? "text-brand"
-                : "rotate-180 text-brand"
-              : "group-open/menu:rotate-180 " + "text-ink-faint")
-          }
-        >
-          <path
-            d="M3 4.5 6 8l3-3.5"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </summary>
-
-      <div
-        className={
-          "absolute z-20 mt-1 w-[248px] rounded-[10px] border border-hairline bg-white p-1.5 shadow-panel " +
-          (align === "right" ? "right-0" : "left-0")
-        }
-      >
-        <button
-          type="button"
-          onClick={() => onSort(sortKey, false)}
-          className="flex w-full items-center gap-2 rounded-[6px] px-2 py-1.5 text-left text-[12px] text-ink hover:bg-canvas"
-        >
-          <span aria-hidden className="w-3 text-brand">
-            {active && !fromBack ? "✓" : ""}
-          </span>
-          {sort.front}
-        </button>
-        <button
-          type="button"
-          onClick={() => onSort(sortKey, true)}
-          className="flex w-full items-center gap-2 rounded-[6px] px-2 py-1.5 text-left text-[12px] text-ink hover:bg-canvas"
-        >
-          <span aria-hidden className="w-3 text-brand">
-            {active && fromBack ? "✓" : ""}
-          </span>
-          {sort.back}
-        </button>
-      </div>
-    </details>
+      {heading}
+    </span>
   );
 }
 
