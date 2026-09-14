@@ -36,6 +36,8 @@ So an advisor is not choosing who to work on.
 
 **The list already did that.**
 
+> The 55 new arrivals are already said on the opening page — don't repeat the number here.
+
 And there are **three helpful things** this tool gives an advisor.
 
 The first is **who to call first** — that is this. The list is already ordered.
@@ -201,9 +203,21 @@ Row three says **"SPOKE"**. Row seven says **"NO ANSWER"**.
 
 So an advisor who called four people yesterday **opens this and can see it.**
 
+### 👆 SAY THIS WHILE THE OUTREACH COLUMN IS UP
+
+And this matters more when there is **more than one advisor.**
+
+**Everyone works the same book** — so the moment one of them logs a call, **everybody else sees it.** The row steps back, and the next person down the desk doesn't ring a doctor who was spoken to yesterday.
+
+**We didn't want two advisors quietly working the same list.**
+
+> ⚠️ Say **"they can see it"**, not **"it's assigned to them."** What's built is *shared visibility* — one board, one outreach log, a column showing what's been done. What is **not** built is assignment: nothing reserves a prospect, and `outreach_events` has no advisor column, so the book shows *that* someone called, not *who*. Two advisors dialling the same minute would still collide.
+>
+> If he pushes: *"Attribution and assignment are the obvious next step, and the log is the right place for it — it's one column. Today the honest claim is that the work is visible, not that it's divided."*
+
 ### 👆 POINT TO "SINCE LAST REFRESH · 69"
 
-And this is the morning routine: **69 prospects are different since the last refresh** — 55 arrived, 14 moved.
+And this is the morning routine: **69 prospects are different since the last refresh** — those new arrivals, plus 14 whose score moved.
 
 ### 👆 CLICK IT
 
