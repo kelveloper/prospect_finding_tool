@@ -41,32 +41,42 @@ export default function CandidateDossier({
   if (!hasChanges && !hasTrajectory) return null;
 
   return (
-    <div className="mt-7 flex flex-col gap-3">
-      {hasTrajectory && !moved ? (
-        <p className="text-[13px] text-ink-muted">
-          <span className="font-display font-semibold text-ink">
-            Fit steady at {scoreHistory[scoreHistory.length - 1].total}
-          </span>{" "}
-          across {scoreHistory.length} ingests — nothing has moved.
-        </p>
-      ) : null}
-
-      {hasTrajectory && moved ? (
-        <section className="rounded-[16px] bg-white px-6 py-4 shadow-card">
-          <div className="mb-2.5 flex items-center gap-2">
-            <h2 className="section-title">Fit Across Ingests</h2>
-            <span className="ml-auto rounded-full bg-canvas px-2.5 py-1 font-display text-[11px] font-semibold text-ink-muted">
-              {scoreHistory.length} snapshots
+    <div className="mt-5 flex flex-col gap-3">
+      {hasTrajectory ? (
+        <details className="group/fit">
+          {/* Two hundred pixels of chart to show a point or two of drift was
+              the worst value per pixel on the page, and it sat between the
+              advisor and the rest of the profile. The summary carries the
+              only part most readers want — where it is now, and whether it
+              moved — and the chart is one click away for the times it is
+              the question. */}
+          <summary className="flex cursor-pointer list-none items-center gap-2 text-[13px] text-ink-muted [&::-webkit-details-marker]:hidden">
+            <span className="font-display font-semibold text-ink">
+              Fit {scoreHistory[scoreHistory.length - 1].total}
             </span>
-          </div>
-          <p className="mt-0.5 text-[12px] text-ink-muted">
-            Hover a point for that ingest&rsquo;s scores and why they moved
-          </p>
+            <span>
+              {moved
+                ? `moved across ${scoreHistory.length} ingests`
+                : `steady across ${scoreHistory.length} ingests`}
+            </span>
+            <span className="font-display text-[12px] font-semibold text-brand group-open/fit:hidden">
+              Show history
+            </span>
+            <span className="hidden font-display text-[12px] font-semibold text-brand group-open/fit:inline">
+              Hide history
+            </span>
+          </summary>
 
-          <div className="mt-3">
-            <ScoreSparkline history={scoreHistory} changes={fieldChanges} />
+          <div className="mt-3 rounded-[16px] bg-white px-6 py-4 shadow-card">
+            <p className="text-[12px] text-ink-muted">
+              Hover a point for that ingest&rsquo;s scores and why they moved
+              &middot; {scoreHistory.length} snapshots
+            </p>
+            <div className="mt-3">
+              <ScoreSparkline history={scoreHistory} changes={fieldChanges} />
+            </div>
           </div>
-        </section>
+        </details>
       ) : null}
 
       {hasChanges ? (

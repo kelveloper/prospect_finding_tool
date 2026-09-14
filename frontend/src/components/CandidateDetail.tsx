@@ -88,13 +88,13 @@ export default function CandidateDetail({
         >
           <div className="min-w-0">
             <p className="eyebrow">{candidate.category}</p>
-            <Heading className="mt-1 font-display text-[30px] font-bold tracking-[-0.75px] text-ink">
+            <Heading className="mt-0.5 font-display text-[26px] font-bold tracking-[-0.6px] text-ink">
               {candidate.name}
             </Heading>
             {/* The location is the practice address. On the rows where that
                 sits outside the state we searched, say so here — otherwise
                 the header reads like the wrong person. */}
-            <p className="mt-1 text-[16px] text-ink-muted">
+            <p className="mt-0.5 text-[15px] text-ink-muted">
               {candidate.location}
               {candidate.licenseNote ? (
                 <span className="text-ink-faint">
@@ -107,7 +107,7 @@ export default function CandidateDetail({
             {/* Trust line: how sure we are these records are one person. */}
             {profile ? (
               <>
-                <p className="mt-3">
+                <p className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-2">
                   <span
                     className={
                       "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-display text-[12px] font-semibold " +
@@ -119,22 +119,23 @@ export default function CandidateDetail({
                     {profile.identityVerified ? "✓" : "◌"}{" "}
                     {profile.identityLine}
                   </span>
-                </p>
 
-                {/* The affordance for the whole block, not a control of its own —
-                  it sits inside the summary, so the click is already handled.
-                  On its own line under the pill so it reads as the invitation
-                  to open the record rather than a second badge. */}
-                <p className="mt-3 mb-1 flex w-fit items-center gap-1.5 font-display text-[13px] font-semibold text-brand opacity-80 transition-opacity group-hover:opacity-100">
-                  <span className="group-open:hidden">See the records</span>
-                  <span className="hidden group-open:inline">
-                    Hide the records
-                  </span>
-                  <span
-                    aria-hidden
-                    className="text-[10px] transition-transform group-open:rotate-180"
-                  >
-                    ▼
+                  {/* The affordance for the whole block, not a control of its
+                      own — it sits inside the summary, so the click is already
+                      handled. Beside the pill rather than under it: two rows
+                      for a badge and four words is more than either is
+                      worth. */}
+                  <span className="flex w-fit items-center gap-1.5 font-display text-[13px] font-semibold text-brand opacity-80 transition-opacity group-hover:opacity-100">
+                    <span className="group-open:hidden">See the records</span>
+                    <span className="hidden group-open:inline">
+                      Hide the records
+                    </span>
+                    <span
+                      aria-hidden
+                      className="text-[10px] transition-transform group-open:rotate-180"
+                    >
+                      ▼
+                    </span>
                   </span>
                 </p>
               </>
@@ -219,8 +220,8 @@ export default function CandidateDetail({
           lives in the Reach Out block above. This only answers "how do you
           know?", so it is cited, not offered as a button. */}
       <div className="sources-note mt-7 border-t border-surface-soft pt-3">
-        <p className="section-title mb-2.5">How we know</p>
-        <div className="mt-2">
+        <p className="section-title mb-1.5">How we know</p>
+        <div>
           <Citation
             href={`/prospect/${candidate.id}/how-we-know`}
             label="The facts, how we matched them, and what each was worth"

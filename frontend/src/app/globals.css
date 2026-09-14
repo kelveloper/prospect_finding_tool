@@ -80,11 +80,11 @@ body {
   gap: 9px;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 12px;
   line-height: 16px;
-  letter-spacing: 1.1px;
+  font-size: 12.5px;
+  letter-spacing: 1.2px;
   text-transform: uppercase;
-  color: var(--color-ink-muted);
+  color: var(--color-ink);
 
   &::before {
     content: "";
@@ -99,7 +99,7 @@ body {
 @utility eyebrow {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 11px;
+  font-size: 10.5px;
   line-height: 16.5px;
   letter-spacing: 1px;
   text-transform: uppercase;
