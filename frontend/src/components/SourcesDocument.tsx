@@ -641,11 +641,11 @@ export default function SourcesDocument({
               <span>How sure</span>
               <span>How much it counts</span>
             </div>
-            {ordered.map((signal) => {
+            {ordered.map((signal, i) => {
               const mentioned = signal.strength >= NARRATION_FLOOR;
               return (
                 <div
-                  key={`${signal.type}-${signal.source}`}
+                  key={`${signal.type}-${signal.source}-${i}`}
                   className="grid grid-cols-1 items-center gap-2 border-b border-surface-soft px-3.5 py-3.5 last:border-b-0 md:grid-cols-[minmax(240px,2fr)_minmax(150px,1fr)_112px_150px] md:gap-4"
                 >
                   <span>

@@ -15,7 +15,7 @@ import {
 } from "@/lib/audit";
 import {
   changeHint,
-  changeLabel,
+  CHANGED_LABEL,
   changeMatcher,
   summarizeChanges,
 } from "@/lib/changes";
@@ -52,7 +52,7 @@ export default function Scoreboard({
   dossier,
   onSelect,
 }: Props) {
-  // "What changed" — new arrivals and movers. The alert above the list
+  // "Since last refresh" — new arrivals and movers. The alert above the list
   // doubles as the toggle; nothing renders when nothing changed.
   const changes = useMemo(() => summarizeChanges(ranked), [ranked]);
   // Derived from the same summary as the count beside the checkbox, so the
@@ -137,7 +137,7 @@ export default function Scoreboard({
   // name the real cause: four things can empty this rail, and offering to
   // clear the search when the search is blank is a button that does nothing.
   const narrowing: string[] = [];
-  if (onlyChanged) narrowing.push(changeLabel(changes));
+  if (onlyChanged) narrowing.push(CHANGED_LABEL);
   if (triggerFilter !== "all") narrowing.push(triggerFilter);
   if (audit && auditFilter !== "all") narrowing.push("Identity audit");
   const searching = query.trim() !== "";
@@ -412,7 +412,7 @@ export default function Scoreboard({
                   className="h-3.5 w-3.5 shrink-0 accent-brand"
                 />
                 <span>
-                  {changeLabel(changes)}
+                  {CHANGED_LABEL}
                   <span className="ml-1 tabular-nums text-ink-faint">
                     · {changes.total}
                   </span>

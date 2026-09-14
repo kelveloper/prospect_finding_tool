@@ -360,11 +360,17 @@ function WhyNow({
               with the rule the heading draws to the float. The ticks below
               keep the cap, because those are lines of text. */}
           <ul className="flow-root space-y-2">
-            {events.map((signal) => {
+            {/* Keyed with the index, not the type: a prospect can carry two
+                signals of one type — two Cook County deeds, two career
+                advancements — and six in this book do. Keying on the type
+                alone made React drop the second one and warn. The list is
+                built once per prospect and never reordered, so the index is
+                stable. */}
+            {events.map((signal, i) => {
               const [fact, meaning] = splitSignal(signal.description);
               return (
                 <li
-                  key={signal.type}
+                  key={`${signal.type}-${i}`}
                   className="rounded-[12px] border border-hairline bg-surface-soft px-4 py-3"
                 >
                   <p className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
@@ -397,10 +403,13 @@ function WhyNow({
               the layout was ragged on essentially every profile to save a
               row the page no longer needs. */}
           <ul className="max-w-[45rem] space-y-2">
-            {standing.map((signal) => {
+            {standing.map((signal, i) => {
               const [fact, meaning] = splitSignal(signal.description);
               return (
-                <li key={signal.type} className="flex items-baseline gap-2">
+                <li
+                  key={`${signal.type}-${i}`}
+                  className="flex items-baseline gap-2"
+                >
                   <span aria-hidden className="text-[12px] text-tier-strong-fg">
                     ✓
                   </span>

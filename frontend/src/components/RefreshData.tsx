@@ -120,7 +120,7 @@ function secondsSince(iso: string, now: number): number {
  *  existing prospect it re-fetched and re-ran, which after a full sweep is
  *  everyone — and for most of them the score came out the same number as
  *  before. "Moved" is whose score actually changed — the honest change
- *  number, and the same one the board's What changed alert shows. */
+ *  number, and the same one the board's Since last refresh alert shows. */
 function bookChanges(
   created: number | null,
   updated: number | null,

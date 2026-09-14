@@ -12,6 +12,7 @@ import FilterSelect from "./FilterSelect";
 import { EvidenceChip, MovementChip, TriggerChip } from "./RowChips";
 import { ChevronLeft, ChevronRight, CloseIcon } from "./icons";
 import {
+  CHANGED_LABEL,
   changeHint,
   changeMatcher,
   summarizeChanges,
@@ -248,10 +249,10 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
   const saveBlockedBecause = isEmpty(viewState)
     ? "Nothing to save yet — filter the book first, then save that as a view you can come back to."
     : sameState(viewState, { ...EMPTY_STATE, onlyChanged: true })
-      ? "This is already the What changed view."
+      ? `This is already the ${CHANGED_LABEL} view.`
       : (views.find((v) => sameState(viewState, v.state))?.name ?? null);
 
-  /** Movement earns a column in the What changed view and nowhere else.
+  /** Movement earns a column in the Since last refresh view and nowhere else.
    *
    *  It used to appear in the open book too, whenever a twentieth of the
    *  board had moved. The spread cannot afford it: six columns already fill
@@ -262,7 +263,7 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
    *  on 187 rows in 276.
    *
    *  Nothing is lost. The board prints an arrow on every card that moved,
-   *  and "What changed" is one chip away — where the reader has asked for
+   *  and "Since last refresh" is one chip away — where the reader has asked for
    *  movement, so the column is worth its width.
    *
    *  There it takes Evidence's place rather than being added beside it. The
@@ -615,14 +616,15 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
             {/* Saved views live here rather than in a row of their own:
                 they are whole filter sets, so they belong beside the search
                 and the reset that act on the same state — not above the
-                controls they stand in for. "What changed" is the one that
-                turns the board from a database into a morning routine. */}
+                controls they stand in for. "Since last refresh" is the one
+                that turns the board from a database into a morning
+                routine. */}
             <div className="flex flex-wrap items-center gap-2">
               {/* New arrivals and movers together; absent when the last
                 sweep changed nothing, since there is nothing to show */}
               {changes.total > 0 ? (
                 <ViewChip
-                  label="What changed"
+                  label={CHANGED_LABEL}
                   count={changes.total}
                   active={
                     onlyChanged &&

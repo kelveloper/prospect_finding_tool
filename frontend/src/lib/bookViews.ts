@@ -10,6 +10,8 @@
  * first — worth doing, but a separate change.
  */
 
+import { CHANGED_LABEL } from "./changes";
+
 export const VIEWS_KEY = "prospectiq_book_views";
 
 /** Everything a view restores. Kept flat so an older saved view missing a
@@ -24,7 +26,8 @@ export type BookViewState = {
   trigger?: string;
   query: string;
   /** Built-ins narrow the board in ways the filter controls cannot.
-   *  `onlyNew` survives for views saved before "What changed" replaced it. */
+   *  `onlyNew` survives for views saved before the changed filter replaced
+   *  it. */
   onlyNew?: boolean;
   onlyChanged?: boolean;
 };
@@ -77,7 +80,7 @@ export function sameState(a: BookViewState, b: BookViewState): boolean {
  *  rather than counting them. The advisor can overwrite it. */
 export function describe(s: BookViewState): string {
   const parts: string[] = [];
-  if (s.onlyChanged) parts.push("What changed");
+  if (s.onlyChanged) parts.push(CHANGED_LABEL);
   if (s.onlyNew) parts.push("New arrivals");
   if (s.specialty !== "all") parts.push(s.specialty);
   if ((s.location ?? "all") !== "all") parts.push(s.location);

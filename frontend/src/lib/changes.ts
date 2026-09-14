@@ -105,10 +105,24 @@ export function changeMatcher(s: ChangeSummary): (c: Changeable) => boolean {
   return s.rescored ? (c) => c.isNew : (c) => c.isNew || scoreMoved(c);
 }
 
-/** "New arrivals" or "New arrivals and movers" — what the filter will show. */
-export function changeLabel(s: ChangeSummary): string {
-  return s.moved > 0 ? "Only new or moved" : "Only new arrivals";
-}
+/**
+ * What the filter is called, everywhere it appears.
+ *
+ * Named for *when* rather than for what it holds, because what it holds is
+ * two different things — prospects that arrived since the last refresh, and
+ * prospects whose fit moved since then — and every label that tried to name
+ * both needed a glossary. "Moved" in particular reads as jargon to anyone
+ * who has not seen the scoring: it means the fit score changed because a
+ * signal was detected, not that the prospect went anywhere.
+ *
+ * A time works for both halves without stretching, and it cannot be
+ * confused with the profile's "What Changed" card, which is about a
+ * prospect's own fields — their phone number, their address — and was the
+ * other thing this filter used to be called.
+ *
+ * The count beside it and the hover both still say the split.
+ */
+export const CHANGED_LABEL = "Since last refresh";
 
 /** "1 new · 19 moved" — only the parts that are non-zero. */
 export function describeChanges(s: ChangeSummary): string {
