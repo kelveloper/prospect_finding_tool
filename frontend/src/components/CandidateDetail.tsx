@@ -14,7 +14,7 @@ import type {
   SignalItem,
 } from "@/lib/data";
 import { isLicenseGated, standingParts, tierStyle } from "@/lib/tier";
-import { tidyPlural } from "@/lib/text";
+import { tidyParcel, tidyPlural } from "@/lib/text";
 
 type Props = {
   candidate: Candidate;
@@ -269,7 +269,7 @@ export default function CandidateDetail({
  *  fact be loud and the meaning quiet, instead of one grey line doing both.
  */
 function splitSignal(raw: string): [string, string | null] {
-  const description = tidyPlural(raw);
+  const description = tidyParcel(tidyPlural(raw));
   const paren = /^(.*?)\s*\(([^)]+)\)\s*$/;
   const dash = description.split(" — ");
   if (dash.length > 1) {
@@ -339,7 +339,11 @@ function WhyNow({
               correctly — the one arrangement that looks like a z-index bug
               and is not. Its own formatting context makes the box respect
               the float the same way the text already did. */}
-          <ul className="flow-root max-w-[45rem] space-y-2">
+          {/* No reading cap: a card is scanned, not read, so it takes the
+              width it is given — which is what makes its right edge line up
+              with the rule the heading draws to the float. The ticks below
+              keep the cap, because those are lines of text. */}
+          <ul className="flow-root space-y-2">
             {events.map((signal) => {
               const [fact, meaning] = splitSignal(signal.description);
               return (
