@@ -53,7 +53,7 @@ export default function ContactKitCard({
           The box measures 796–1076px everywhere it actually appears — the
           board, and the book's slide-over — so the stacked fallback is for
           genuinely small screens rather than for any normal use. */}
-      <div className="max-w-[45rem] rounded-[12px] bg-canvas px-5 py-4">
+      <div className="rounded-[12px] bg-canvas px-5 py-4">
         <div className="min-w-0">
           {kit.phone ? (
             <>
