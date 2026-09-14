@@ -16,14 +16,26 @@ type Action = {
 };
 
 const PRIMARY = "bg-brand text-white shadow-brand hover:bg-brand-dark";
-const QUIET = "border border-hairline bg-white text-brand hover:bg-surface-soft";
+const QUIET =
+  "border border-hairline bg-white text-brand hover:bg-surface-soft";
 const GOOD = "bg-tier-strong text-white hover:opacity-90";
-const MUTED = "border border-hairline bg-white text-ink-muted hover:bg-surface-soft";
+const MUTED =
+  "border border-hairline bg-white text-ink-muted hover:bg-surface-soft";
 
 /** Step 1 — the only thing knowable at the moment of the attempt. */
 const REACHED: Action[] = [
-  { value: "connected", label: "Yes, I spoke to them", tone: PRIMARY, needsReason: false },
-  { value: "not_connected", label: "No, couldn't reach", tone: QUIET, needsReason: true },
+  {
+    value: "connected",
+    label: "Yes, I spoke to them",
+    tone: PRIMARY,
+    needsReason: false,
+  },
+  {
+    value: "not_connected",
+    label: "No, couldn't reach",
+    tone: QUIET,
+    needsReason: true,
+  },
 ];
 
 /** Not an answer to "did you reach them?" but a way out of the question:
@@ -98,9 +110,24 @@ const NOT_PURSUED_REASONS = [
  *  the board — an outcome is only recorded — so a label that sounds like
  *  deletion is a worse lie than the one it replaced. Mark, schedule, skip. */
 const OUTCOME: Action[] = [
-  { value: "converted", label: "Mark as client", tone: GOOD, needsReason: false },
-  { value: "follow_up_later", label: "Schedule a follow-up", tone: QUIET, needsReason: true },
-  { value: "not_converted", label: "Mark as not a fit", tone: MUTED, needsReason: true },
+  {
+    value: "converted",
+    label: "Mark as client",
+    tone: GOOD,
+    needsReason: false,
+  },
+  {
+    value: "follow_up_later",
+    label: "Schedule a follow-up",
+    tone: QUIET,
+    needsReason: true,
+  },
+  {
+    value: "not_converted",
+    label: "Mark as not a fit",
+    tone: MUTED,
+    needsReason: true,
+  },
 ];
 
 /** Which question this prospect is actually at.
@@ -111,7 +138,9 @@ const OUTCOME: Action[] = [
  *                         follow_up_later loops back here on purpose: next
  *                         time round, the advisor is dialing again.
  */
-function stepFor(last: OutreachEntry | undefined): "reached" | "outcome" | "done" {
+function stepFor(
+  last: OutreachEntry | undefined,
+): "reached" | "outcome" | "done" {
   if (!last) return "reached";
   if (last.eventType === "connected") return "outcome";
   if (
@@ -167,6 +196,27 @@ const MODAL_PROMPTS: Partial<
     reasons: NOT_PURSUED_REASONS,
   },
 };
+
+/** The API's row, as it comes back from both the save and the history. */
+type ApiOutreach = {
+  id: string;
+  event_type: EventType;
+  channel: OutreachEntry["channel"];
+  notes: string | null;
+  occurred_at: string;
+  follow_up_on: string | null;
+};
+
+function toEntry(row: ApiOutreach): OutreachEntry {
+  return {
+    id: row.id,
+    eventType: row.event_type,
+    channel: row.channel,
+    notes: row.notes,
+    occurredAt: row.occurred_at,
+    followUpOn: row.follow_up_on,
+  };
+}
 
 function fmtDate(iso: string): string {
   // Date-only strings parse as UTC midnight; split to keep the local day
@@ -251,27 +301,50 @@ export default function OutreachActions({
           ? `${API_URL}/prospects/${prospectId}/outreach/${target.id}`
           : `${API_URL}/prospects/${prospectId}/outreach`,
         {
-        method: target ? "PATCH" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          event_type: eventType,
-          channel: "phone",
-          notes,
-          follow_up_on:
-            eventType === "follow_up_later" && followUpOn ? followUpOn : null,
-        }),
-      },
+          method: target ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            event_type: eventType,
+            channel: "phone",
+            notes,
+            follow_up_on:
+              eventType === "follow_up_later" && followUpOn ? followUpOn : null,
+          }),
+        },
       );
-      if (!res.ok) throw new Error(`Backend responded ${res.status}`);
-      const saved = await res.json();
-      const entry = {
-        id: saved.id,
-        eventType: saved.event_type,
-        channel: saved.channel,
-        notes: saved.notes,
-        occurredAt: saved.occurred_at,
-        followUpOn: saved.follow_up_on,
-      };
+      // A revision only holds while the event being revised is still the
+      // most recent one. Another tab, another advisor, or a page left open
+      // while something else was logged, and this panel is correcting an
+      // event the board has since moved past — the backend refuses, and it
+      // is right to. Recover rather than report a status code: reload what
+      // is actually there, drop out of revising, and say so in words.
+      if (res.status === 409) {
+        const fresh = await fetch(
+          `${API_URL}/prospects/${prospectId}/outreach`,
+        );
+        if (fresh.ok) {
+          const rows: ApiOutreach[] = await fresh.json();
+          setHistory(rows.map(toEntry));
+        }
+        setRevising(false);
+        setModalFor(null);
+        throw new Error(
+          "This prospect was updated somewhere else, so that change would " +
+            "have overwritten a newer one. The log below is up to date now — " +
+            "log it again if it still needs changing.",
+        );
+      }
+      if (!res.ok) {
+        // FastAPI puts the readable half in `detail`; a status code is not
+        // something to put in front of an advisor.
+        const body = await res.json().catch(() => null);
+        throw new Error(
+          typeof body?.detail === "string"
+            ? body.detail
+            : "Could not reach the server. Nothing was saved.",
+        );
+      }
+      const entry = toEntry(await res.json());
       setHistory(target ? [entry, ...history.slice(1)] : [entry, ...history]);
       // The board's cached payload carries outreach state — drop it so the
       // next navigation reflects this event immediately.
@@ -335,7 +408,9 @@ export default function OutreachActions({
         <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-2">
           <p className="font-display text-[15px] font-bold text-ink">
             {last?.eventType === "converted" ? "★ " : ""}
-            {last ? `${LABELS[last.eventType]} on ${fmtDate(last.occurredAt)}` : ""}
+            {last
+              ? `${LABELS[last.eventType]} on ${fmtDate(last.occurredAt)}`
+              : ""}
           </p>
           <button
             type="button"
@@ -364,7 +439,9 @@ export default function OutreachActions({
                 onClick={() => onClick(action)}
                 className={`rounded-[8px] px-5 py-2.5 font-display text-[13px] font-semibold transition-colors disabled:opacity-50 ${action.tone}`}
               >
-                {pending === action.value && !modalFor ? "Saving…" : action.label}
+                {pending === action.value && !modalFor
+                  ? "Saving…"
+                  : action.label}
               </button>
             ))}
             {revising || reopened ? (
@@ -408,7 +485,9 @@ export default function OutreachActions({
       {last && step !== "done" ? (
         <p className="mt-2.5 text-[12px] text-ink-muted">
           Last action: {LABELS[last.eventType]} · {fmtDate(last.occurredAt)}
-          {last.followUpOn ? ` · circling back ${fmtDate(last.followUpOn)}` : ""}
+          {last.followUpOn
+            ? ` · circling back ${fmtDate(last.followUpOn)}`
+            : ""}
           {last.notes ? ` — ${last.notes}` : ""}
           {!revising ? (
             <>
@@ -526,8 +605,9 @@ export default function OutreachActions({
                     modalFor,
                     // The picked reason leads so it can be counted; typed
                     // detail follows it.
-                    [picked, reason.trim() || null].filter(Boolean).join(" — ") ||
-                      null,
+                    [picked, reason.trim() || null]
+                      .filter(Boolean)
+                      .join(" — ") || null,
                   )
                 }
                 className="rounded-[8px] bg-brand px-5 py-2.5 font-display text-[13px] font-semibold text-white shadow-brand transition-colors hover:bg-brand-dark disabled:opacity-50"
