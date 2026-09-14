@@ -87,12 +87,13 @@ export default function CandidateDetail({
        with the prospect list already holding the far right.
        Below lg it is not a rail at all; it stacks above the name.
 
-       The whole composition is capped, not just the text. Capping the
-       measure alone left the rail pinned to the far edge with a hole
-       between the two — 45rem of content, then 400px of nothing, then the
-       numbers. Bounding content and rail together makes the leftover a
-       margin instead: 45rem + the gap + 250 is about 65rem. */
-    <div className="max-w-[65rem]">
+       No cap on the composition. There was one, to stop the rail flying to
+       the panel's edge and leaving a hole beside content that stopped at
+       45rem — but the cards fill their column now, so they reach the float
+       on their own and the hole cannot form. What the cap did instead was
+       put 32px of gutter on the left and 68 on the right, because a capped
+       block in a padded panel leaves all of its slack on one side. */
+    <div>
       {/* ── The numbers, and nothing else. First in the DOM so the content
              after it can wrap around the float. ────────── */}
       {/* No box. A filled card puts a hard edge beside the why-now cards and
