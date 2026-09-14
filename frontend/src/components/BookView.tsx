@@ -416,18 +416,21 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
                 #
               </span>
             </span>
-            {/* Two heads, because the cell prints two facts. Side by side
-                rather than stacked: the pair fits the cell twice over, and
-                stacking them made the header two lines deep to say what
-                fits on one. */}
-            <span className="flex min-w-0 flex-1 items-center gap-4">
+            {/* One head, because it is one cell.
+                It was two — "Specialty" and "Location" — which named two of
+                the three facts the cell prints, in the wrong order, and left
+                the first one out. "Location" also pointed at nothing: it sat
+                at a fixed x while the location itself lands wherever the
+                name happens to end, anywhere across 60px of the row.
+                No separator between parts, either: a dotted list of three
+                words would promise three columns that do not exist. The
+                other heads name an attribute; this one names the entity, and
+                the row reads # · Prospect · Outreach · Why now · Evidence ·
+                Fit. */}
+            <span className="flex min-w-0 flex-1 items-center">
               <ColumnHead
-                heading="Specialty"
-                hint="What they practice."
-              />
-              <ColumnHead
-                heading="Location"
-                hint="Where they practice."
+                heading="Prospect"
+                hint="Who they are, where they practice, and what they practice."
               />
             </span>
             {/* Read in the order the advisor asks the questions: who is
