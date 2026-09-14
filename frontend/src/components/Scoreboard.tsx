@@ -239,6 +239,7 @@ export default function Scoreboard({
               : undefined
           }
           contactKit={dossier?.contactKit}
+          signals={dossier?.detail?.signals}
           outreach={dossier?.outreach}
           rank={rank}
           total={ranked.length}

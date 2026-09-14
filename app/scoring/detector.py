@@ -200,6 +200,16 @@ def entity_strength(entity_type: str | None, entity_status: str | None) -> float
     return strength if active else strength * ENTITY_INACTIVE_FACTOR
 
 
+def _plural(n: int, unit: str) -> str:
+    """One month, six years.
+
+    These land in front of the advisor now — the signals print at the top of
+    a profile rather than sitting in the records — so the count is being read
+    by a person rather than by whoever greps the log.
+    """
+    return f"{n} {unit}" if n == 1 else f"{n} {unit}s"
+
+
 def _age_text(event_date: date | None, reference_date: date) -> str:
     if event_date is None:
         return "date unknown"
@@ -207,8 +217,8 @@ def _age_text(event_date: date | None, reference_date: date) -> str:
     if months <= 0:
         return "this month"
     if months <= 36:
-        return f"{months} month(s) ago"
-    return f"{months // 12} year(s) ago"
+        return f"{_plural(months, 'month')} ago"
+    return f"{_plural(months // 12, 'year')} ago"
 
 
 @dataclass(frozen=True)
@@ -283,7 +293,7 @@ class SignalDetector:
                 if prospect.enumeration_date
                 else f"licensed {prospect.license_issue_date:%Y}"
             )
-            stage_desc = f"In practice {int(years)} year(s) ({anchor}) — {band}"
+            stage_desc = f"In practice {_plural(int(years), 'year')} ({anchor}) — {band}"
         signals.append(
             DetectedSignal(
                 signal_type="CAREER_STAGE",

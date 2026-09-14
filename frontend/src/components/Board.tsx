@@ -90,6 +90,7 @@ export default function Board({ ranked, initial, seedId, seed }: Props) {
                 : undefined
             }
             contactKit={dossier?.contactKit}
+            signals={detail?.signals}
             outreach={dossier?.outreach}
             rank={rank}
             total={ranked.length}

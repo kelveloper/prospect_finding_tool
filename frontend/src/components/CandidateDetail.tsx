@@ -11,6 +11,7 @@ import type {
   FieldChangeItem,
   OutreachEntry,
   ScoreSnapshotItem,
+  SignalItem,
 } from "@/lib/data";
 import { isLicenseGated, standingLabel, tierStyle } from "@/lib/tier";
 
@@ -23,6 +24,9 @@ type Props = {
     scoreHistory: ScoreSnapshotItem[];
   };
   contactKit?: ContactKit;
+  /** What we actually found on this person, strongest first. These are the
+   *  case for calling, so they are printed rather than left to the records. */
+  signals?: SignalItem[];
   /** Logged outcomes, shown under the outreach buttons. */
   outreach?: OutreachEntry[];
   /** Where this prospect sits in the whole book. "61.6" means nothing
@@ -44,6 +48,7 @@ export default function CandidateDetail({
   profile,
   dossier,
   contactKit,
+  signals,
   outreach,
   rank,
   total,
@@ -170,12 +175,16 @@ export default function CandidateDetail({
 
       <hr className="my-4 border-surface-soft" />
 
-      {/* ── WHY NOW — the one paragraph that makes the case ── */}
+      {/* ── WHY NOW — the case for calling, printed rather than narrated ──
+          This used to be the paragraph alone. A reviewer read the page and
+          said the three things that stood out were the score, the address
+          and the phone — and that the address and phone were not what he
+          needed first. The findings were all in the prose, which is the one
+          thing nobody reads before deciding. So the findings lead now and
+          the paragraph supports them. */}
       <section>
         <Subheading className="eyebrow">Why This Prospect, Now</Subheading>
-        <p className="mt-2 max-w-[680px] text-[15px] leading-[24px] text-ink-muted">
-          {candidate.summary}
-        </p>
+        <WhyNow signals={signals} summary={candidate.summary} />
       </section>
 
       {/* ── ACT — contact details and outcome capture in one block ── */}
@@ -212,6 +221,142 @@ export default function CandidateDetail({
           />
         </div>
       </div>
+    </>
+  );
+}
+
+/** A found signal, set as a fact with its meaning under it.
+ *
+ *  Most descriptions already carry both, separated by an em dash or a
+ *  trailing parenthetical — "Illinois license issued this month —
+ *  established physician, new to Illinois". Splitting them is what lets the
+ *  fact be loud and the meaning quiet, instead of one grey line doing both.
+ */
+/** Stored signal copy pluralises as "6 year(s)" — unremarkable in a log,
+ *  wrong in bold at the top of a profile. The generator no longer writes it
+ *  (see _plural in app/scoring/detector.py), but descriptions are written at
+ *  ingest, so every prospect already in the book still carries the old
+ *  wording. Tidied on the way out rather than by re-running a sweep. */
+function tidyPlural(text: string): string {
+  return text.replace(
+    /\b(\d+)\s+([A-Za-z]+)\(s\)/g,
+    (_m, n: string, unit: string) =>
+      `${n} ${unit}${Number(n) === 1 ? "" : "s"}`,
+  );
+}
+
+function splitSignal(raw: string): [string, string | null] {
+  const description = tidyPlural(raw);
+  const paren = /^(.*?)\s*\(([^)]+)\)\s*$/;
+  const dash = description.split(" — ");
+  if (dash.length > 1) {
+    const fact = dash[0];
+    const meaning = dash.slice(1).join(" — ");
+    // "In practice 6 years (NPI enumerated 2020) — peak accumulation years".
+    // Where the fact still trails a parenthetical it is provenance, not the
+    // fact: it belongs with the quiet half rather than set in bold.
+    const m = fact.match(paren);
+    return m ? [m[1], `${meaning} · ${m[2]}`] : [fact, meaning];
+  }
+  const m = description.match(paren);
+  if (m) return [m[1], m[2]];
+  return [description, null];
+}
+
+function fmtSignalDate(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+/** The case for calling this person, in the order an advisor needs it.
+ *
+ *  Split by whether a signal carries a date, because that is exactly the
+ *  difference between "why now" and "why them" — a licence issued last month
+ *  is the news; being an orthopaedic surgeon is the standing fact. The split
+ *  is the data's own, not a list of types kept in step by hand. */
+function WhyNow({
+  signals,
+  summary,
+}: {
+  signals?: SignalItem[];
+  summary?: string;
+}) {
+  const found = signals ?? [];
+  const events = found.filter((s) => s.eventDate);
+  const standing = found.filter((s) => !s.eventDate);
+
+  // Nothing found: the paragraph is all there is, so it carries the section.
+  if (found.length === 0)
+    return (
+      <p className="mt-2 max-w-[680px] text-[15px] leading-[24px] text-ink-muted">
+        {summary}
+      </p>
+    );
+
+  return (
+    <>
+      {events.length > 0 ? (
+        <ul className="mt-3 space-y-2">
+          {events.map((signal) => {
+            const [fact, meaning] = splitSignal(signal.description);
+            return (
+              <li
+                key={signal.type}
+                className="rounded-[12px] border border-hairline bg-surface-soft px-4 py-3"
+              >
+                <p className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+                  <span className="font-display text-[16px] font-bold text-ink">
+                    {fact}
+                  </span>
+                  {signal.eventDate ? (
+                    <span className="font-display text-[12px] font-semibold text-brand">
+                      {fmtSignalDate(signal.eventDate)}
+                    </span>
+                  ) : null}
+                </p>
+                {meaning ? (
+                  <p className="mt-0.5 text-[14px] leading-[20px] text-ink-muted">
+                    {meaning}
+                  </p>
+                ) : null}
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+
+      {standing.length > 0 ? (
+        <ul className="mt-3 grid gap-x-8 gap-y-1.5 sm:grid-cols-2">
+          {standing.map((signal) => {
+            const [fact, meaning] = splitSignal(signal.description);
+            return (
+              <li key={signal.type} className="flex items-baseline gap-2">
+                <span aria-hidden className="text-[12px] text-tier-strong-fg">
+                  ✓
+                </span>
+                <span className="min-w-0 text-[14px] leading-[20px]">
+                  <span className="font-display font-semibold text-ink">
+                    {fact}
+                  </span>
+                  {meaning ? (
+                    <span className="text-ink-muted"> — {meaning}</span>
+                  ) : null}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+
+      {summary ? (
+        <p className="mt-3 max-w-[680px] text-[14px] leading-[22px] text-ink-muted">
+          {summary}
+        </p>
+      ) : null}
     </>
   );
 }
