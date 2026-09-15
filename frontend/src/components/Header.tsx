@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Fragment, type ReactNode } from "react";
-import { LogoMark, ChevronLeft } from "./icons";
+import { LogoMark, ChevronLeft, InfoIcon } from "./icons";
 import RefreshData from "./RefreshData";
 import ViewerMenu from "./ViewerMenu";
 import { fetchCandidateCount, fetchIngestStatus } from "@/lib/api";
@@ -120,6 +120,16 @@ export default async function Header({
           >
             SID {VIEWER_SID}
           </span>
+
+          {/* Same link on every page, homepage included — where the data
+              and the scoring rules actually come from. */}
+          <Link
+            href="/info-origin"
+            title="Where this data comes from"
+            className="flex size-8 shrink-0 items-center justify-center rounded-full text-ink-faint transition-colors hover:bg-canvas hover:text-brand"
+          >
+            <InfoIcon className="size-4" />
+          </Link>
 
           <ViewerMenu />
         </div>
