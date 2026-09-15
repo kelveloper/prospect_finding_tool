@@ -235,3 +235,17 @@ export function ChevronRight({ className }: IconProps) {
     </svg>
   );
 }
+
+export function ExternalLinkIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className={className ?? base} aria-hidden>
+      <path
+        d="M6.5 4.5h-2A1.5 1.5 0 0 0 3 6v6a1.5 1.5 0 0 0 1.5 1.5h6A1.5 1.5 0 0 0 12 12v-2M9.5 3H13v3.5M12.5 3.5 7 9"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}

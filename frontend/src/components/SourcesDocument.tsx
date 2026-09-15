@@ -4,6 +4,7 @@ import type {
   SignalItem,
 } from "@/lib/data";
 import { isLicenseGated } from "@/lib/tier";
+import { ChevronRight } from "./icons";
 import {
   AuditTrail,
   Drawer,
@@ -835,6 +836,22 @@ export default function SourcesDocument({
           confidence={identityConfidence}
         />
       </section>
+
+      <a
+        href="/info-origin"
+        className="flex items-center justify-between gap-4 rounded-[16px] bg-white px-6 py-4 shadow-card transition-colors hover:bg-canvas"
+      >
+        <span>
+          <span className="block font-display text-[14.5px] font-bold text-ink">
+            View info origin
+          </span>
+          <span className="block text-[13px] text-ink-muted">
+            Every data source and every rule behind the score, each with a
+            link to what proves it.
+          </span>
+        </span>
+        <ChevronRight className="size-4 shrink-0 text-ink-faint" />
+      </a>
     </div>
   );
 }
