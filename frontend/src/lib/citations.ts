@@ -1,9 +1,9 @@
 /** Source of truth for the "Info origin" page — every external claim the
  *  app relies on, either for a live data pull or for a rule in the scoring
- *  engine, with one sentence on what it proves. Two entries are flagged:
- *  found on a 2026-09-14 recheck to not cleanly match the number the code
- *  currently cites, so they're shown separately and marked "unverified"
- *  rather than published as settled proof. */
+ *  engine, with one sentence on what it proves. One entry is flagged: a
+ *  2026-09-14 recheck found the citation used for it names the wrong
+ *  organization and overstates its own scope, so it's shown separately and
+ *  marked unverified rather than published as settled proof. */
 
 export type Citation = {
   id: string;
@@ -119,30 +119,35 @@ export const CITATION_GROUPS: CitationGroup[] = [
       },
     ],
   },
+  {
+    title: "Research backing the Value score's rules",
+    intro:
+      "Where the specialty wealth-tier table actually comes from — re-verified 2026-09-14 against a fresh search, not just the code comment.",
+    items: [
+      {
+        id: "medscape-wealth-tiers",
+        label: "Becker's Hospital Review · physician net worth above $5M, by specialty",
+        url: "https://www.beckershospitalreview.com/compensation-issues/physician-net-worth-above-5m-by-specialty/",
+        proves:
+          "Proves the specialty wealth-tier table's top row: radiology and orthopaedics tied at 39% net worth $5M+, cardiology 35%, anesthesiology 31%, plastic surgery 29% — quoting Medscape's Physician Wealth & Debt Report 2026 directly, and matching the code's scaled values almost exactly.",
+        sourceFile: "app/scoring/detector.py",
+      },
+    ],
+  },
 ];
 
-/** Citations already embedded in the scoring code that did not hold up
- *  cleanly on a 2026-09-14 recheck — shown, but marked unverified rather
- *  than presented as settled proof. */
+/** A citation already embedded in the scoring code that did not hold up on
+ *  a 2026-09-14 recheck — shown, but marked unverified rather than
+ *  presented as settled proof. */
 export const FLAGGED_CITATIONS: Citation[] = [
   {
-    id: "medscape-wealth-tiers",
-    label: "Medscape Physician Wealth & Debt Report",
-    url: "https://www.medscape.com/p11/medscape-physician-wealth-debt-report-2026-rising-net-worth-2026a10009up",
-    proves:
-      "Cited as the source for the specialty wealth-tier table (radiology and orthopaedics at the top, 39%).",
-    sourceFile: "app/scoring/detector.py",
-    flagReason:
-      "Medscape republishes this report yearly at a new URL, and the current edition's numbers (urology, gastroenterology, and radiology near a third) don't line up with the 39% figure in the code. Confirm which report year the current table came from before citing it, or update the table to the current report.",
-  },
-  {
     id: "acp-two-thirds",
-    label: "ACP Physicians' Financial Preparedness Report",
-    url: "https://www.acpadvisors.org/",
+    label: "ACP Physicians' Financial Preparedness Report (2021)",
+    url: "https://www.acponline.org/sites/default/files/documents/practice-resources/physician-wellbeing/acp_physicians_financial_preparedness_report.october2021.pdf",
     proves:
       "Cited as the source for \"two thirds of physicians 17+ years in already have an advisor,\" which sets the upper edge of the career-stage scoring window.",
     sourceFile: "docs/RANKING.md",
     flagReason:
-      "The specific report found (2021) surveyed over 450 female internists, not physicians generally. Either find the exact source originally used, or narrow the claim to match what this survey actually shows.",
+      "Two problems, not one. The report is real and does say two-thirds — but of over 450 female internists specifically, not physicians generally, so the code's claim overstates its scope. And the URL originally cited for this, acpadvisors.org, is a different organization entirely (the American College of Physician Advisors, a hospital utilization-review group) — this entry now points to the correct publisher, the American College of Physicians. Either find a source that covers physicians generally, or narrow the ranking rationale to what this report actually shows.",
   },
 ];

@@ -3,8 +3,8 @@
 Every claim the app makes about a prospect, or about why the ranking works
 the way it does, traces back to one of these. Format below is meant to be
 lifted directly into a frontend list: a label, a link, and one sentence on
-what it proves. Solid citations first, ready to publish. Two flagged items
-sit at the bottom — don't wire those into the app until they're re-verified.
+what it proves. Solid citations first, ready to publish. One flagged item
+sits at the bottom — don't wire that one into the app until it's resolved.
 
 ---
 
@@ -64,23 +64,30 @@ sit at the bottom — don't wire those into the app until they're re-verified.
 - **Propelus** — https://propelus.com/api — Proves a paid, all-56-jurisdiction
   license verification API exists to extend past Illinois-only licensing.
 
+## Research backing the Value score's rules
+
+- **Becker's Hospital Review, physician net worth above $5M, by specialty** —
+  https://www.beckershospitalreview.com/compensation-issues/physician-net-worth-above-5m-by-specialty/
+  — Proves the specialty wealth-tier table's top row: radiology and
+  orthopaedics tied at 39% net worth $5M+, cardiology 35%, anesthesiology
+  31%, plastic surgery 29% — quoting Medscape's Physician Wealth & Debt
+  Report 2026 directly, and matching the code's scaled values almost
+  exactly. Re-verified 2026-09-14; an earlier search had surfaced a
+  different, less specific Medscape article and flagged this
+  unnecessarily. *(`app/scoring/detector.py`)*
+
 ---
 
-## Flagged — do not publish until re-verified
-
-- **Specialty wealth tiers** (`app/scoring/detector.py`, comment cites
-  "Medscape Physician Wealth & Debt Report... top tier radiology and
-  orthopaedics, 39%"). The current Medscape report found on 2026-09-14 puts
-  urology, gastroenterology, and radiology at roughly one-third, not
-  radiology-and-orthopaedics at 39%, and Medscape republishes this report
-  yearly at a fresh URL, so there's no single stable link. Before this goes
-  on the citation page: confirm which report year the current 39% figure
-  actually came from and cite that exact archived URL, or update the tier
-  table to the current report and cite that instead.
+## Flagged — do not publish until resolved
 
 - **"Two-thirds of physicians 17+ years in already have an advisor"**
-  (`docs/RANKING.md`, attributed to ACP). What turned up on 2026-09-14 is a
-  2021 ACP survey of over 450 female internists specifically, not physicians
-  generally — the citation as currently used overstates its scope. Either
-  find the exact source the team originally used, or narrow the claim in the
-  ranking rationale to match what the ACP data actually supports.
+  (`docs/RANKING.md`, attributed to ACP). Two problems, not one, found on a
+  2026-09-14 recheck. First, the report is real and does say two-thirds —
+  but of over 450 **female internists** specifically
+  ([2021 ACP report PDF](https://www.acponline.org/sites/default/files/documents/practice-resources/physician-wellbeing/acp_physicians_financial_preparedness_report.october2021.pdf)),
+  not physicians generally, so the claim as used overstates its scope.
+  Second, the URL this citation first pointed to, acpadvisors.org, is a
+  *different organization* — the American College of Physician Advisors, a
+  hospital utilization-review group with nothing to do with this report.
+  Either find a source that covers physicians generally, or narrow the
+  ranking rationale to match what this report actually shows.
