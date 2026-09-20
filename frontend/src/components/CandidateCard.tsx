@@ -3,6 +3,7 @@ import { EvidenceChip, MovementChip, TriggerChip } from "./RowChips";
 import Badge from "./Badge";
 import IdentityBadge from "./IdentityBadge";
 import { isLicenseGated, standingLabel, tierStyle } from "@/lib/tier";
+import { workedState } from "@/lib/outreach";
 import type { Candidate } from "@/lib/data";
 
 type Props = {
@@ -26,6 +27,16 @@ export default function CandidateCard({
 }: Props) {
   const style = tierStyle(candidate.tier);
   const gated = isLicenseGated(candidate.licenseStatus);
+  /* What the advisor already did about this one. The book has printed it
+     per row for a while; the board never did, so the one question being
+     asked while scanning this list — who is left to call — was the one
+     thing it would not answer. Same helper, same words, so the two views
+     cannot drift apart on it. */
+  const worked = workedState(candidate.outreachStatus);
+  // A settled prospect recedes so the untouched ones stand out. Only the
+  // supporting cells fade: the name, the rank and the figure stay at full
+  // strength, because a worked row is still a row you must be able to find.
+  const recede = worked?.settled ? "opacity-50" : "";
 
   return (
     <a
@@ -77,10 +88,23 @@ export default function CandidateCard({
                 NEW
               </span>
             )}
+            {worked ? (
+              <span
+                title={worked.spoken}
+                className={
+                  "shrink-0 rounded-[4px] px-1.5 py-[1px] font-display text-[9.5px] font-bold uppercase tracking-[0.6px] " +
+                  (worked.won
+                    ? "bg-tier-strong-bg text-tier-strong-fg"
+                    : "bg-tier-neutral-bg text-tier-neutral-fg")
+                }
+              >
+                {worked.label}
+              </span>
+            ) : null}
           </span>
           <span
             title={`${candidate.specialty} · ${candidate.location}`}
-            className="block truncate text-[12px] text-ink-faint"
+            className={"block truncate text-[12px] text-ink-faint " + recede}
           >
             {candidate.specialty}
           </span>
@@ -98,7 +122,12 @@ export default function CandidateCard({
           fit bar and the "Fit score" caption said what the ring already
           said, and the three coverage chips are the evidence chip's job at
           a size you could actually read. */}
-      <div className="mt-3 flex items-center gap-1.5 border-t border-surface-soft pt-2.5">
+      <div
+        className={
+          "mt-3 flex items-center gap-1.5 border-t border-surface-soft pt-2.5 " +
+          recede
+        }
+      >
         <span
           title={
             gated
