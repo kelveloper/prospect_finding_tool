@@ -247,13 +247,13 @@ html[data-style]:not([data-style="advisor"]) body {
   background: linear-gradient(180deg, var(--color-canvas) 0%, var(--page-bottom) 100%) fixed;
 }
 
-/* Primary fills — buttons, the logo tile, the launch screen's Begin panel. */
+/* Primary fills — buttons, the logo tile, the welcome card's Start button. */
 html[data-style]:not([data-style="advisor"]) .bg-brand {
   background-image: linear-gradient(135deg, var(--fill-light) 0%, var(--fill-dark) 100%);
 }
 
-/* BeginTile swaps to bg-brand-dark on hover; without this the gradient above
-   would paint straight over the new color and nothing would happen. */
+/* Brand buttons swap to bg-brand-dark on hover; without this the gradient
+   above would paint straight over the new color and nothing would happen. */
 html[data-style]:not([data-style="advisor"]) .hover\:bg-brand-dark:hover,
 html[data-style]:not([data-style="advisor"]) .bg-brand-dark {
   background-image: linear-gradient(135deg, var(--fill-hover-light) 0%, var(--fill-hover-dark) 100%);
@@ -283,18 +283,6 @@ html[data-style]:not([data-style="advisor"]) header.sticky {
   background-size: 100% 2px;
   background-position: bottom;
   background-repeat: no-repeat;
-}
-
-/* The opening screen paints its own gradient as an arbitrary Tailwind class
-   with the advisor blue baked in (LaunchOverlay.tsx). That component is not
-   ours to edit, but it carries a data-launch-overlay attribute, which is a
-   stable enough hook to re-point the gradient at the tokens. */
-html[data-style]:not([data-style="advisor"]) [data-launch-overlay] {
-  background-image: linear-gradient(
-    160deg,
-    var(--color-canvas) 0%,
-    var(--color-surface-tint) 100%
-  );
 }
 
 /* The signed-in avatar wears the accent as a hairline ring — the only place

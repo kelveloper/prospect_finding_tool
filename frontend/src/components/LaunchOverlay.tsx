@@ -1,9 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
-import BeginTile from "./launch/BeginTile";
-import FoundTodayTile from "./launch/FoundTodayTile";
-import ViewerTile from "./launch/ViewerTile";
+import { ChevronRight, LogoMark } from "./icons";
+import { VIEWER_NAME } from "@/lib/data";
 import {
   LAUNCH_ATTR,
   LAUNCH_PARAM,
@@ -19,10 +18,15 @@ type Props = {
   total: number;
 };
 
-/** Full-viewport opening page laid over the scoreboard: two squares on the
- *  left (who is signed in, what was located today) and one large square on
- *  the right that starts the review. Pressing it slides the whole overlay
- *  up and off, revealing the scoreboard that was rendered underneath.
+/** Small welcome card laid over the scoreboard, on a light scrim.
+ *
+ *  It used to be a full-viewport opening page of three tiles. A design
+ *  review called that "really big … a lot of empty space", and the reason
+ *  holds: TellTale is meant to sit inside an advisor application, so the
+ *  advisor is already signed in by the time they arrive. A whole screen to
+ *  say Begin is a toll gate. What the welcome is actually for — telling
+ *  someone they are in the right place, and what is waiting — fits in a
+ *  card, with the board legible behind it.
  *
  *  It is rendered on every visit, so opening the site always lands here.
  *  Whether it stays is a client decision — the server cannot read the
@@ -31,6 +35,9 @@ type Props = {
 // Per-tab storage never changes under a mounted overlay, so there is
 // nothing to subscribe to; the store exists to read it during render.
 const subscribeToNothing = () => () => {};
+
+/** How long the card takes to fade out, in step with the classes below. */
+const CLOSE_MS = 260;
 
 export default function LaunchOverlay({ locatedToday, total }: Props) {
   // Settle what the server could not: closed for a tab that has already
@@ -53,9 +60,9 @@ export default function LaunchOverlay({ locatedToday, total }: Props) {
     if (!alreadyBegun) document.documentElement.removeAttribute(LAUNCH_ATTR);
   }, [alreadyBegun]);
 
-  // The stylesheet hook goes on only once the screen is fully gone — while
-  // it slides away it still has to be visible. Setting it on every close
-  // also restores what React's development remount strips off <html>.
+  // The stylesheet hook goes on only once the card is fully gone — while
+  // it fades it still has to be visible. Setting it on every close also
+  // restores what React's development remount strips off <html>.
   useEffect(() => {
     if (phase === "closed")
       document.documentElement.setAttribute(LAUNCH_ATTR, "");
@@ -64,9 +71,9 @@ export default function LaunchOverlay({ locatedToday, total }: Props) {
   const begin = useCallback(() => {
     if (phase !== "open") return;
     // This tab is mid-review from here on, so every later navigation back
-    // to the scoreboard — and every refresh — skips the opening screen.
+    // to the scoreboard — and every refresh — skips the welcome.
     markLaunched();
-    // Drop ?launch=1 so a refresh mid-review does not replay the splash.
+    // Drop ?launch=1 so a refresh mid-review does not replay it.
     const url = new URL(window.location.href);
     if (url.searchParams.has(LAUNCH_PARAM)) {
       url.searchParams.delete(LAUNCH_PARAM);
@@ -76,17 +83,17 @@ export default function LaunchOverlay({ locatedToday, total }: Props) {
   }, [phase]);
 
   // transitionend does not fire when the transition is suppressed (reduced
-  // motion), so the overlay is also unmounted on a timer.
+  // motion), so the card is also unmounted on a timer.
   useEffect(() => {
     if (phase !== "closing") return;
     const instant = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
-    const timer = setTimeout(() => setPhase("closed"), instant ? 0 : 800);
+    const timer = setTimeout(() => setPhase("closed"), instant ? 0 : CLOSE_MS);
     return () => clearTimeout(timer);
   }, [phase]);
 
-  // The scoreboard behind must not scroll while the overlay covers it.
+  // The scoreboard behind must not scroll while the card covers it.
   useEffect(() => {
     if (phase === "closed") return;
     const previous = document.body.style.overflow;
@@ -98,11 +105,15 @@ export default function LaunchOverlay({ locatedToday, total }: Props) {
 
   if (phase === "closed") return null;
 
+  const closing = phase === "closing";
+  // First name only. The card is a greeting, not a record.
+  const firstName = VIEWER_NAME.split(" ")[0];
+
   return (
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Start candidate review"
+      aria-labelledby="launch-welcome"
       data-launch-overlay
       // Tab has nowhere to go but the one button, so keep it there rather
       // than letting focus fall through to the covered scoreboard.
@@ -110,24 +121,73 @@ export default function LaunchOverlay({ locatedToday, total }: Props) {
         if (e.key === "Tab") e.preventDefault();
       }}
       onTransitionEnd={(e) => {
-        // Tailwind v4 slides via the `translate` property, not `transform`;
-        // both are listed so the unmount survives either being animated.
-        const slid =
-          e.propertyName === "translate" || e.propertyName === "transform";
-        if (e.target === e.currentTarget && slid) setPhase("closed");
+        if (e.target === e.currentTarget && e.propertyName === "opacity")
+          setPhase("closed");
       }}
       className={
-        "fixed inset-0 z-50 overflow-y-auto bg-[linear-gradient(160deg,#f0f7fc_0%,#d0eaf7_100%)] " +
-        "transition-transform duration-700 ease-[cubic-bezier(0.76,0,0.24,1)] motion-reduce:duration-0 " +
-        (phase === "closing" ? "-translate-y-full" : "translate-y-0")
+        "fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-5 " +
+        // 20% black, as the review asked for: the board stays readable
+        // behind the card, which is the point of not being a page.
+        "bg-black/20 transition-opacity duration-[260ms] ease-out motion-reduce:duration-0 " +
+        (closing ? "opacity-0" : "opacity-100")
       }
     >
-      <div className="mx-auto grid min-h-dvh max-w-[1560px] grid-cols-1 grid-rows-[auto_auto_1fr] gap-5 p-5 sm:p-8 lg:grid-cols-[minmax(0,400px)_minmax(0,1fr)] lg:grid-rows-2">
-        <ViewerTile />
-        <FoundTodayTile count={locatedToday} total={total} />
-        <div className="grid lg:col-start-2 lg:row-span-2 lg:row-start-1">
-          <BeginTile onBegin={begin} total={total} busy={phase === "closing"} />
-        </div>
+      <div
+        className={
+          "w-full max-w-[420px] rounded-[20px] bg-white p-7 shadow-panel " +
+          "transition-transform duration-[260ms] ease-out motion-reduce:duration-0 " +
+          (closing ? "scale-[0.98]" : "scale-100")
+        }
+      >
+        <p className="flex items-center gap-2.5">
+          <span className="flex size-9 items-center justify-center rounded-[10px] bg-brand">
+            <LogoMark className="size-5 text-white" />
+          </span>
+          {/* Same lockup as the nav bar (Header.tsx). Keep the two in step. */}
+          <span className="font-display text-[12px] font-semibold uppercase tracking-[1px] text-ink-faint">
+            TellTale
+          </span>
+        </p>
+
+        <h2
+          id="launch-welcome"
+          className="mt-4 font-display text-[24px] font-bold tracking-[-0.6px] text-ink"
+        >
+          Welcome back, {firstName}
+        </h2>
+
+        {/* What the two left-hand tiles used to say, as one sentence. The
+            count is the reason to open the board, so it leads. */}
+        <p className="mt-1.5 text-[14px] leading-[22px] text-ink-muted">
+          {locatedToday > 0 ? (
+            <>
+              <strong className="font-semibold text-ink">
+                {locatedToday} new{" "}
+                {locatedToday === 1 ? "prospect" : "prospects"}
+              </strong>{" "}
+              located today, on a board of {total} ranked by fit.
+            </>
+          ) : total > 0 ? (
+            <>
+              No new prospects today.{" "}
+              <strong className="font-semibold text-ink">{total}</strong> are
+              ranked and waiting on your board.
+            </>
+          ) : (
+            <>Your board is empty — run a refresh to find prospects.</>
+          )}
+        </p>
+
+        <button
+          type="button"
+          autoFocus
+          onClick={begin}
+          disabled={closing}
+          className="group mt-6 flex w-full items-center justify-center gap-1.5 rounded-[10px] bg-brand px-4 py-3 font-display text-[14px] font-semibold text-white outline-none transition-colors hover:bg-brand-dark active:scale-[0.98] focus-visible:ring-4 focus-visible:ring-brand-light/60 disabled:scale-100 disabled:cursor-default"
+        >
+          {closing ? "Opening board…" : "Start reviewing"}
+          <ChevronRight className="size-4 transition-transform duration-200 group-enabled:group-hover:translate-x-0.5" />
+        </button>
       </div>
     </div>
   );
