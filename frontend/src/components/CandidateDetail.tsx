@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import CandidateDossier from "./CandidateDossier";
 import ScoreSparkline from "./ScoreSparkline";
 import SectionCard from "./SectionCard";
 import ContactKitCard from "./ContactKitCard";
 import Citation from "./Citation";
-import { PersonIcon } from "./icons";
+import { PersonIcon, SparkIcon } from "./icons";
 import EvidenceBadge from "./EvidenceBadge";
 import type { ContactKit } from "@/lib/api";
 import type {
@@ -369,6 +369,9 @@ function WhyNow({
   const events = found.filter((s) => s.eventDate);
   const standing = found.filter((s) => !s.eventDate);
   const insight = lastClause(summary);
+  // Prefer the reasoning; fall back to the bare judgement when a summary
+  // carries no argument but does end on something the bullets cannot say.
+  const reasoning = reasoningClause(summary);
 
   // Nothing found: the paragraph is all there is, so it carries the section.
   if (found.length === 0)
@@ -479,10 +482,12 @@ function WhyNow({
               );
             })}
           </ul>
-          {/* Only the judgement survives. Every fact the paragraph used to
-              recite is now printed above it in larger type, so what is left
-              is the one thing the bullets cannot say. */}
-          {insight ? (
+          {/* The reasoning, composed in front of the reader. Every fact it
+              recites is a premise it argues from; the facts it merely
+              labelled are gone. */}
+          {reasoning ? (
+            <ComposedSummary key={reasoning} text={reasoning} />
+          ) : insight ? (
             <p className="mt-3 max-w-[620px] border-l-2 border-hairline pl-3 text-[14px] leading-[21px] text-ink-muted">
               {insight}
             </p>
@@ -491,6 +496,135 @@ function WhyNow({
       ) : null}
     </>
   );
+}
+
+/** The summary, composed in front of the reader: a beat of working, then
+ *  the sentence arriving a word at a time.
+ *
+ *  The text is not generated at read time — it is composed deterministically
+ *  upstream and has been sitting in the payload since the page loaded. The
+ *  motion is presentation, so the wording never claims otherwise: it says
+ *  what is actually happening, which is signals being read, and stops short
+ *  of implying a model is writing.
+ *
+ *  Screen readers get the finished sentence immediately from a visually
+ *  hidden copy — a paragraph that arrives one word at a time is noise to
+ *  anything that is not looking at it — and reduced motion skips straight
+ *  to the end. */
+/** Pace of the composing animation. Slow enough to be pointed at from the
+ *  other side of a room — this is read by an audience during a demo before
+ *  it is read by an advisor at a desk. Both are here rather than inline so
+ *  there is one place to change when that stops being true. */
+const WORKING_MS = 1800;
+const WORD_MS = 80;
+
+const MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+const subscribeMotion = (onChange: () => void) => {
+  const query = window.matchMedia(MOTION_QUERY);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+};
+
+function ComposedSummary({ text }: { text: string }) {
+  const words = useMemo(() => text.split(" "), [text]);
+  // Read during render rather than set from an effect, so the reduced-motion
+  // path never paints a frame of animation it was asked not to.
+  const reduced = useSyncExternalStore(
+    subscribeMotion,
+    () => window.matchMedia(MOTION_QUERY).matches,
+    () => false,
+  );
+  const [started, setStarted] = useState(false);
+  const [shown, setShown] = useState(0);
+
+  // A beat of working before the first word.
+  useEffect(() => {
+    if (reduced) return;
+    const timer = setTimeout(() => setStarted(true), WORKING_MS);
+    return () => clearTimeout(timer);
+  }, [reduced]);
+
+  // A word at a time rather than a character: the sentence stays readable
+  // the whole way through instead of resolving out of noise. Both writes
+  // happen inside the timer, never in the effect body — a synchronous
+  // setState here is a cascading render.
+  useEffect(() => {
+    if (reduced || !started || shown >= words.length) return;
+    const timer = setTimeout(() => setShown((n) => n + 1), WORD_MS);
+    return () => clearTimeout(timer);
+  }, [reduced, started, shown, words.length]);
+
+  const working = !reduced && !started;
+  const writing = !reduced && started && shown < words.length;
+  const visible = reduced ? words : words.slice(0, shown);
+
+  return (
+    <div className="mt-3 max-w-[620px] border-l-2 border-hairline pl-3">
+      {/* The finished sentence, for anything not watching it arrive. */}
+      <p className="sr-only">{text}</p>
+
+      <div aria-hidden>
+        {working ? (
+          <>
+            <p className="flex items-center gap-1.5 font-display text-[12px] font-semibold text-ink-faint">
+              <SparkIcon className="size-3.5 animate-pulse text-brand" />
+              Reading the signals
+              <span className="inline-flex gap-[2px]">
+                {[0, 1, 2].map((i) => (
+                  <span
+                    key={i}
+                    className="size-[3px] animate-pulse rounded-full bg-ink-faint"
+                    style={{ animationDelay: `${i * 160}ms` }}
+                  />
+                ))}
+              </span>
+            </p>
+            {/* Two bars, roughly the shape the sentence will take, so the
+                block does not jump when the words land. */}
+            <div className="mt-2 space-y-1.5">
+              <span className="block h-2.5 w-full animate-pulse rounded-full bg-surface-soft" />
+              <span className="block h-2.5 w-4/5 animate-pulse rounded-full bg-surface-soft" />
+            </div>
+          </>
+        ) : (
+          <p className="text-[14px] leading-[21px] text-ink-muted">
+            {visible.join(" ")}
+            {writing ? (
+              <span className="-mb-[2px] ml-0.5 inline-block h-[14px] w-[2px] animate-pulse bg-brand" />
+            ) : null}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Words that mark a sentence as reasoning rather than labelling. */
+const CONNECTIVE = /\b(so|because|which means|rather than|not a|means that)\b/i;
+
+/** The part of the summary that argues, rather than the part that labels.
+ *
+ *  lastClause() below keeps only the final clause, which on this data left
+ *  "relocations are when financial relationships get rebuilt" floating with
+ *  no subject — a proverb, not a statement about anybody. The value is in
+ *  the join: the bullets print "6 years in practice" and the why-now card
+ *  prints "new Illinois licence" as two unrelated facts, and only the
+ *  paragraph says that together they mean a relocating established
+ *  physician rather than a new graduate.
+ *
+ *  So the rule is keep the reasoning, drop the preamble. Repeating a fact
+ *  to argue from it is not the repetition worth cutting; repeating it as a
+ *  label is, and "Orthopaedic Surgery in Chicago" is already the eyebrow
+ *  and the line under the name.
+ *
+ *  It renders nothing when nothing argues. On the current board that is 39
+ *  of 50 prospects, whose whole summary is "‹Specialty› in ‹City›." — the
+ *  two facts printed directly above it. Blank is better than that. */
+function reasoningClause(summary?: string): string | null {
+  if (!summary) return null;
+  const sentences = summary.trim().split(/(?<=\.)\s+/);
+  const start = sentences.findIndex((line) => CONNECTIVE.test(line));
+  return start === -1 ? null : sentences.slice(start).join(" ").trim();
 }
 
 /** The part of the summary the bullets above it do not already say.
