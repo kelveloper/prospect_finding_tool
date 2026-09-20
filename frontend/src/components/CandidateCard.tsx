@@ -46,8 +46,15 @@ export default function CandidateCard({
           : `Open ${candidate.name}'s profile`
       }
       className={
-        "block rounded-[12px] bg-white p-4 shadow-raised transition-shadow hover:shadow-float " +
-        (active ? "border-2 border-brand" : "border-2 border-transparent")
+        // No press state here: clicking a card selects it, and the brand
+        // border lands instantly, which is the same signal a press would be.
+        "block rounded-[12px] bg-white p-4 shadow-raised transition-[box-shadow,border-color] hover:shadow-float " +
+        (active
+          ? "border-2 border-brand"
+          : // Hover was a shadow and nothing else. The border is already
+            // reserved at 2px and transparent, so lighting it cannot shift
+            // a single row of the list.
+            "border-2 border-transparent hover:border-hairline")
       }
     >
       <div className="flex w-full items-center gap-3">

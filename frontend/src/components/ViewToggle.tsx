@@ -61,10 +61,14 @@ export default function ViewToggle({ initial }: Props) {
             title={title}
             aria-current={active ? "page" : undefined}
             className={
-              "flex items-center gap-1.5 rounded-full px-3 py-1.5 font-display text-[12px] font-semibold transition-colors " +
+              // active:scale is instant on purpose — a press should land
+              // the moment the mouse goes down, not ease into it.
+              "flex items-center gap-1.5 rounded-full px-3 py-1.5 font-display text-[12px] font-semibold transition-colors active:scale-[0.97] " +
               (active
                 ? "bg-white text-brand-dark shadow-raised"
-                : "text-ink-muted hover:text-brand")
+                : // A colour change alone was the weakest feedback in the
+                  // app, on the one control a design review asked about.
+                  "text-ink-muted hover:bg-white/60 hover:text-brand")
             }
           >
             <Icon className="size-3.5" />

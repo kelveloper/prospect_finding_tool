@@ -440,7 +440,7 @@ export default function OutreachActions({
                 type="button"
                 disabled={pending !== null}
                 onClick={() => onClick(action)}
-                className={`rounded-[8px] px-5 py-2.5 font-display text-[13px] font-semibold transition-colors disabled:opacity-50 ${action.tone}`}
+                className={`rounded-[8px] px-5 py-2.5 font-display text-[13px] font-semibold transition-colors active:scale-[0.97] disabled:scale-100 disabled:opacity-50 ${action.tone}`}
               >
                 {pending === action.value && !modalFor
                   ? "Saving…"
