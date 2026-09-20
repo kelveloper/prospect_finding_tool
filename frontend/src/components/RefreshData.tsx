@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { revalidateBoard } from "@/lib/actions";
+import { RefreshIcon } from "./icons";
 import {
   toIngestStatus,
   type IngestPhase,
@@ -182,7 +183,8 @@ function PhaseMark({ status }: { status: IngestPhase["status"] }) {
   );
 }
 
-/** Nav-bar data control: quiet status line + Refresh Data button. Hovering
+/** Data control beside the list it refreshes: quiet status line + a
+ *  refresh glyph. Hovering
  *  shows how often each upstream source actually updates, so advisors know
  *  a weekly refresh is the honest cadence — and what the last sweep found.
  *  While a sweep runs the button opens a checklist of its steps. */
@@ -403,30 +405,49 @@ export default function RefreshData({
         }}
         aria-disabled={!sweeping && blocked}
         aria-expanded={sweeping ? open : undefined}
-        // No `title`. The hover panel below already says when the data was
-        // updated and why the gate is on, and it appears on exactly the
-        // same hover — so the OS tooltip drew itself over the panel a
-        // second later, saying the same thing a third time in a font we do
-        // not control and cannot dismiss. The button's own text is its
-        // accessible name; nothing here needed a second one.
+        // Still no `title`. The hover panel below already says when the
+        // data was updated and why the gate is on, on exactly the same
+        // hover — so the OS tooltip drew itself over the panel a second
+        // later, saying the same thing a third time in a font we do not
+        // control and cannot dismiss. The button's text used to be its
+        // accessible name; now that the label is a glyph, aria-label
+        // carries that instead. It is read, never drawn, so the panel
+        // stays the only thing that appears on hover.
+        aria-label={
+          sweeping
+            ? "Sweep running — show progress"
+            : lockedDays > 0
+              ? `Refresh available in ${lockedDays} ${lockedDays === 1 ? "day" : "days"}`
+              : "Refresh data"
+        }
         className={
-          "flex items-center gap-2 rounded-[8px] border border-hairline bg-white px-3 py-1.5 font-display text-[12px] font-semibold text-brand transition-colors " +
-          (blocked ? "cursor-not-allowed opacity-60" : "hover:bg-surface-soft")
+          "flex items-center gap-1.5 rounded-[8px] border border-hairline bg-white px-2 py-1.5 font-display text-[11px] font-semibold text-brand transition-colors " +
+          (blocked
+            ? "cursor-not-allowed opacity-60"
+            : "hover:bg-surface-soft active:scale-[0.97]")
         }
       >
-        {sweeping ? (
-          <>
-            <span
-              aria-hidden
-              className="size-3 animate-spin rounded-full border-2 border-brand border-t-transparent"
-            />
-            Sweeping… <span aria-hidden>▾</span>
-          </>
-        ) : lockedDays > 0 ? (
-          `Refresh in ${lockedDays}d`
-        ) : (
-          "Refresh Data"
-        )}
+        {/* The glyph is the label in every state. It spins while a sweep
+            runs, which is the same fact the old bordered spinner carried
+            beside the word "Sweeping…" — one object now, not two. */}
+        <RefreshIcon
+          className={"size-4 shrink-0 " + (sweeping ? "animate-spin" : "")}
+        />
+        {/* The word stays. A circular arrow is about as recognisable as a
+            glyph gets, but "recognisable" still means the reader has to
+            already know — the same bet that left the board's fit dial an
+            unlabelled number. Set at 11px beside the icon it costs ~40px
+            and the control is still a fraction of the slab it replaced.
+            The state goes here too: a faded icon reads as "off", never as
+            "off until Tuesday", and the gate is what people actually ask
+            this control about. */}
+        <span aria-hidden>
+          {sweeping
+            ? "Sweeping…"
+            : lockedDays > 0
+              ? `Refresh in ${lockedDays}d`
+              : "Refresh"}
+        </span>
       </button>
 
       {/* Step checklist — a popover under the button, GitHub-checks style.

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import CandidateCard from "./CandidateCard";
 import CandidateDetail from "./CandidateDetail";
+import RefreshData from "./RefreshData";
 import type { Dossier } from "@/lib/dossier";
 import {
   AUDIT_CHIPS,
@@ -20,6 +21,7 @@ import {
   summarizeChanges,
 } from "@/lib/changes";
 import type { Candidate } from "@/lib/data";
+import type { IngestStatus } from "@/lib/api";
 
 /* Virtualized list geometry. Cards are structurally identical, so one
  * measured height positions every row; the estimate only covers the
@@ -37,6 +39,8 @@ type Props = {
   dossier: Dossier | null;
   /** Move the board onto another prospect. */
   onSelect: (id: string) => void;
+  /** Last sweep, for the refresh control in the rail heading. */
+  ingestStatus: IngestStatus | null;
 };
 
 /** The board layout: featured panel beside the ranked list.
@@ -50,6 +54,7 @@ export default function Scoreboard({
   ranked,
   selectedId,
   dossier,
+  ingestStatus,
   onSelect,
 }: Props) {
   // "Since last refresh" — new arrivals and movers. The alert above the list
@@ -260,11 +265,17 @@ export default function Scoreboard({
             right-aligned opposite the heading for a while, which read as a
             second column that nothing below it continued. Stacked tight —
             a 2px gap, not the 12px it used to take. */}
-        <div className="pt-5">
-          <h2 className="font-display text-[16px] font-bold text-ink">
-            All Prospects
-          </h2>
-          <p className="eyebrow mt-0.5">Ranked by fit score</p>
+        {/* Refresh belongs to the list, not to the application. It sat in
+            the nav bar until a design review moved it here: what it acts on
+            is these cards, and this is the heading that names them. */}
+        <div className="flex items-start justify-between gap-3 pt-5">
+          <div className="min-w-0">
+            <h2 className="font-display text-[16px] font-bold text-ink">
+              All Prospects
+            </h2>
+            <p className="eyebrow mt-0.5">Ranked by fit score</p>
+          </div>
+          <RefreshData status={ingestStatus} />
         </div>
 
         {/* ── Search ──────────────────────────────────

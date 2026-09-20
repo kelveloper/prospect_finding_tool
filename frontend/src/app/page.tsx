@@ -1,12 +1,14 @@
 import Board from "@/components/Board";
 import Header from "@/components/Header";
 import LaunchOverlay from "@/components/LaunchOverlay";
+import RefreshData from "@/components/RefreshData";
 import ViewToggle from "@/components/ViewToggle";
 import { locatedToday } from "@/lib/data";
 import { LAUNCH_PARAM } from "@/lib/session";
 import { BOOK_VIEW, parseView } from "@/lib/view";
 import {
   fetchCandidateDetail,
+  fetchIngestStatus,
   fetchContactKit,
   fetchOutreachHistory,
   fetchRankedCandidates,
@@ -33,7 +35,12 @@ export default async function ScoreboardPage({
   // shared link. This is the only time it is read back; from the first click
   // onwards the client leads and the URL follows.
   const layout = parseView(view);
-  const ranked = await fetchRankedCandidates();
+  // Refresh sits with the list it refreshes, so the board needs the
+  // sweep status the header used to fetch for itself.
+  const [ranked, ingestStatus] = await Promise.all([
+    fetchRankedCandidates(),
+    fetchIngestStatus(),
+  ]);
 
   if (ranked.length === 0) {
     return (
@@ -46,8 +53,14 @@ export default async function ScoreboardPage({
           </h1>
           <p className="mt-2 text-[14px] text-ink-muted">
             The backend returned no prospects and ingestion produced nothing.
-            Check that the API is running, then POST /ingest/run.
+            Check that the API is running, then run a sweep.
           </p>
+          {/* Refresh lives with the list, and there is no list — but an
+              empty board is exactly when someone needs to start a sweep,
+              so the control comes to the empty state instead. */}
+          <div className="mt-6 flex justify-center">
+            <RefreshData status={ingestStatus} />
+          </div>
         </main>
       </div>
     );
@@ -95,6 +108,7 @@ export default async function ScoreboardPage({
         initial={state}
         seedId={seedId}
         seed={{ detail, contactKit, outreach }}
+        ingestStatus={ingestStatus}
       />
     </div>
   );

@@ -11,6 +11,8 @@ import {
 import FilterSelect from "./FilterSelect";
 import { EvidenceChip, MovementChip, TriggerChip } from "./RowChips";
 import { ChevronLeft, ChevronRight, CloseIcon } from "./icons";
+import RefreshData from "./RefreshData";
+import type { IngestStatus } from "@/lib/api";
 import {
   CHANGED_LABEL,
   changeHint,
@@ -65,6 +67,8 @@ type Props = {
   placedId: string | null;
   /** Open one entry in full over the spread. */
   onOpen: (id: string) => void;
+  /** Last sweep, for the refresh control in the heading. */
+  ingestStatus: IngestStatus | null;
 };
 
 /** The board read as a ledger: ranked entries laid out on facing pages you
@@ -77,7 +81,12 @@ type Props = {
  *  from somewhere else — a shared link, or the layout toggle carrying the
  *  board's featured prospect over — turns to the page that entry is printed
  *  on and marks the line. From there the page-turn buttons take over again. */
-export default function BookView({ ranked, placedId, onOpen }: Props) {
+export default function BookView({
+  ranked,
+  placedId,
+  onOpen,
+  ingestStatus,
+}: Props) {
   const [specialty, setSpecialty] = useState("all");
   const [tier, setTier] = useState("all");
   const [location, setLocation] = useState("all");
@@ -418,10 +427,16 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
                       set from two controls is a dimension you have to go
                       looking for in two places. */}
           <div className="-mx-2 flex items-start gap-3 border-b border-hairline/60 px-2 pb-2">
-            <span className="w-6 shrink-0 text-center">
-              <span title="Rank on the board, by fit score" className="eyebrow">
-                #
-              </span>
+            {/* "Rank", not "#". The glyph read as a row number — an index
+                of the printout — when it is the one column that carries a
+                judgement: where this prospect places on the board. Wide
+                enough for the word at 10.5px small caps, which the flexible
+                Prospect cell beside it can spare. */}
+            <span className="w-[38px] shrink-0 text-center">
+              <ColumnHead
+                heading="Rank"
+                hint="Where this prospect places on the board, by fit score. The book is printed in this order."
+              />
             </span>
             {/* One head, because it is one cell.
                 It was two — "Specialty" and "Location" — which named two of
@@ -432,8 +447,8 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
                 No separator between parts, either: a dotted list of three
                 words would promise three columns that do not exist. The
                 other heads name an attribute; this one names the entity, and
-                the row reads # · Prospect · Outreach · Why now · Evidence ·
-                Fit. */}
+                the row reads Rank · Prospect · Outreach · Why now ·
+                Evidence · Fit. */}
             <span className="flex min-w-0 flex-1 items-center">
               <ColumnHead
                 heading="Prospect"
@@ -458,21 +473,21 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
               />
             </span>
             {hasMovement ? null : (
-            <span className="hidden w-[72px] shrink-0 md:block">
-              <ColumnHead
-                heading="Evidence"
-                hint="How many of the seven signals we look for were actually found for this prospect."
-                inset="chip"
-              />
-            </span>
+              <span className="hidden w-[72px] shrink-0 md:block">
+                <ColumnHead
+                  heading="Evidence"
+                  hint="How many of the seven signals we look for were actually found for this prospect."
+                  inset="chip"
+                />
+              </span>
             )}
             {hasMovement ? (
               <span className="hidden w-[78px] shrink-0 text-right md:block">
                 <ColumnHead
-                heading="Move"
-                hint="How the fit score has changed since the last data refresh."
-                align="right"
-              />
+                  heading="Move"
+                  hint="How the fit score has changed since the last data refresh."
+                  align="right"
+                />
               </span>
             ) : null}
             <span className="w-[44px] shrink-0">
@@ -551,6 +566,11 @@ export default function BookView({ ranked, placedId, onOpen }: Props) {
             read the full entry beside it.
           </p>
         </div>
+
+        {/* The same control the board carries, in the same relation to the
+            heading that names the list — a shared control that moves or
+            changes shape between the two views reads as two products. */}
+        <RefreshData status={ingestStatus} />
       </div>
 
       {/* ── The open book ──────────────────────────────── */}
@@ -892,7 +912,10 @@ function ColumnHead({
 }) {
   return (
     <span
-      title={hint ? `${heading} — ${hint}` : heading}
+      // Just the hint. The tooltip used to open with the heading again —
+      // "Why now — The most recent event…" — which spends its first words
+      // repeating the label the pointer is already resting on.
+      title={hint ?? heading}
       className={
         "eyebrow block cursor-help " +
         (align === "right" ? "text-right " : "") +
@@ -1082,7 +1105,7 @@ function BookEntry({
           : "hover:border-l-hairline hover:bg-canvas")
       }
     >
-      <span className="w-6 shrink-0 text-center font-display text-[11px] font-bold text-ink-faint tabular-nums">
+      <span className="w-[38px] shrink-0 text-center font-display text-[11px] font-bold text-ink-faint tabular-nums">
         {rank}
       </span>
       <span className="min-w-0 flex-1">
@@ -1176,18 +1199,18 @@ function BookEntry({
       </span>
 
       {showMovement ? null : (
-      <span className={"hidden w-[72px] shrink-0 md:block " + recede}>
-        {plainEvidence ? (
-          <span
-            title={`Evidence — built on ${candidate.evidence.found} of ${candidate.evidence.total} signals`}
-            className="inline-block cursor-help px-2.5 text-[11px] text-ink-faint/70"
-          >
-            {candidate.evidence.level}
-          </span>
-        ) : (
-          <EvidenceChip evidence={candidate.evidence} />
-        )}
-      </span>
+        <span className={"hidden w-[72px] shrink-0 md:block " + recede}>
+          {plainEvidence ? (
+            <span
+              title={`Evidence — built on ${candidate.evidence.found} of ${candidate.evidence.total} signals`}
+              className="inline-block cursor-help px-2.5 text-[11px] text-ink-faint/70"
+            >
+              {candidate.evidence.level}
+            </span>
+          ) : (
+            <EvidenceChip evidence={candidate.evidence} />
+          )}
+        </span>
       )}
 
       {showMovement ? (

@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { Fragment, type ReactNode } from "react";
 import { LogoMark, ChevronLeft, InfoIcon } from "./icons";
-import RefreshData from "./RefreshData";
 import ViewerMenu from "./ViewerMenu";
-import { fetchCandidateCount, fetchIngestStatus } from "@/lib/api";
+import { fetchCandidateCount } from "@/lib/api";
 import { VIEWER_SID } from "@/lib/data";
 import { LAUNCH_HREF } from "@/lib/session";
 
@@ -23,20 +22,19 @@ type Props = {
 };
 
 /** Left half is navigation — wordmark, breadcrumbs, back. Right half is the
- *  fixed status trio: how many prospects are on the board, who is signed in
- *  (SID) and their avatar. Same on every page so the bar never shifts. */
+ *  fixed status line: how many prospects are on the board, who is signed in
+ *  (SID) and their avatar. Same on every page so the bar never shifts.
+ *
+ *  Refresh used to live here too. A design review put it with the list it
+ *  refreshes instead — see Scoreboard.tsx and BookView.tsx. */
 export default async function Header({
   crumbs = [],
   viewToggle,
   back,
   candidateCount,
 }: Props) {
-  const [count, ingestStatus] = await Promise.all([
-    candidateCount !== undefined
-      ? Promise.resolve(candidateCount)
-      : fetchCandidateCount(),
-    fetchIngestStatus(),
-  ]);
+  const count =
+    candidateCount !== undefined ? candidateCount : await fetchCandidateCount();
 
   return (
     <header className="sticky top-0 z-10 border-b border-hairline/60 bg-white">
@@ -54,10 +52,13 @@ export default async function Header({
             title="Back to the opening screen"
             className="flex shrink-0 items-center gap-3"
           >
-            <span className="flex size-8 items-center justify-center rounded-[8px] bg-brand text-white">
-              <LogoMark className="size-[18px]" />
+            <span className="flex size-9 items-center justify-center rounded-[10px] bg-brand text-white">
+              <LogoMark className="size-5" />
             </span>
-            <span className="font-display text-[18px] font-bold tracking-[-0.4px] text-ink">
+            {/* Same lockup as the welcome card (LaunchOverlay.tsx) — small
+                caps rather than an 18px headline, so the wordmark reads the
+                same wherever it appears. Keep the two in step. */}
+            <span className="font-display text-[12px] font-semibold uppercase tracking-[1px] text-ink-faint">
               TellTale
             </span>
           </a>
@@ -99,10 +100,6 @@ export default async function Header({
         ) : null}
 
         <div className="flex shrink-0 items-center gap-3">
-          <RefreshData status={ingestStatus} />
-          <span aria-hidden className="text-[12px] text-ink-faint">
-            ·
-          </span>
           {count !== undefined ? (
             <>
               <span className="text-[12px] text-ink-faint">

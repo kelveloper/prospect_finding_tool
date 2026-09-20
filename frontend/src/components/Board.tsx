@@ -13,6 +13,7 @@ import {
 } from "@/lib/boardState";
 import { useDossier, type Dossier } from "@/lib/dossier";
 import type { Candidate } from "@/lib/data";
+import type { IngestStatus } from "@/lib/api";
 import { BOOK_VIEW } from "@/lib/view";
 
 type Props = {
@@ -24,6 +25,8 @@ type Props = {
    *  first paint is complete without a client round-trip. */
   seedId: string | null;
   seed: Dossier;
+  /** Last sweep, for the refresh control each layout carries. */
+  ingestStatus: IngestStatus | null;
 };
 
 /** The scoreboard's two layouts and the detail they share.
@@ -38,7 +41,13 @@ type Props = {
  *  is not a view anyone asked for. The book opens an entry only when `?entry=`
  *  says so, so switching into it lands on the spread, marked at the line you
  *  were reading, rather than on a panel covering the spread you came for. */
-export default function Board({ ranked, initial, seedId, seed }: Props) {
+export default function Board({
+  ranked,
+  initial,
+  seedId,
+  seed,
+  ingestStatus,
+}: Props) {
   const { layout, id, entry } = useBoardState(initial);
   const book = layout === BOOK_VIEW;
 
@@ -64,6 +73,7 @@ export default function Board({ ranked, initial, seedId, seed }: Props) {
         selectedId={shownId as string}
         dossier={dossier}
         onSelect={setPlaced}
+        ingestStatus={ingestStatus}
       />
     );
 
@@ -74,7 +84,12 @@ export default function Board({ ranked, initial, seedId, seed }: Props) {
     <>
       {/* Placement marks the line even with the panel shut, so the book
           always shows where the reader left off. */}
-      <BookView ranked={ranked} placedId={entry ?? id} onOpen={openEntry} />
+      <BookView
+        ranked={ranked}
+        placedId={entry ?? id}
+        onOpen={openEntry}
+        ingestStatus={ingestStatus}
+      />
 
       {featured ? (
         <CandidateSlideOver
