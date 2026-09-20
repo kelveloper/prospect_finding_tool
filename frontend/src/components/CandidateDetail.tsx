@@ -1,8 +1,12 @@
+"use client";
+
+import { useState } from "react";
 import CandidateDossier from "./CandidateDossier";
 import ScoreSparkline from "./ScoreSparkline";
 import SectionCard from "./SectionCard";
 import ContactKitCard from "./ContactKitCard";
 import Citation from "./Citation";
+import { PersonIcon } from "./icons";
 import EvidenceBadge from "./EvidenceBadge";
 import type { ContactKit } from "@/lib/api";
 import type {
@@ -75,6 +79,9 @@ export default function CandidateDetail({
         : null;
 
   // The record itself, rendered inside the trust line's disclosure.
+  // The records are closed until the button below asks for them.
+  const [recordsOpen, setRecordsOpen] = useState(false);
+
   const dossierRecord = profile ? (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
       {profile.sections.map((section) => (
@@ -128,7 +135,14 @@ export default function CandidateDetail({
             </>
           ) : null}
           <div className="mt-1.5 flex items-center gap-2 border-t border-hairline/60 pt-2">
-            <span className="font-display text-[12px] font-semibold text-ink-faint">
+            {/* The explanation was next door all along — EvidenceBadge, on
+                the right, breaks the same number into Value and Timing. But
+                it hangs off the badge, and nobody puzzled by a word hovers
+                the thing beside it. */}
+            <span
+              title="Fit — value × how fresh the trigger is. The board is ranked by this."
+              className="cursor-help font-display text-[12px] font-semibold text-ink-faint"
+            >
               Fit {candidate.score}
             </span>
             <EvidenceBadge
@@ -164,20 +178,36 @@ export default function CandidateDetail({
         </div>
       </aside>
 
-      {/* ── WHO — name and identity. The block opens the record. ── */}
-      <details className="group -mx-3 -mt-2">
-        <summary
-          title="Show the license, practice and property records behind this prospect"
-          className="flex cursor-pointer list-none items-start justify-between gap-8 rounded-[12px] px-3 py-2 transition-colors hover:bg-canvas [&::-webkit-details-marker]:hidden"
-        >
-          <div className="min-w-0">
+      {/* ── WHO — name and identity. One button opens the records. ── */}
+      <div>
+        {/* The disc centres on the three lines it belongs to — eyebrow,
+            name, location — rather than the whole block. Hung off the top
+            of a column that also carries the identity row, it read as
+            floating above the name instead of beside it. */}
+        <div className="flex items-center gap-4">
+          {/* A generic person, not this one: no photographs exist for these
+              people and none are coming. Its job is to break up a column of
+              unrelieved text and numbers, so it is deliberately quiet — a
+              muted disc, where the board's cards wear the same initials on
+              a filled brand disc. Initials here read as the card's mark
+              repeated at double size rather than as a new thing, which is
+              why they are not used. The name beside it already says who
+              this is, so screen readers skip it. */}
+          <span
+            aria-hidden
+            className="flex size-16 shrink-0 items-center justify-center rounded-full bg-surface-soft text-ink-faint ring-1 ring-hairline/60"
+          >
+            <PersonIcon className="size-8" />
+          </span>
+
+          <div className="min-w-0 flex-1">
             <p className="eyebrow">{candidate.category}</p>
             <Heading className="mt-0.5 font-display text-[28px] font-bold tracking-[-0.65px] text-ink">
               {candidate.name}
             </Heading>
             {/* The location is the practice address. On the rows where that
-                sits outside the state we searched, say so here — otherwise
-                the header reads like the wrong person. */}
+            sits outside the state we searched, say so here — otherwise
+            the header reads like the wrong person. */}
             <p className="mt-0.5 text-[15px] text-ink-muted">
               {candidate.location}
               {candidate.licenseNote ? (
@@ -187,54 +217,63 @@ export default function CandidateDetail({
                 </span>
               ) : null}
             </p>
-
-            {/* Trust line: how sure we are these records are one person. */}
-            {profile ? (
-              <>
-                <p className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-2">
-                  <span
-                    className={
-                      "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-display text-[12px] font-semibold " +
-                      (profile.identityVerified
-                        ? "bg-tier-strong-bg text-tier-strong-fg"
-                        : "bg-tier-neutral-bg text-tier-neutral-fg")
-                    }
-                  >
-                    {profile.identityVerified ? "✓" : "◌"}{" "}
-                    {profile.identityLine}
-                  </span>
-
-                  {/* The affordance for the whole block, not a control of its
-                      own — it sits inside the summary, so the click is already
-                      handled, and the name, the location and the pill all open
-                      the records too.
-                      Bordered, because a reader complained they could not find
-                      it and the reason was never where it sat: a 13px link at
-                      80% opacity, beside a filled pill of twice the visual
-                      weight, loses on its own line as well. A border is what
-                      makes a thing read as a control. */}
-                  <span className="flex w-fit items-center gap-1.5 rounded-[8px] border border-hairline bg-white px-3 py-1.5 font-display text-[12.5px] font-semibold text-brand transition-colors group-hover:border-brand group-hover:bg-canvas">
-                    <span className="group-open:hidden">See the records</span>
-                    <span className="hidden group-open:inline">
-                      Hide the records
-                    </span>
-                    <span
-                      aria-hidden
-                      className="text-[10px] transition-transform group-open:rotate-180"
-                    >
-                      ▼
-                    </span>
-                  </span>
-                </p>
-              </>
-            ) : null}
           </div>
-        </summary>
+        </div>
 
-        {dossierRecord ? (
-          <div className="px-3 pt-5">{dossierRecord}</div>
+        {/* Trust line: how sure we are these records are one person. */}
+        {profile ? (
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+            <span
+              className={
+                "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-display text-[12px] font-semibold " +
+                (profile.identityVerified
+                  ? "bg-tier-strong-bg text-tier-strong-fg"
+                  : "bg-tier-neutral-bg text-tier-neutral-fg")
+              }
+            >
+              {profile.identityVerified ? "✓" : "◌"} {profile.identityLine}
+            </span>
+
+            {/* The one control. The whole name block used to be clickable
+                as well, which a design review caught — "these two buttons
+                do the same thing?" They did. The block went back to being
+                text, and opening the records is this button's job alone,
+                so there is one thing on screen that looks pressable and it
+                is the thing that is. */}
+            <button
+              type="button"
+              onClick={() => setRecordsOpen((open) => !open)}
+              aria-expanded={recordsOpen}
+              aria-controls={`records-${candidate.id}`}
+              title="Show the license, practice and property records behind this prospect"
+              className="flex w-fit items-center gap-1.5 rounded-[8px] border border-hairline bg-white px-3 py-1.5 font-display text-[12.5px] font-semibold text-brand transition-colors hover:border-brand hover:bg-canvas active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+            >
+              {recordsOpen ? "Hide the records" : "See the records"}
+              <span
+                aria-hidden
+                className={
+                  "text-[10px] transition-transform " +
+                  (recordsOpen ? "rotate-180" : "")
+                }
+              >
+                ▼
+              </span>
+            </button>
+          </div>
         ) : null}
-      </details>
+
+        {/* Kept mounted and hidden rather than unmounted, so the button's
+            aria-controls always names something real. */}
+        {dossierRecord ? (
+          <div
+            id={`records-${candidate.id}`}
+            hidden={!recordsOpen}
+            className="pt-5"
+          >
+            {dossierRecord}
+          </div>
+        ) : null}
+      </div>
 
       <hr className="my-4 border-surface-soft" />
 
@@ -348,7 +387,22 @@ function WhyNow({
     <>
       {events.length > 0 ? (
         <section>
-          <Subheading className="section-title mb-3">Why now</Subheading>
+          <Subheading className="section-title mb-1">Why now</Subheading>
+          {/* A design review hit this heading and asked what it meant, which
+              is the whole finding: the phrase only works once someone has
+              explained it. Said here, in a line that is always on screen,
+              rather than behind a hover — "immediately understandable" was
+              the bar, and a tooltip is understandable only after you already
+              suspect there is something to learn.
+              It names the question and stops. The book's column head lists
+              examples — a new license, a practice, a property purchase —
+              which is safe above a column of every prospect, and a lie above
+              one of them: printed over Ameen Barghi's two cards it reads as
+              three things he has. The cards below are the answer for this
+              prospect; this line only has to pose the question. */}
+          <p className="mb-3 max-w-[680px] text-[13px] leading-[20px] text-ink-muted">
+            What happened recently that makes this a good time to call.
+          </p>
           {/* flow-root, because a float only moves text out of its way. A
               block keeps its full width and runs underneath, so the card's
               background slid beneath the rail while its words wrapped

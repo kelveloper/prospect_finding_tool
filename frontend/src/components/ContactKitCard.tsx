@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import OutreachActions from "./OutreachActions";
+import { PhoneIcon, PinIcon } from "./icons";
 import { tidyPlural } from "@/lib/text";
 import type { ContactKit } from "@/lib/api";
 import type { OutreachEntry } from "@/lib/data";
@@ -55,13 +57,24 @@ export default function ContactKitCard({
         <div className="min-w-0">
           {kit.phone ? (
             <>
-              <a
-                href={telHref(kit.phone)}
-                title={`Call ${kit.name} on ${kit.phone}`}
-                className="font-display text-[22px] font-bold tracking-[-0.3px] text-brand-dark hover:underline"
-              >
-                {kit.phone}
-              </a>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                {/* The glyph is what makes the number read as a channel
+                    rather than another figure on a page full of them. */}
+                <PhoneIcon className="size-[18px] shrink-0 text-brand-dark" />
+                <a
+                  href={telHref(kit.phone)}
+                  title={`Call ${kit.name} on ${kit.phone}`}
+                  className="font-display text-[22px] font-bold tracking-[-0.3px] text-brand-dark hover:underline"
+                >
+                  {kit.phone}
+                </a>
+                {/* tel: dials on a phone and usually does nothing on a
+                    desk, where this is read. Copying is the action that
+                    actually happens next — into a softphone, into the CRM
+                    — and doing it by hand means dragging a selection
+                    across a link that dials when clicked. */}
+                <CopyButton value={kit.phone} label="phone number" />
+              </div>
               {kit.phoneNote ? (
                 <p className="mt-0.5 text-[12px] text-ink-muted">
                   {kit.phoneNote}
@@ -93,14 +106,23 @@ export default function ContactKitCard({
 
         <div className="mt-3 min-w-0 border-t border-hairline/50 pt-3">
           <p className="eyebrow">Practice address</p>
-          <p className="mt-0.5 text-[13.5px] leading-[19px] text-ink-muted">
-            {address || "Not on record"}
-            {!kit.addressComplete && kit.addressLines.length > 0 ? (
-              <span className="mt-1 block text-[12px] text-tier-poor">
-                Incomplete — verify before mailing
-              </span>
-            ) : null}
-          </p>
+          {/* Built exactly like the phone row above — glyph, the value, then
+              the copy. The button sat on the label line for a while, which
+              put the page's two copies in two different relationships to
+              the thing they copy; a reader has to work out the second one
+              from scratch instead of recognising it. */}
+          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-2">
+            <PinIcon className="size-[18px] shrink-0 text-ink-faint" />
+            <p className="min-w-0 text-[13.5px] leading-[19px] text-ink-muted">
+              {address || "Not on record"}
+            </p>
+            {address ? <CopyButton value={address} label="address" /> : null}
+          </div>
+          {!kit.addressComplete && kit.addressLines.length > 0 ? (
+            <p className="mt-1.5 text-[12px] text-tier-poor">
+              Incomplete — verify before mailing
+            </p>
+          ) : null}
         </div>
       </div>
 
@@ -112,6 +134,47 @@ export default function ContactKitCard({
         />
       ) : null}
     </section>
+  );
+}
+
+/** Copy one field to the clipboard, and say so.
+ *
+ *  The confirmation is the point as much as the copy is: a button that
+ *  looks identical before and after leaves the reader wondering whether it
+ *  worked, which is the same complaint a design review made about clicking
+ *  anything else here. It reverts after a moment so the control is ready
+ *  again without a page of stale "Copied" labels. */
+function CopyButton({ value, label }: { value: string; label: string }) {
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!copied) return;
+    const timer = setTimeout(() => setCopied(false), 1600);
+    return () => clearTimeout(timer);
+  }, [copied]);
+
+  return (
+    <button
+      type="button"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(value);
+          setCopied(true);
+        } catch {
+          // Blocked origin or refused permission. Stay silent rather than
+          // report a copy that did not happen.
+        }
+      }}
+      aria-label={copied ? `${label} copied` : `Copy ${label}`}
+      className={
+        "shrink-0 rounded-[6px] border px-2 py-1 font-display text-[11px] font-semibold transition-colors active:scale-[0.97] " +
+        (copied
+          ? "border-tier-strong-fg/30 bg-tier-strong-bg text-tier-strong-fg"
+          : "border-hairline bg-white text-ink-muted hover:border-brand hover:text-brand")
+      }
+    >
+      <span aria-hidden>{copied ? "Copied" : "Copy"}</span>
+    </button>
   );
 }
 
