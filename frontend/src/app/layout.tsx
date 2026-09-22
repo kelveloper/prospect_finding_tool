@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Sans, Inter } from "next/font/google";
+import SiteFooter from "@/components/SiteFooter";
 import { LAUNCH_GUARD_SCRIPT } from "@/lib/session";
 import { STYLE_SCRIPT } from "@/lib/style";
 import "./globals.css";
@@ -38,10 +39,15 @@ export default function RootLayout({
           body attributes before React hydrates; only this element's
           attribute diffs are ignored, children still validate */}
       <body
-        className={`${dmSans.variable} ${inter.variable} antialiased`}
+        className={`${dmSans.variable} ${inter.variable} flex min-h-screen flex-col antialiased`}
         suppressHydrationWarning
       >
-        {children}
+        {/* flex-1 lets a short page (info origin) push the footer to the
+            bottom of the viewport rather than stranding it below a screen
+            of empty canvas. Pages therefore set their own height, not
+            min-h-screen. */}
+        <div className="flex-1">{children}</div>
+        <SiteFooter />
       </body>
     </html>
   );

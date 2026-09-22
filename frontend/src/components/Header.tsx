@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Fragment, type ReactNode } from "react";
-import { LogoMark, ChevronLeft, InfoIcon } from "./icons";
+import { LogoMark, ChevronLeft } from "./icons";
+import BackButton, { BACK_CONTROL_CLASS } from "./BackButton";
 import ViewerMenu from "./ViewerMenu";
 import { fetchCandidateCount } from "@/lib/api";
 import { VIEWER_SID } from "@/lib/data";
@@ -17,8 +18,11 @@ type Props = {
    *  current view the way the old static tag did, and is also how you
    *  leave it. */
   viewToggle?: ReactNode;
-  /** One-click return, rendered at the end of the breadcrumb trail. */
-  back?: { label: string; href: string };
+  /** One-click return, rendered at the end of the breadcrumb trail.
+   *  `href` is the destination; set `history` when the page can be reached
+   *  from several places and stepping back beats guessing, in which case
+   *  `href` is only the fallback. */
+  back?: { label: string; href: string; history?: boolean };
 };
 
 /** Left half is navigation — wordmark, breadcrumbs, back. Right half is the
@@ -26,7 +30,8 @@ type Props = {
  *  (SID) and their avatar. Same on every page so the bar never shifts.
  *
  *  Refresh used to live here too. A design review put it with the list it
- *  refreshes instead — see Scoreboard.tsx and BookView.tsx. */
+ *  refreshes instead — see Scoreboard.tsx and BookView.tsx. The "where this
+ *  data comes from" link left for the same reason — see SiteFooter.tsx. */
 export default async function Header({
   crumbs = [],
   viewToggle,
@@ -82,13 +87,14 @@ export default async function Header({
           ))}
 
           {back ? (
-            <Link
-              href={back.href}
-              className="ml-1 flex shrink-0 items-center gap-2 rounded-[8px] border border-hairline bg-white px-3 py-2 font-display text-[13px] font-semibold text-brand shadow-raised transition-colors hover:bg-surface-soft"
-            >
-              <ChevronLeft className="size-4" />
-              {back.label}
-            </Link>
+            back.history ? (
+              <BackButton label={back.label} fallbackHref={back.href} />
+            ) : (
+              <Link href={back.href} className={BACK_CONTROL_CLASS}>
+                <ChevronLeft className="size-4" />
+                {back.label}
+              </Link>
+            )
           ) : null}
         </nav>
 
@@ -117,16 +123,6 @@ export default async function Header({
           >
             SID {VIEWER_SID}
           </span>
-
-          {/* Same link on every page, homepage included — where the data
-              and the scoring rules actually come from. */}
-          <Link
-            href="/info-origin"
-            title="Where this data comes from"
-            className="flex size-8 shrink-0 items-center justify-center rounded-full text-ink-faint transition-colors hover:bg-canvas hover:text-brand"
-          >
-            <InfoIcon className="size-4" />
-          </Link>
 
           <ViewerMenu />
         </div>

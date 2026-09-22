@@ -44,7 +44,7 @@ export default async function ScoreboardPage({
 
   if (ranked.length === 0) {
     return (
-      <div className="min-h-screen">
+      <div>
         <LaunchOverlay locatedToday={0} total={0} />
         <Header candidateCount={0} />
         <main className="mx-auto max-w-[720px] px-8 py-16 text-center">

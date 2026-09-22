@@ -38,7 +38,7 @@ export default async function SourcesPage({
   ];
 
   return (
-    <div className="min-h-screen pb-12">
+    <div className="pb-12">
       <Header
         crumbs={[
           { label: candidate.name, href: `/?id=${candidate.id}` },
