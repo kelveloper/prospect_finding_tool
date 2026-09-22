@@ -11,6 +11,10 @@ type Props = {
   rank: number;
   /** Highlights the row the detail panel is currently showing. */
   active?: boolean;
+  /** Rings the row once, on the render where the reader lands back on it
+   *  after being somewhere else. The lasting mark is `active`; this is only
+   *  the arrival, and the class is withdrawn once the animation is spent. */
+  arriving?: boolean;
   /** Swap the panel in place — a server navigation here re-rendered and
    *  re-sent the entire board on every click. */
   onSelect: () => void;
@@ -22,6 +26,7 @@ export default function CandidateCard({
   candidate,
   rank,
   active,
+  arriving = false,
   onSelect,
   audit = false,
 }: Props) {
@@ -60,6 +65,7 @@ export default function CandidateCard({
         // No press state here: clicking a card selects it, and the brand
         // border lands instantly, which is the same signal a press would be.
         "block rounded-[12px] bg-white p-4 shadow-raised transition-[box-shadow,border-color] hover:shadow-float " +
+        (arriving ? "animate-row-arrive " : "") +
         (active
           ? "border-2 border-brand"
           : // Hover was a shadow and nothing else. The border is already

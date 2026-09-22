@@ -12,7 +12,13 @@ type Props = {
 };
 
 /** A native <details> panel. No JavaScript, works before hydration, and the
- *  keyboard and screen-reader behavior come from the browser. */
+ *  keyboard and screen-reader behavior come from the browser.
+ *
+ *  `details-motion` (globals.css) eases the panel open instead of snapping it,
+ *  and the open state is also carried by the summary itself — the accent bar
+ *  grows and the row tints — so a click has three answers, not none. A design
+ *  review caught the old behavior: "I clicked on this, this changed, but
+ *  nothing here changed." */
 export default function Collapsible({
   title,
   hint,
@@ -23,10 +29,10 @@ export default function Collapsible({
   return (
     <details
       open={defaultOpen}
-      className="group overflow-hidden rounded-[16px] bg-white shadow-card"
+      className="details-motion group overflow-hidden rounded-[16px] bg-white shadow-card"
     >
-      <summary className="flex cursor-pointer list-none items-center gap-3 px-6 py-4 transition-colors hover:bg-canvas [&::-webkit-details-marker]:hidden">
-        <span className="h-4 w-[3px] shrink-0 rounded-full bg-brand" />
+      <summary className="flex cursor-pointer list-none items-center gap-3 px-6 py-4 transition-colors hover:bg-canvas group-open:bg-surface-soft [&::-webkit-details-marker]:hidden">
+        <span className="h-4 w-[3px] shrink-0 rounded-full bg-brand transition-all duration-200 group-open:h-6 motion-reduce:transition-none" />
 
         <span className="min-w-0">
           <span className="flex items-center gap-2">
@@ -49,7 +55,7 @@ export default function Collapsible({
           <span className="hidden group-open:inline">Hide</span>
           <span
             aria-hidden
-            className="transition-transform group-open:rotate-180"
+            className="transition-transform duration-200 group-open:rotate-180 motion-reduce:transition-none"
           >
             ▾
           </span>

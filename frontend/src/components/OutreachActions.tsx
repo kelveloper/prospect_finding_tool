@@ -250,6 +250,9 @@ export default function OutreachActions({
   const [error, setError] = useState<string | null>(null);
   const [reopened, setReopened] = useState(false);
   const [revising, setRevising] = useState(false);
+  // What was just written, so the save can be confirmed away from the panel
+  // the advisor may already have scrolled past. Cleared on a timer.
+  const [confirmed, setConfirmed] = useState<EventType | null>(null);
   // Picking a reason is the last required step, so the button that commits
   // it takes focus — one click and Enter, rather than a click and a hunt.
   const saveButton = useRef<HTMLButtonElement>(null);
@@ -271,6 +274,7 @@ export default function OutreachActions({
     setError(null);
     setReopened(false);
     setRevising(false);
+    setConfirmed(null);
   }
 
   // After the render that enables it, not during the click that requires it:
@@ -279,6 +283,14 @@ export default function OutreachActions({
   useEffect(() => {
     if (picked) saveButton.current?.focus();
   }, [picked]);
+
+  // Long enough to read a line and reach for the correction, short enough
+  // that it is gone before it becomes furniture.
+  useEffect(() => {
+    if (!confirmed) return;
+    const done = setTimeout(() => setConfirmed(null), 6000);
+    return () => clearTimeout(done);
+  }, [confirmed]);
 
   useEffect(() => {
     if (!modalFor) return;
@@ -356,6 +368,11 @@ export default function OutreachActions({
       setFollowUpOn("");
       setReopened(false);
       setRevising(false);
+      // The panel's own state has already moved on to the next question by
+      // now, which is what left the save unacknowledged: the buttons the
+      // advisor just pressed are gone, replaced by different ones. Say what
+      // was written, where they are looking.
+      setConfirmed(eventType);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save");
     } finally {
@@ -505,6 +522,54 @@ export default function OutreachActions({
             </>
           ) : null}
         </p>
+      ) : null}
+
+      {/* ── Confirmation ─────────────────────────────────────
+          "I clicked on this, this changed, but nothing here changed" — a
+          design review, on a click that saved without saying so. The panel
+          swaps to the next question on success, which moves the buttons but
+          never confirms the write, and on a long profile the log line below
+          is often off-screen.
+
+          The way back is "Change this" rather than "Undo": the API has no
+          delete, and revising the most recent event is the recovery that
+          actually exists. A button promising to undo what it can only
+          overwrite would be the worse lie. */}
+      {confirmed ? (
+        <div
+          role="status"
+          aria-live="polite"
+          className="animate-toast-rise fixed inset-x-4 bottom-4 z-40 mx-auto flex max-w-[420px] items-center justify-between gap-4 rounded-[12px] bg-ink px-4 py-3 text-white shadow-panel sm:left-auto sm:right-6 sm:mx-0"
+        >
+          <p className="min-w-0 text-[13px]">
+            <span className="font-display font-semibold">
+              {LABELS[confirmed]}
+            </span>
+            {prospectName ? (
+              <span className="text-white/70"> · {prospectName}</span>
+            ) : null}
+          </p>
+          <div className="flex shrink-0 items-center gap-1">
+            <button
+              type="button"
+              onClick={() => {
+                setRevising(true);
+                setConfirmed(null);
+              }}
+              className="rounded-[6px] px-2 py-1 font-display text-[12.5px] font-semibold text-brand-light underline underline-offset-[3px] transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-light"
+            >
+              Change this
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmed(null)}
+              aria-label="Dismiss this confirmation"
+              className="rounded-[6px] px-2 py-1 font-display text-[14px] leading-none text-white/60 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-light"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
       ) : null}
 
       {/* ── Reason dialog — brand-kit popup, no page change ── */}

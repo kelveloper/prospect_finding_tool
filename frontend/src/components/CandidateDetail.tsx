@@ -246,13 +246,19 @@ export default function CandidateDetail({
               aria-expanded={recordsOpen}
               aria-controls={`records-${candidate.id}`}
               title="Show the license, practice and property records behind this prospect"
-              className="flex w-fit items-center gap-1.5 rounded-[8px] border border-hairline bg-white px-3 py-1.5 font-display text-[12.5px] font-semibold text-brand transition-colors hover:border-brand hover:bg-canvas active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+              className={
+                "flex w-fit items-center gap-1.5 rounded-[8px] border bg-white px-3 py-1.5 font-display text-[12.5px] font-semibold text-brand transition-colors hover:border-brand hover:bg-canvas active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand " +
+                // Open is a state the button holds, not just a label it
+                // swaps: the control stays lit for as long as the panel
+                // under it is showing.
+                (recordsOpen ? "border-brand bg-canvas" : "border-hairline")
+              }
             >
               {recordsOpen ? "Hide the records" : "See the records"}
               <span
                 aria-hidden
                 className={
-                  "text-[10px] transition-transform " +
+                  "text-[10px] transition-transform duration-200 motion-reduce:transition-none " +
                   (recordsOpen ? "rotate-180" : "")
                 }
               >
@@ -262,15 +268,25 @@ export default function CandidateDetail({
           </div>
         ) : null}
 
-        {/* Kept mounted and hidden rather than unmounted, so the button's
-            aria-controls always names something real. */}
+        {/* Kept mounted rather than unmounted, so the button's aria-controls
+            always names something real.
+
+            It opens on a 0fr→1fr grid row rather than on `hidden`, which
+            cannot be animated — the panel now grows out of the button
+            instead of appearing already open. `inert` does the job `hidden`
+            was doing while it is closed: out of the tab order, out of the
+            accessibility tree, and unreachable by find-in-page. */}
         {dossierRecord ? (
           <div
             id={`records-${candidate.id}`}
-            hidden={!recordsOpen}
-            className="pt-5"
+            className={
+              "grid transition-[grid-template-rows] duration-[240ms] ease-out motion-reduce:transition-none " +
+              (recordsOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]")
+            }
           >
-            {dossierRecord}
+            <div className="overflow-hidden" inert={!recordsOpen}>
+              <div className="pt-5">{dossierRecord}</div>
+            </div>
           </div>
         ) : null}
       </div>

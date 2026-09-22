@@ -66,15 +66,23 @@ export default function Board({
       ranked[0])
     : undefined;
 
+  // Board and Book are the same ranked list in two shapes, and a hard swap
+  // read as a page load — a design review asked outright whether the two
+  // were showing the same information. Keying the wrapper on the layout
+  // remounts it, which runs the enter animation, so the new shape rises
+  // into place instead of appearing. Rank order is untouched either way.
   if (!book)
     return (
-      <Scoreboard
-        ranked={ranked}
-        selectedId={shownId as string}
-        dossier={dossier}
-        onSelect={setPlaced}
-        ingestStatus={ingestStatus}
-      />
+      <div key="board" className="animate-board-enter">
+        <Scoreboard
+          ranked={ranked}
+          selectedId={shownId as string}
+          dossier={dossier}
+          onSelect={setPlaced}
+          ingestStatus={ingestStatus}
+          arrivedId={initial.id}
+        />
+      </div>
     );
 
   const rank = featured ? ranked.findIndex((c) => c.id === featured.id) + 1 : 0;
@@ -84,12 +92,14 @@ export default function Board({
     <>
       {/* Placement marks the line even with the panel shut, so the book
           always shows where the reader left off. */}
-      <BookView
-        ranked={ranked}
-        placedId={entry ?? id}
-        onOpen={openEntry}
-        ingestStatus={ingestStatus}
-      />
+      <div key="book" className="animate-board-enter">
+        <BookView
+          ranked={ranked}
+          placedId={entry ?? id}
+          onOpen={openEntry}
+          ingestStatus={ingestStatus}
+        />
+      </div>
 
       {featured ? (
         <CandidateSlideOver

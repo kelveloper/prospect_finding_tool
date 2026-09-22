@@ -12,6 +12,13 @@ type Props = {
    *  the two views agree and neither reads as a promise. */
   caption?: string;
   valueSize?: number;
+  /** Draw the arc on mount instead of painting it already full.
+   *
+   *  Opt-in rather than always-on, because the board's list is virtualized:
+   *  a card that sweeps whenever it scrolls into view would put the whole
+   *  rail in motion every time the advisor scrolls. Reserved for the rings
+   *  you arrive at deliberately — one to a page, animating once. */
+  animate?: boolean;
 };
 
 /**
@@ -25,6 +32,7 @@ export default function ScoreRing({
   accent,
   caption,
   valueSize,
+  animate = false,
 }: Props) {
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -66,7 +74,20 @@ export default function ScoreRing({
           stroke={accent}
           strokeWidth={stroke}
           strokeLinecap="round"
-          strokeDasharray={`${filled} ${circumference - filled}`}
+          // One dash the length of the whole circle, hidden by an offset,
+          // rather than a two-part dash array: an offset is a single value
+          // to animate from, which is what lets the arc be drawn on rather
+          // than appear. Resting offset is where the sweep lands.
+          strokeDasharray={circumference}
+          strokeDashoffset={circumference - filled}
+          className={animate ? "animate-ring-sweep" : undefined}
+          style={
+            animate
+              ? ({
+                  "--ring-circumference": circumference,
+                } as React.CSSProperties)
+              : undefined
+          }
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">

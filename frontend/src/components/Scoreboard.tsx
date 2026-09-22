@@ -41,6 +41,12 @@ type Props = {
   onSelect: (id: string) => void;
   /** Last sweep, for the refresh control in the rail heading. */
   ingestStatus: IngestStatus | null;
+  /** Set when the URL itself named a prospect — a back-navigation out of a
+   *  dossier page, or a pasted link. The rail scrolls that row into view and
+   *  flashes it once, so the reader lands on their place in a list 1,200
+   *  long instead of at the top of it. Null on a plain visit to `/`, where
+   *  the board picks rank one and there is no place to return to. */
+  arrivedId?: string | null;
 };
 
 /** The board layout: featured panel beside the ranked list.
@@ -56,6 +62,7 @@ export default function Scoreboard({
   dossier,
   ingestStatus,
   onSelect,
+  arrivedId = null,
 }: Props) {
   // "Since last refresh" — new arrivals and movers. The alert above the list
   // doubles as the toggle; nothing renders when nothing changed.
@@ -218,6 +225,51 @@ export default function Scoreboard({
     // Mobile scrolls the page rather than the rail.
     if (window.innerWidth < 1024) railRef.current?.scrollIntoView();
   }, [listKey]);
+
+  // ── Landing back on the board ───────────────────────────
+  // A design review asked for a selection that survives navigating away and
+  // back. The brand border on the active card was already doing the lasting
+  // half; what was missing was the arrival — come back from a dossier page
+  // and the rail sat at the top of 1,200 rows with your row somewhere below
+  // the fold, marked but unfindable. So: scroll to it, and ring it once.
+  //
+  // Declared after the effect above because both run on mount and this one
+  // has to win — scrolling to the top and then to the row is the right order.
+  const [flashId, setFlashId] = useState<string | null>(arrivedId);
+  const landed = useRef(false);
+  useEffect(() => {
+    if (landed.current || !arrivedId) return;
+    landed.current = true;
+    // A frame later, so the measured card height above has replaced the
+    // estimate and the offset is the row's real position, not an
+    // approximation multiplied by a thousand. An index of -1 means the row
+    // is filtered out of the current list: there is nothing to scroll to,
+    // and no card will carry the flash, so the timer below is left to
+    // retire it on its own rather than clearing state from inside an effect.
+    const index = shown.findIndex((c) => c.id === arrivedId);
+    const frame =
+      index < 0
+        ? null
+        : requestAnimationFrame(() => {
+            const measured = listRef.current
+              ?.querySelector("a")
+              ?.getBoundingClientRect().height;
+            const height =
+              (measured && measured > 0 ? measured : cardHeight) + CARD_GAP;
+            // Leave one card above it: the row should read as a place in a
+            // list, not as the top of one.
+            const top = Math.max(0, index * height - height);
+            if (window.innerWidth >= 1024) railRef.current?.scrollTo({ top });
+            else railRef.current?.scrollIntoView();
+          });
+    // Longer than the 760ms ring, so the class outlives the animation it
+    // triggers rather than being pulled out from under it.
+    const done = setTimeout(() => setFlashId(null), 1200);
+    return () => {
+      if (frame !== null) cancelAnimationFrame(frame);
+      clearTimeout(done);
+    };
+  }, [arrivedId, shown, cardHeight]);
 
   // Fall back to the ranked row for the selected id while its dossier loads.
   const featured =
@@ -577,6 +629,7 @@ export default function Scoreboard({
                     candidate={candidate}
                     rank={rankOf.get(candidate.id) ?? index + 1}
                     active={candidate.id === featured.id}
+                    arriving={candidate.id === flashId}
                     onSelect={() => onSelect(candidate.id)}
                     audit={audit}
                   />

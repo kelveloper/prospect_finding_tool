@@ -58,6 +58,10 @@ html {
      it below, which is all it takes for the book to be bound in that style's
      own color. Space-separated so it composes with rgb(… / alpha). */
   --shadow-ink: 29 111 164;
+
+  /* Lets a panel animate to `height: auto` instead of needing a measured
+     pixel height. Required by the <details> motion at the foot of this file. */
+  interpolate-size: allow-keywords;
 }
 
 body {
@@ -354,4 +358,108 @@ html[data-style]:not([data-style="advisor"]) a.bg-brand-dark:active::after {
 html[data-style]:not([data-style="advisor"]) button.bg-brand:active:not(:disabled),
 html[data-style]:not([data-style="advisor"]) a.bg-brand:active {
   transform: translateY(1px);
+}
+
+/* ── An opening panel should look like it opened ──────────────────────
+   The design review's "I clicked on this, this changed, but nothing here
+   changed" — a panel that appears already open never confirms the click.
+
+   Native <details> stays native: no JavaScript, no hydration wait, and the
+   keyboard and screen-reader behavior still come from the browser. The
+   animation rides on ::details-content, so a browser without it simply
+   snaps open — which is exactly today's behavior, not a broken one. */
+@supports selector(::details-content) {
+  .details-motion::details-content {
+    block-size: 0;
+    overflow: hidden;
+    transition:
+      block-size 240ms cubic-bezier(0.2, 0.7, 0.3, 1),
+      content-visibility 240ms allow-discrete;
+  }
+
+  .details-motion[open]::details-content {
+    block-size: auto;
+  }
+
+  /* Asked not to animate: land on the end state, do not paint a frame of
+     travel. Matches the reduced-motion paths in BookView and LaunchOverlay. */
+  @media (prefers-reduced-motion: reduce) {
+    .details-motion::details-content {
+      transition-duration: 0ms;
+    }
+  }
+}
+
+/* ── Motion: saying that something happened ───────────────────────────
+   Four one-shot animations, all from the same design review. Each fires
+   on mount or on a state change and then is done — nothing here loops,
+   because a board an advisor reads for an hour must not move on its own.
+
+   Every one is switched off under prefers-reduced-motion at the foot of
+   this block, landing on the end state rather than travelling to it. */
+
+/* A layout arriving: Board ↔ Book. Short and small — the point is that the
+   same list changed shape, not that a new page loaded. */
+@keyframes board-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+/* The row you were reading, when you come back to the board and find it.
+   One ring outward, then gone; the persistent marker is the card's own
+   brand border, which stays. */
+@keyframes row-arrive {
+  0% {
+    box-shadow: 0 0 0 0 rgb(var(--shadow-ink) / 0.45);
+  }
+  55% {
+    box-shadow: 0 0 0 8px rgb(var(--shadow-ink) / 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgb(var(--shadow-ink) / 0);
+  }
+}
+
+/* The fit dial drawing itself. --ring-circumference is set inline per ring,
+   because each size has its own; the resting dashoffset is the value the
+   arc settles on, so this needs a `from` alone. */
+@keyframes ring-sweep {
+  from {
+    stroke-dashoffset: var(--ring-circumference);
+  }
+}
+
+/* Confirmation, arriving from the edge it is pinned to. */
+@keyframes toast-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@utility animate-board-enter {
+  animation: board-enter 200ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+@utility animate-row-arrive {
+  animation: row-arrive 760ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+@utility animate-ring-sweep {
+  animation: ring-sweep 900ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+@utility animate-toast-rise {
+  animation: toast-rise 260ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-board-enter,
+  .animate-row-arrive,
+  .animate-ring-sweep,
+  .animate-toast-rise {
+    animation: none;
+  }
 }

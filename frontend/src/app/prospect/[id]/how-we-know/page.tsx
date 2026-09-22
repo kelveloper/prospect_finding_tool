@@ -67,6 +67,10 @@ export default async function SourcesPage({
                 accent={ringAccent}
                 caption="fit"
                 valueSize={24}
+                // This page is the one you open to ask how the number was
+                // reached, so the number draws itself rather than arriving
+                // as a settled fact.
+                animate
               />
               <div className="min-w-0">
                 <span
