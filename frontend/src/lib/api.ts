@@ -532,6 +532,59 @@ function toScoreComponents(d: ApiDetail): ScoreComponentItem[] {
   }));
 }
 
+/* ── Links out to the original public records ──────────────────────
+ *
+ *  Advisors asked for these in the 2026-09-19 review: naming the source a
+ *  fact came from is not the same as being able to open it and read past
+ *  what we extracted. One helper per feed, so the URL shapes live together
+ *  and a dead pattern is a one-line fix.
+ *
+ *  Only sources with a stable per-record URL are here. Verified 2026-09-21.
+ */
+
+/** NPPES publishes a page per provider, keyed on the NPI. */
+function npiRegistryUrl(npi: string): string {
+  return `https://npiregistry.cms.hhs.gov/provider-view/${npi}`;
+}
+
+/** Medicare's public profile for the same NPI — the advisor-readable face
+ *  of PECOS, listing the billing groups and hospital affiliations that the
+ *  ownership signal is inferred from. */
+function careCompareUrl(npi: string): string {
+  return `https://www.medicare.gov/care-compare/details/physician/${npi}`;
+}
+
+/** The Illinois open-data licence roster, filtered to this licence. This is
+ *  the dataset the pipeline queries — IDFPR's own lookup is a POST form with
+ *  no per-record URL, so there is nothing to link there. */
+function idfprLicenseUrl(licenseNumber: string): string {
+  const clean = licenseNumber.replace(/[^0-9A-Za-z]/g, "");
+  return `https://data.illinois.gov/Business-and-Workforce/Professional-Licensing/pzzh-kp68?license_number=${clean}`;
+}
+
+/** The Assessor's parcel page — sale history and the county's own estimated
+ *  market value, neither of which we extract. */
+function cookCountyPinUrl(pin: string): string {
+  return `https://www.cookcountyassessoril.gov/pin/${pin}`;
+}
+
+/** Cook County PINs are 14 digits; the county writes them 2-2-3-3-4. The
+ *  signal description carries the raw run of digits. */
+function pinFrom(description: string): string | null {
+  const m = description.match(/PIN\s*(\d{14})/);
+  return m ? m[1] : null;
+}
+
+function formatPin(pin: string): string {
+  return [
+    pin.slice(0, 2),
+    pin.slice(2, 4),
+    pin.slice(4, 7),
+    pin.slice(7, 10),
+    pin.slice(10),
+  ].join("-");
+}
+
 function toProfile(d: ApiDetail): CandidateProfile {
   const active = (d.license_status ?? "").toUpperCase() === "ACTIVE";
   const corroborated = Boolean(d.npi && d.license_number);
@@ -565,8 +618,26 @@ function toProfile(d: ApiDetail): CandidateProfile {
           value: career ? career.description : "None on record",
           pill: career ? "positive" : "neutral",
         },
-        { label: "NPI", value: d.npi ?? "—" },
-        { label: "License Number", value: d.license_number ?? "—" },
+        {
+          label: "NPI",
+          value: d.npi ?? "—",
+          ...(d.npi
+            ? {
+                href: npiRegistryUrl(d.npi),
+                hrefLabel: "NPPES NPI registry",
+              }
+            : {}),
+        },
+        {
+          label: "License Number",
+          value: d.license_number ?? "—",
+          ...(d.license_number
+            ? {
+                href: idfprLicenseUrl(d.license_number),
+                hrefLabel: "Illinois licence roster",
+              }
+            : {}),
+        },
       ],
     },
     {
@@ -630,6 +701,18 @@ function toProfile(d: ApiDetail): CandidateProfile {
             : "—",
         },
         { label: "Phone", value: d.phone ?? "Not on record" },
+        // PECOS has no public per-person page; Care Compare is the same
+        // data with a face on it, and it is keyed on the NPI we already hold.
+        ...(d.npi
+          ? [
+              {
+                label: "Medicare Record",
+                value: "Care Compare profile",
+                href: careCompareUrl(d.npi),
+                hrefLabel: "Medicare Care Compare",
+              },
+            ]
+          : []),
       ],
     },
     {
@@ -641,6 +724,18 @@ function toProfile(d: ApiDetail): CandidateProfile {
             { label: "Detail", value: property.description },
             { label: "Purchase Date", value: fmtDate(property.event_date) },
             { label: "Source", value: property.source.toUpperCase() },
+            // The parcel page carries the full sale history and the county's
+            // own market value — the growth picture we do not extract.
+            ...(pinFrom(property.description)
+              ? [
+                  {
+                    label: "Parcel (PIN)",
+                    value: formatPin(pinFrom(property.description)!),
+                    href: cookCountyPinUrl(pinFrom(property.description)!),
+                    hrefLabel: "Cook County Assessor",
+                  },
+                ]
+              : []),
             {
               label: "Signal Strength",
               value: `${Math.round(property.strength * 100)}%`,

@@ -65,6 +65,13 @@ export type ProfileRow = {
   value: string;
   /** Renders the value as a pill instead of plain text. */
   pill?: "positive" | "neutral";
+  /** Deep link to this exact record on the public source that produced it,
+   *  so an advisor can open the original and read past what we extracted.
+   *  Set only where the source has a stable per-record URL — IDFPR's lookup
+   *  is a POST form, so its row stays plain text. */
+  href?: string;
+  /** Names the destination for screen readers, e.g. "NPPES registry". */
+  hrefLabel?: string;
 };
 
 export type ProfileSection = {
